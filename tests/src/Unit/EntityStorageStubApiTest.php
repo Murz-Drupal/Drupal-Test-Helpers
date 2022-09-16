@@ -8,12 +8,12 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\UnitTestHelpers;
 
 /**
- * Tests EntityStorageStub class.
+ * Tests EntityStorageStub main API functions.
  *
  * @coversDefaultClass \Drupal\test_helpers\EntityStorageStub
  * @group test_helpers
  */
-class EntityStorageStubTest extends UnitTestCase {
+class EntityStorageStubApiTest extends UnitTestCase {
 
   /**
    * {@inheritdoc}

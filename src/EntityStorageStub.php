@@ -174,7 +174,7 @@ class EntityStorageStub extends UnitTestCase {
   /**
    * Creates an entity stub with field values.
    */
-  public function createEntityStub(string $entityClass, array $values) {
+  public function createEntityStub(string $entityClass, array $values = []) {
     $entityTypeDefinition = $this->initEntityDefinition($entityClass);
     $entityTypeId = $entityTypeDefinition->get('id');
     $bundleProperty = $entityTypeDefinition->get('entity_keys')['bundle'];
@@ -299,9 +299,12 @@ class EntityStorageStub extends UnitTestCase {
   /**
    * Generates a new entity id, using auto increment like method.
    */
-  public function generateNewEntityId($entityType) {
+  public function generateNewEntityId(string $entityType): string {
     // @todo Make detection of id field type, and calculate only for integers.
-    return max(array_keys($this->entitiesStorageById[$entityType] ?? [0])) + 1;
+    $id = max(array_keys($this->entitiesStorageById[$entityType] ?? [0])) + 1;
+    // The `id` value for even integer autoincrement is stored as string in
+    // Drupal, so we should follow this behaviour too.
+    return (string) $id;
   }
 
 }
