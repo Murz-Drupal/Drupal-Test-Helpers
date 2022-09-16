@@ -3,6 +3,7 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
+use Drupal\Component\Plugin\Definition\PluginDefinition;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -13,9 +14,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 class UnitTestHelpers extends UnitTestCase {
 
   /**
-   * Gets an accessible method using reflection.
+   * Gets an accessible method from class using reflection.
    */
-  public static function getAccessibleMethod($className, $methodName) {
+  public static function getAccessibleMethod(\stdclass $className, string $methodName): \ReflectionMethod {
     $class = new \ReflectionClass($className);
     $method = $class
       ->getMethod($methodName);
@@ -25,9 +26,9 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * Parses the annotation for a Drupal Plugin class.
+   * Parses the annotation for a Drupal Plugin class and generates a definition.
    */
-  public static function getPluginDefinition($class, $plugin) {
+  public static function getPluginDefinition(string $class, string $plugin): PluginDefinition {
     static $definitions;
 
     if (isset($definitions[$plugin][$class])) {
@@ -46,9 +47,9 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * Adds a new service to the Drupal container.
+   * Adds a new service to the Drupal container, if exists - reuse existing.
    */
-  public static function addToContainer(string $serviceName, object $class, $override = FALSE) {
+  public static function addToContainer(string $serviceName, object $class, bool $override = FALSE): ?object {
     $container = \Drupal::hasContainer()
       ? \Drupal::getContainer()
       : new ContainerBuilder();
@@ -67,9 +68,9 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * Gets a service from the Drupal container, or creates a new one.
+   * Gets the service from the Drupal container, or creates a new one.
    */
-  public static function getFromContainerOrCreate(string $serviceName, object $class) {
+  public static function getFromContainerOrCreate(string $serviceName, object $class): ?object {
     $container = \Drupal::hasContainer()
       ? \Drupal::getContainer()
       : new ContainerBuilder();
@@ -81,16 +82,14 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * Adds a new service to Drupal container.
+   * Creates a partial mock for the class and call constructor with arguments.
    */
   public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs): MockObject {
     return $this->getMockBuilder($originalClassName)
-      // ->disableOriginalConstructor()
       ->setConstructorArgs($constructorArgs)
       ->disableOriginalClone()
       ->disableArgumentCloning()
       ->disallowMockingUnknownTypes()
-      // ->setMethods(empty($methods) ? NULL : $methods)
       ->onlyMethods(empty($methods) ? NULL : $methods)
       // ->enableProxyingToOriginalMethods()
       ->getMock();
