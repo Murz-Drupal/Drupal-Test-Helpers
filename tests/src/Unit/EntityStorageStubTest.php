@@ -2,36 +2,16 @@
 
 namespace Drupal\Tests\test_helpers\Unit;
 
-use Drupal\block\BlockInterface;
-use Drupal\block_content\Entity\BlockContent;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Config\ImmutableConfig;
-use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
-use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
-use Drupal\Core\Field\FieldDefinitionInterface;
-use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\Core\Language\Language;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\TypedData\DataDefinitionInterface;
-use Drupal\Core\TypedData\TypedDataInterface;
-use Drupal\Core\TypedData\TypedDataManager;
-use Drupal\layout_builder\Plugin\Block\FieldBlock;
-use Drupal\layout_builder\SectionComponent;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\EntityStorageStub;
 use Drupal\Tests\UnitTestCase;
-use Drupal\tvh_layout_builder\TvhLayoutBuilderHelper;
 use Drupal\test_helpers\UnitTestHelpers;
-use Drupal\tvh_toc\Plugin\DataType\TvhCacheableString;
-use Drupal\tvh_toc\Plugin\Field\FieldType\TvhTableOfContents;
-use Drupal\tvh_toc\Plugin\Field\TvhTableOfContentsFieldItemList;
 
 /**
  * Tests EntityStorageStub class.
  *
- * @coversDefaultClass \Drupal\tvh_toc\Plugin\Field\TvhTableOfContentsFieldItemList
- * @group tvh
+ * @coversDefaultClass \Drupal\test_helpers\EntityStorageStub
+ * @group test_helpers
  */
 class EntityStorageStubTest extends UnitTestCase {
 
@@ -41,10 +21,15 @@ class EntityStorageStubTest extends UnitTestCase {
   public function setUp() {
 
     $this->entityStorageStub = new EntityStorageStub();
-    // $this->fieldTypeManagerStub = $this->entityStorageStub->getFieldTypeManagerStub();
     $this->unitTestHelpers = new UnitTestHelpers();
   }
 
+  /**
+   * Tests creating an Entity Stub and storaga eactions.
+   *
+   * @covers ::__construct
+   * @covers ::createEntityStub
+   */
   public function testEntityStorageStub() {
     $node1Values = [
       'type' => 'article',
