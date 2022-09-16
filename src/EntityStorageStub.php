@@ -113,7 +113,10 @@ class EntityStorageStub extends UnitTestCase {
       );
       $entityStorageStub
         ->method('loadMultiple')
-        ->willReturnCallback(function (array $ids = []) use ($entityType) {
+        ->willReturnCallback(function (?array $ids = NULL) use ($entityType) {
+          if ($ids === NULL) {
+            return $this->entitiesStorageById[$entityType];
+          }
           $entities = [];
           foreach ($ids as $id) {
             if (isset($this->entitiesStorageById[$entityType][$id])) {
@@ -297,6 +300,7 @@ class EntityStorageStub extends UnitTestCase {
    * Generates a new entity id, using auto increment like method.
    */
   public function generateNewEntityId($entityType) {
+    // @todo Make detection of id field type, and calculate only for integers.
     return max(array_keys($this->entitiesStorageById[$entityType] ?? [0])) + 1;
   }
 
