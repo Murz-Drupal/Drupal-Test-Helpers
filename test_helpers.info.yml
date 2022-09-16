@@ -1,0 +1,7 @@
+name: Test Helpers
+type: module
+description: 'Helper classes and functions to simplify writing Drupal tests.'
+package: Development
+core_version_requirement: ^8 || ^9
+tags:
+ - developer
