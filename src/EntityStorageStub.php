@@ -109,6 +109,7 @@ class EntityStorageStub extends UnitTestCase {
         SqlContentEntityStorage::class,
         [
           'loadMultiple',
+          'loadByProperties',
         ]
       );
       $entityStorageStub
@@ -125,6 +126,24 @@ class EntityStorageStub extends UnitTestCase {
           }
           return $entities;
         });
+
+      $entityStorageStub
+        ->method('loadByProperties')
+        ->willReturnCallback(function (array $values = []) use ($entityType) {
+          $entities = [];
+          foreach ($this->entitiesStorageById[$entityType] as $entity) {
+            foreach ($values as $key => $value) {
+              // Now getting only the `value` property to compare.
+              // @todo Try to check the main property and get it.
+              if ($entity->$key->value != $value) {
+                continue;
+              }
+            }
+            $entities[] = $entity;
+          }
+          return $entities;
+        });
+
       $this->entityStorageStubs[$entityType] = $entityStorageStub;
     }
     return $this->entityStorageStubs[$entityType];

@@ -5,7 +5,6 @@ namespace Drupal\Tests\test_helpers\Unit;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\EntityStorageStub;
 use Drupal\Tests\UnitTestCase;
-use Drupal\test_helpers\UnitTestHelpers;
 
 /**
  * Tests EntityStorageStub internal functionality.
