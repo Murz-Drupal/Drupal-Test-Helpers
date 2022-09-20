@@ -29,7 +29,7 @@ class FieldTypeManagerStub extends UnitTestCase {
   protected $fieldItemClassByListClassMap;
 
   /**
-   * Constructs the FieldTypeManagerStub class instance.
+   * Constructs a new FieldTypeManagerStub.
    */
   public function __construct() {
 
@@ -52,13 +52,13 @@ class FieldTypeManagerStub extends UnitTestCase {
     $fieldTypePluginManager
       ->method('getDefaultStorageSettings')
       ->willReturnCallback(function ($type) {
-        return $this->definitions[$type]['storage_settings'];
+        return $this->definitions[$type]['storage_settings'] ?? [];
       });
 
     $fieldTypePluginManager
       ->method('getDefaultFieldSettings')
       ->willReturnCallback(function ($type) {
-        return $this->definitions[$type]['field_settings'];
+        return $this->definitions[$type]['field_settings'] ?? [];
       });
 
     $fieldTypePluginManager

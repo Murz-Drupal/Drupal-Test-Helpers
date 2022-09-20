@@ -3,7 +3,7 @@
 namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\node\Entity\Node;
-use Drupal\test_helpers\EntityStorageStub;
+use Drupal\test_helpers\EntityStubFactory;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\UnitTestHelpers;
 
@@ -18,9 +18,8 @@ class EntityStorageStubApiTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
-
-    $this->entityStorageStub = new EntityStorageStub();
+  protected function setUp() {
+    $this->entityStubFactory = new EntityStubFactory();
     $this->unitTestHelpers = new UnitTestHelpers();
   }
 
@@ -28,7 +27,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
    * Tests creating an Entity Stub and storaga eactions.
    *
    * @covers ::__construct
-   * @covers ::createEntityStub
+   * @covers ::create
    */
   public function testEntityStorageStub() {
     // Creating mocked entities to test the results.
@@ -42,7 +41,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
         ['target_id' => 3],
       ],
     ];
-    $node1Entity = $this->entityStorageStub->createEntityStub(Node::class, $node1Values);
+    $node1Entity = $this->entityStubFactory->create(Node::class, $node1Values);
 
     // The `id` and `uuid` values should be NULL before saving, if not passed in
     // the `$values` array.
@@ -67,7 +66,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
       'field_sign' => 'Alice',
       'body' => 'Pretty boring page text.',
     ];
-    $node2Entity = $this->entityStorageStub->createEntityStub(Node::class, $node2Values);
+    $node2Entity = $this->entityStubFactory->create(Node::class, $node2Values);
 
     $this->assertEquals($node2Values['title'], $node2Entity->title->value);
 
@@ -82,7 +81,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
       'field_sign' => 'Bob',
       'body' => 'Very boring page text.',
     ];
-    $node3Entity = $this->entityStorageStub->createEntityStub(Node::class, $node3Values);
+    $node3Entity = $this->entityStubFactory->create(Node::class, $node3Values);
     $node3Entity->save();
 
     // The entity id should be auto-incremented over the max value.
@@ -103,13 +102,19 @@ class EntityStorageStubApiTest extends UnitTestCase {
 
     // Testing function EntityTypeManagerInterface::loadByProperties().
     $entities = \Drupal::service('entity_type.manager')->getStorage('node')->loadByProperties(['field_sign' => 'Alice']);
-    $this->assertCount(3, $entities);
+    $this->assertCount(2, $entities);
 
     // Testing function EntityRepositoryInterface::loadEntityByUuid().
     $node2EntityUuid = $node2Entity->uuid();
     $node2EntityType = $node2Entity->getEntityTypeId();
     $node2LoadedByUuid = \Drupal::service('entity.repository')->loadEntityByUuid($node2EntityType, $node2EntityUuid);
     $this->assertEquals($node2Values['title'], $node2LoadedByUuid->title->value);
+
+    // Testing function EntityRepositoryInterface::delete().
+    $node2Entity->delete();
+    $nodeLoadedMultuple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
+    $this->assertCount(2, $nodeLoadedMultuple);
+
   }
 
 }

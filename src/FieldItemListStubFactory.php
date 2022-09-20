@@ -21,7 +21,7 @@ class FieldItemListStubFactory extends TestCase {
   protected $fieldTypeManagerStub;
 
   /**
-   * Constructs the FieldItemList Stub factory object.
+   * Constructs a new EntityStubFactory.
    *
    * @param \Drupal\test_helpers\FieldTypeManagerStub $fieldTypeManagerStub
    *   The Field Type Manager stub to use.

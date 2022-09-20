@@ -3,7 +3,7 @@
 namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\node\Entity\Node;
-use Drupal\test_helpers\EntityStorageStub;
+use Drupal\test_helpers\EntityStubFactory;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -17,9 +17,10 @@ class EntityStorageStubFunctionsTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  protected function setUp() {
     parent::setUp();
-    $this->entityStorageStub = new EntityStorageStub();
+    $this->entityStubFactory = new EntityStubFactory();
+    $this->entityStorageStubFactory = new EntityStubFactory();
   }
 
   /**
@@ -27,10 +28,11 @@ class EntityStorageStubFunctionsTest extends UnitTestCase {
    * @covers ::generateNewEntityId
    */
   public function testGenerateNewEntityId() {
-    $this->entityStorageStub->createEntityStub(Node::class, ['nid' => 42])->save();
-    $this->entityStorageStub->createEntityStub(Node::class, ['nid' => 12])->save();
-    $this->entityStorageStub->createEntityStub(Node::class)->save();
-    $this->assertSame('44', $this->entityStorageStub->generateNewEntityId('node'));
+    $this->entityStubFactory->create(Node::class, ['nid' => 42])->save();
+    $this->entityStubFactory->create(Node::class, ['nid' => 12])->save();
+    $this->entityStubFactory->create(Node::class)->save();
+    $entityStorageStub = \Drupal::service('entity_type.manager')->getStorage('node');
+    $this->assertSame('44', $entityStorageStub->stubGetNewEntityId());
   }
 
 }

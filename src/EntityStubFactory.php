@@ -10,10 +10,10 @@ use Drupal\Tests\UnitTestCase;
 /**
  * The Entity Storage Stub class.
  */
-class EntityStorageStub extends UnitTestCase {
+class EntityStubFactory extends UnitTestCase {
 
   /**
-   * {@inheritdoc}
+   * Constructs a new EntityStubFactory.
    */
   public function __construct() {
 
@@ -62,33 +62,27 @@ class EntityStorageStub extends UnitTestCase {
   }
 
   /**
-   * Initializes an entity definition and adds to storage.
-   */
-  public function initEntityDefinition($entityClass) {
-    $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity');
-    $entityTypeId = $entityTypeDefinition->get('id');
-    // $this->entityTypeManager->stubAddDefinition($entityTypeId, 'storage')
-    $entityTypeDefinition = $this->entityTypeManager->getDefinition($entityTypeId, FALSE);
-    if (!$entityTypeDefinition) {
-      $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity');
-      // $entityTypeId = $entityTypeDefinition->get('id');
-      // $this->definitionStorage[$entityTypeId] = $entityTypeDefinition;
-      $this->entityTypeManager->stubAddDefinition($entityTypeId, $entityTypeDefinition);
-    }
-    return $entityTypeDefinition;
-  }
-
-  /**
    * Creates an entity stub with field values.
+   *
+   * @param string $entityClass
+   *   A class path to use when creating the entity.
+   * @param array $values
+   *   The array of values to set in the created entity.
+   * @param array $options
+   *   The array of options:
+   *   - methods: the list of additional methods to allow mocking of them.
+   *
+   * @return \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject
+   *   A mocked entity object.
    */
-  public function createEntityStub(string $entityClass, array $values = []) {
-    $entityTypeDefinition = $this->initEntityDefinition($entityClass);
-    $entityTypeId = $entityTypeDefinition->get('id');
-    $bundleProperty = $entityTypeDefinition->get('entity_keys')['bundle'];
-
+  public function create(string $entityClass, array $values = [], array $options = []) {
     // Creating a new entity storage stub instance, if not exists.
     // @todo Move this to a separate function.
     $storageNew = $this->entityStorageStubFactory->createInstance($entityClass);
+    $entityTypeDefinition = $storageNew->getEntityType();
+    $bundleProperty = $entityTypeDefinition->getKeys()['bundle'];
+    $entityTypeId = $storageNew->getEntityTypeId();
+
     $storage = $this->entityTypeManager->stubGetOrCreateStorage($entityTypeId, $storageNew);
 
     // Creating a stub of the entity.
@@ -102,6 +96,7 @@ class EntityStorageStub extends UnitTestCase {
       'getEntityTypeId',
       'save',
       'delete',
+      ...($options['methods'] ?? []),
     ]);
 
     UnitTestHelpers::bindClosureToClassMethod(

@@ -28,8 +28,9 @@ class UnitTestHelpers extends UnitTestCase {
   /**
    * Parses the annotation for a Drupal Plugin class and generates a definition.
    */
-  public static function getPluginDefinition(string $class, string $plugin): PluginDefinition {
+  public static function getPluginDefinition(string $class, string $plugin, string $annotationName = NULL): PluginDefinition {
     static $definitions;
+    static $definitionsById;
 
     if (isset($definitions[$plugin][$class])) {
       return $definitions[$plugin][$class];
@@ -40,10 +41,26 @@ class UnitTestHelpers extends UnitTestCase {
     $reader = new SimpleAnnotationReader();
     $reader->addNamespace('Drupal\Core\Annotation');
     $reader->addNamespace('Drupal\Core\\' . $plugin . '\Annotation');
-    $annotation = current($reader->getClassAnnotations($rc));
-    $definition = $annotation->get();
-    $definitions[$plugin][$class] = $definition;
-    return $definition;
+
+    // If no annotation name is passed, just getting the first anotatin;
+    if (!$annotationName) {
+      $annotation = current($reader->getClassAnnotations($rc));
+    }
+    else {
+      $annotation = $reader->getClassAnnotation($rc, $annotationName);
+    }
+    if ($annotation) {
+      // Inline copy of the proteced function
+      // AnnotatedClassDiscovery::prepareAnnotationDefinition().
+      $annotation->setClass($class);
+
+      $definition = $annotation->get();
+
+      // @todo Investigate if we need this.
+      $id = $annotation->getId();
+      $definitionsById[$id] = $definition;
+      return $definition;
+    }
   }
 
   /**
@@ -93,6 +110,14 @@ class UnitTestHelpers extends UnitTestCase {
       ->onlyMethods(empty($methods) ? NULL : $methods)
       // ->enableProxyingToOriginalMethods()
       ->getMock();
+  }
+
+  /**
+   * Binds a closure function to a mocked class method.
+   */
+  public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
+    $doClosure = $closure->bindTo($class, get_class($class));
+    $class->method($method)->willReturnCallback($doClosure);
   }
 
 }
