@@ -2,11 +2,13 @@
 
 namespace Drupal\test_helpers;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\StringItem;
+use Drupal\Core\TypedData\TypedDataInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -60,18 +62,20 @@ class FieldItemListStubFactory extends TestCase {
    *   Field values array.
    * @param \Drupal\Core\Field\FieldDefinitionInterface $definition
    *   Definition to use, will use BaseFieldDefinition if not passed.
+   * @param \Drupal\Core\TypedData\TypedDataInterface $parent
+   *   Parent item for attaching to the field.
    *
    * @return \Drupal\Core\Field\FieldItemListInterface
    *   A field item list with items as stubs.
    */
-  public function create(string $name, $values = NULL, FieldDefinitionInterface $definition = NULL): FieldItemListInterface {
+  public function create(string $name, $values = NULL, FieldDefinitionInterface $definition = NULL, TypedDataInterface $parent = NULL): FieldItemListInterface {
     if (!$definition) {
       // @todo Now it's a hard-coded type, will be good to add support for
       // custom types.
       $type = 'string';
       $definition = $this->createFieldItemDefinitionStub($name, $type);
     }
-    $field = new FieldItemList($definition, $name);
+    $field = new FieldItemList($definition, $name, $parent);
     $field->setValue($values);
 
     return $field;

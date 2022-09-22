@@ -74,6 +74,8 @@ class EntityStubFactory extends UnitTestCase {
    * @param array $options
    *   The array of options:
    *   - methods: the list of additional methods to allow mocking of them.
+   *   - definition: the list of custom field definitions for needed fields.
+   *     If not passed - the default one (`StringItem`) will be used.
    *
    * @return \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   A mocked entity object.
@@ -113,7 +115,10 @@ class EntityStubFactory extends UnitTestCase {
 
         // Filling values to the entity array.
         foreach ($values as $name => $value) {
-          $field = $fieldItemListStubFactory->create($name, $value);
+          $definition = $options['definitions'][$name] ?? NULL;
+          // @todo Convert entity to TypedDataInterface and pass to the
+          // item list initialization as a third argument $parent.
+          $field = $fieldItemListStubFactory->create($name, $value, $definition);
           $this->fieldDefinitions[$name] = $field->getFieldDefinition();
           $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
         }
