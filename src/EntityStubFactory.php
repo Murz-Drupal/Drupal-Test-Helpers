@@ -80,10 +80,8 @@ class EntityStubFactory extends UnitTestCase {
    */
   public function create(string $entityClass, array $values = [], array $options = []) {
     // Creating a new entity storage stub instance, if not exists.
-    // @todo Move this to a separate function.
     $storageNew = $this->entityStorageStubFactory->createInstance($entityClass);
     $entityTypeDefinition = $storageNew->getEntityType();
-    $bundleProperty = $entityTypeDefinition->getKey('bundle');
     $entityTypeId = $storageNew->getEntityTypeId();
 
     $storage = $this->entityTypeManager->stubGetOrCreateStorage($entityTypeId, $storageNew);
