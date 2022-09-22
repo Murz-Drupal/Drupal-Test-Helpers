@@ -115,18 +115,10 @@ class FieldTypeManagerStub extends UnitTestCase {
   /**
    * Adds the definition, to the static storage.
    */
-  public function addDefinition(string $fieldType, $definition = NULL) {
-    if (!$definition) {
-      $definition = [
-        'storage_settings' => [
-          'some_setting' => 'value 1',
-        ],
-        'field_settings' => [
-          'some_instance_setting' => 'value 2',
-        ],
-      ];
+  public function addDefinition(string $fieldType, $definition = []) {
+    if (!isset($definition['id'])) {
+      $definition['id'] = $fieldType;
     }
-    $definition['id'] = $fieldType;
     $this->definitions[$fieldType] = $definition;
   }
 

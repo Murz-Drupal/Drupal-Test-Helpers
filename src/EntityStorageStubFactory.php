@@ -140,7 +140,7 @@ class EntityStorageStubFactory extends UnitTestCase {
    * Initializes an entity definition and adds to storage. Not working yet.
    */
   public function initEntityDefinition($entityClass) {
-    $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity');
+    $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity', '\Drupal\Core\Entity\Annotation\ContentEntityType');
     $entityTypeId = $entityTypeDefinition->get('id');
     $entityTypeDefinition = $this->entityTypeManager->getDefinition($entityTypeId, FALSE);
     if (!$entityTypeDefinition) {

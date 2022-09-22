@@ -5,6 +5,8 @@ namespace Drupal\test_helpers;
 use Drupal\Component\Uuid\Php as PhpUuid;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Field\Plugin\Field\FieldType\StringItem;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -19,8 +21,9 @@ class EntityStubFactory extends UnitTestCase {
 
     $this->fieldTypeManagerStub = new FieldTypeManagerStub();
 
-    // Creating a stub to reuse by default for non defined field types.
-    $this->fieldTypeManagerStub->addDefinition('type_stub');
+    // Reusing a string field type definition as default one.
+    $stringItemDefinition = UnitTestHelpers::getPluginDefinition(StringItem::class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
+    $this->fieldTypeManagerStub->addDefinition('string', $stringItemDefinition);
 
     $this->fieldItemListStubFactory = new FieldItemListStubFactory($this->fieldTypeManagerStub);
 
@@ -41,7 +44,7 @@ class EntityStubFactory extends UnitTestCase {
       ->method('loadEntityByUuid')
       ->willReturnCallback(function ($entityTypeId, $uuid) {
         $entityTypeStorage = \Drupal::service('entity_type.manager')->getStorage($entityTypeId);
-        $uuidProperty = $entityTypeStorage->getEntityType()->getKeys()['uuid'];
+        $uuidProperty = $entityTypeStorage->getEntityType()->getKey('uuid');
         return current($entityTypeStorage->loadByProperties([$uuidProperty => $uuid]) ?? []);
       });
 
@@ -80,7 +83,7 @@ class EntityStubFactory extends UnitTestCase {
     // @todo Move this to a separate function.
     $storageNew = $this->entityStorageStubFactory->createInstance($entityClass);
     $entityTypeDefinition = $storageNew->getEntityType();
-    $bundleProperty = $entityTypeDefinition->getKeys()['bundle'];
+    $bundleProperty = $entityTypeDefinition->getKey('bundle');
     $entityTypeId = $storageNew->getEntityTypeId();
 
     $storage = $this->entityTypeManager->stubGetOrCreateStorage($entityTypeId, $storageNew);
@@ -88,37 +91,13 @@ class EntityStubFactory extends UnitTestCase {
     // Creating a stub of the entity.
     /** @var \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject $entity */
     $entity = $this->createPartialMock($entityClass, [
-      '__get',
-      '__set',
-      'id',
-      'uuid',
-      'bundle',
       'getEntityTypeId',
+      // 'getFieldDefinitions',
       'save',
       'delete',
+      'stubInitValues',
       ...($options['methods'] ?? []),
     ]);
-
-    UnitTestHelpers::bindClosureToClassMethod(
-      function ($field) {
-        return $this->values[$field] ?? NULL;
-      },
-      $entity,
-      '__get'
-    );
-
-    UnitTestHelpers::bindClosureToClassMethod(
-      function ($field, $value) {
-        if (isset($this->values[$field])) {
-          $this->values[$field]->setValue($value);
-        }
-        else {
-          $this->values[$field] = $value;
-        }
-      },
-      $entity,
-      '__set'
-    );
 
     // Adding empty values for obligatory fields, if not passed.
     foreach ($entityTypeDefinition->get('entity_keys') as $property) {
@@ -128,10 +107,24 @@ class EntityStubFactory extends UnitTestCase {
     }
 
     // Filling values to the entity array.
-    foreach ($values as $fieldName => $value) {
-      $field = $this->fieldItemListStubFactory->create($fieldName, $value);
-      $entity->$fieldName = $field;
-    }
+    $fieldItemListStubFactory = $this->fieldItemListStubFactory;
+    UnitTestHelpers::bindClosureToClassMethod(
+      function (array $values) use ($fieldItemListStubFactory) {
+        // Filling common values.
+        $this->translations[LanguageInterface::LANGCODE_DEFAULT] = ['status' => TRUE];
+
+        // Filling values to the entity array.
+        foreach ($values as $name => $value) {
+          $field = $fieldItemListStubFactory->create($name, $value);
+          $this->fieldDefinitions[$name] = $field->getFieldDefinition();
+          $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
+        }
+
+      },
+      $entity,
+      'stubInitValues'
+    );
+    $entity->stubInitValues($values);
 
     UnitTestHelpers::bindClosureToClassMethod(
       function () use ($entityTypeId) {
@@ -142,43 +135,13 @@ class EntityStubFactory extends UnitTestCase {
     );
 
     UnitTestHelpers::bindClosureToClassMethod(
-      function () use ($bundleProperty) {
-        return $this->$bundleProperty->value;
-      },
-      $entity,
-      'bundle'
-    );
-
-    $idProperty = $entityTypeDefinition->get('entity_keys')['id'] ?? NULL;
-    $uuidProperty = $entityTypeDefinition->get('entity_keys')['uuid'] ?? NULL;
-
-    if ($idProperty) {
-      UnitTestHelpers::bindClosureToClassMethod(
-        function () use ($idProperty) {
-          return $this->values[$idProperty]->value;
-        },
-        $entity,
-        'id'
-      );
-    }
-    if ($uuidProperty) {
-      UnitTestHelpers::bindClosureToClassMethod(
-        function () use ($uuidProperty) {
-          return $this->values[$uuidProperty]->value;
-        },
-        $entity,
-        'uuid'
-      );
-    }
-
-    UnitTestHelpers::bindClosureToClassMethod(
       function () use ($storage) {
-        $idProperty = $this->getEntityType()->getKeys()['id'] ?? NULL;
+        $idProperty = $this->getEntityType()->getKey('id') ?? NULL;
         if ($idProperty && empty($this->$idProperty->value)) {
           $this->$idProperty = $storage->stubGetNewEntityId();
         }
 
-        $uuidProperty = $this->getEntityType()->getKeys()['uuid'] ?? NULL;
+        $uuidProperty = $this->getEntityType()->getKey('uuid') ?? NULL;
         if ($uuidProperty && empty($this->$uuidProperty->value)) {
           $this->$uuidProperty = \Drupal::service('uuid')->generate();
         }

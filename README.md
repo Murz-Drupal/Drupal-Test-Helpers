@@ -49,10 +49,10 @@ More examples can be found in the unit test file: `tests/src/Unit/EntityStorageS
 
 Class `UnitTestHelpers` provides some utility functions:
 
-    `getAccessibleMethod()`: Gets an accessible method from class using reflection.
-    `getPluginDefinition()`: Parses the annotation for a Drupal Plugin class and generates a definition.
-    `addToContainer()`: Adds a new service to the Drupal container, if exists - reuse existing.
-    `getFromContainerOrCreate()`: Gets the service from the Drupal container, or creates a new one.
-    `bindClosureToClassMethod()`: Binds a closure function to a mocked class method.
+- `getAccessibleMethod()`: Gets an accessible method from class using reflection.
+- `getPluginDefinition()`: Parses the annotation for a Drupal Plugin class and generates a definition.
+- `addToContainer()`: Adds a new service to the Drupal container, if exists - reuse existing.
+- `getFromContainerOrCreate()`: Gets the service from the Drupal container, or creates a new one.
+- `bindClosureToClassMethod()`: Binds a closure function to a mocked class method.
 
 _It's yet in the early stage of development, so some features are implemented in ugly ways, "just to make them work as needed"._

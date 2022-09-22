@@ -6,6 +6,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Field\Plugin\Field\FieldType\StringItem;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -46,6 +47,7 @@ class FieldItemListStubFactory extends TestCase {
     // will be good to add support for other field types.
     $field_definition = BaseFieldDefinition::create($type);
     $field_definition->setName($name);
+    $field_definition->getItemDefinition()->setClass(StringItem::class);
     return $field_definition;
   }
 
@@ -66,7 +68,7 @@ class FieldItemListStubFactory extends TestCase {
     if (!$definition) {
       // @todo Now it's a hard-coded type, will be good to add support for
       // custom types.
-      $type = 'type_stub';
+      $type = 'string';
       $definition = $this->createFieldItemDefinitionStub($name, $type);
     }
     $field = new FieldItemList($definition, $name);

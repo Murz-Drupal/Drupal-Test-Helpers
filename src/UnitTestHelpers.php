@@ -26,11 +26,10 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * Parses the annotation for a Drupal Plugin class and generates a definition.
+   * Parses the annotation for a class and gets the definition.
    */
-  public static function getPluginDefinition(string $class, string $plugin, string $annotationName = NULL): PluginDefinition {
+  public static function getPluginDefinition(string $class, string $plugin, string $annotationName = NULL): PluginDefinition|array {
     static $definitions;
-    static $definitionsById;
 
     if (isset($definitions[$plugin][$class])) {
       return $definitions[$plugin][$class];
@@ -56,9 +55,6 @@ class UnitTestHelpers extends UnitTestCase {
 
       $definition = $annotation->get();
 
-      // @todo Investigate if we need this.
-      $id = $annotation->getId();
-      $definitionsById[$id] = $definition;
       return $definition;
     }
   }
