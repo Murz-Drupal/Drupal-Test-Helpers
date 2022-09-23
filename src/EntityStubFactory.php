@@ -173,6 +173,13 @@ class EntityStubFactory extends UnitTestCase {
   }
 
   /**
+   * Returns the Field Type Manager stub.
+   */
+  public function getFieldItemListStubFactory() {
+    return $this->fieldItemListStubFactory;
+  }
+
+  /**
    * Generates a new entity id, using auto increment like method.
    */
   public function generateNewEntityId(string $entityType): string {
