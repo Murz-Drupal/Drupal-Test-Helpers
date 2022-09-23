@@ -2,7 +2,6 @@
 
 namespace Drupal\test_helpers;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
@@ -40,16 +39,21 @@ class FieldItemListStubFactory extends TestCase {
    *   Field name.
    * @param string $type
    *   Type of the creating field.
+   * @param string $class
+   *   The class name to use for item definition.
    *
    * @return \Drupal\Core\Field\FieldDefinitionInterface
    *   A field field definition stub.
    */
-  private function createFieldItemDefinitionStub(string $name, string $type): FieldDefinitionInterface {
+  public function createFieldItemDefinitionStub(string $name, string $type, string $class = NULL): FieldDefinitionInterface {
+    if (!$class) {
+      $class = StringItem::class;
+    }
     // @todo Now it's a quick initialization of BaseFieldDefinition,
     // will be good to add support for other field types.
     $field_definition = BaseFieldDefinition::create($type);
     $field_definition->setName($name);
-    $field_definition->getItemDefinition()->setClass(StringItem::class);
+    $field_definition->getItemDefinition()->setClass($class);
     return $field_definition;
   }
 
@@ -73,7 +77,7 @@ class FieldItemListStubFactory extends TestCase {
       // @todo Now it's a hard-coded type, will be good to add support for
       // custom types.
       $type = 'string';
-      $definition = $this->createFieldItemDefinitionStub($name, $type);
+      $definition = $this->createFieldItemDefinitionStub($name, $type, StringItem::class);
     }
     $field = new FieldItemList($definition, $name, $parent);
     $field->setValue($values);

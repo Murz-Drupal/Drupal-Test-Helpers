@@ -18,25 +18,20 @@ class EntityStubFactory extends UnitTestCase {
    * Constructs a new EntityStubFactory.
    */
   public function __construct() {
-
     $this->fieldTypeManagerStub = new FieldTypeManagerStub();
+    $this->fieldItemListStubFactory = new FieldItemListStubFactory($this->fieldTypeManagerStub);
+    $this->entityTypeManager = (new EntityTypeManagerStubFactory())->create();
+    $this->typedDataManagerStub = (new TypedDataManagerStubFactory())->createInstance();
+
+    UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
+    UnitTestHelpers::addToContainer('entity_field.manager', $this->createMock(EntityFieldManagerInterface::class));
+    UnitTestHelpers::addToContainer('entity_type.manager', $this->entityTypeManager);
+    UnitTestHelpers::addToContainer('typed_data_manager', $this->typedDataManagerStub);
+    UnitTestHelpers::addToContainer('uuid', new PhpUuid());
 
     // Reusing a string field type definition as default one.
     $stringItemDefinition = UnitTestHelpers::getPluginDefinition(StringItem::class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
     $this->fieldTypeManagerStub->addDefinition('string', $stringItemDefinition);
-
-    $this->fieldItemListStubFactory = new FieldItemListStubFactory($this->fieldTypeManagerStub);
-
-    $this->entitiesStorageById = [];
-    $this->entitiesStorageByUuid = [];
-
-    $entityTypeManagerStubFactory = new EntityTypeManagerStubFactory();
-    $this->entityTypeManager = $entityTypeManagerStubFactory->create();
-
-    UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
-    UnitTestHelpers::addToContainer('entity_type.manager', $this->entityTypeManager);
-    UnitTestHelpers::addToContainer('entity_field.manager', $this->createMock(EntityFieldManagerInterface::class));
-    UnitTestHelpers::addToContainer('uuid', new PhpUuid());
 
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
     $entityRepository = \Drupal::service('entity.repository');
@@ -74,7 +69,7 @@ class EntityStubFactory extends UnitTestCase {
    * @param array $options
    *   The array of options:
    *   - methods: the list of additional methods to allow mocking of them.
-   *   - definition: the list of custom field definitions for needed fields.
+   *   - definitions: the list of custom field definitions for needed fields.
    *     If not passed - the default one (`StringItem`) will be used.
    *
    * @return \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject
@@ -109,16 +104,18 @@ class EntityStubFactory extends UnitTestCase {
     // Filling values to the entity array.
     $fieldItemListStubFactory = $this->fieldItemListStubFactory;
     UnitTestHelpers::bindClosureToClassMethod(
-      function (array $values) use ($fieldItemListStubFactory) {
+      function (array $values) use ($fieldItemListStubFactory, $options) {
         // Filling common values.
         $this->translations[LanguageInterface::LANGCODE_DEFAULT] = ['status' => TRUE];
 
         // Filling values to the entity array.
         foreach ($values as $name => $value) {
-          $definition = $options['definitions'][$name] ?? NULL;
+          if (isset($options['definitions'][$name])) {
+            $definition = $options['definitions'][$name];
+          }
           // @todo Convert entity to TypedDataInterface and pass to the
           // item list initialization as a third argument $parent.
-          $field = $fieldItemListStubFactory->create($name, $value, $definition);
+          $field = $fieldItemListStubFactory->create($name, $value, $definition ?? NULL);
           $this->fieldDefinitions[$name] = $field->getFieldDefinition();
           $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
         }

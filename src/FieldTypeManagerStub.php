@@ -6,7 +6,6 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinitionInterface;
 use Drupal\Core\TypedData\DataDefinitionInterface;
-use Drupal\entity_test\Plugin\Field\FieldType\FieldTestItem;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -64,8 +63,7 @@ class FieldTypeManagerStub extends UnitTestCase {
     $fieldTypePluginManager
       ->method('createFieldItem')
       ->willReturnCallback(function ($items, $index, $values) {
-        // By default reusing the class from entity_test module.
-        $itemClass = FieldTestItem::class;
+        $itemClass = $items->getFieldDefinition()->getItemDefinition()->getClass();
         foreach ($this->fieldItemClassByListClassMap as $listClass => $itemClassCandidate) {
           if ($items instanceof $listClass) {
             $itemClass = $itemClassCandidate;
