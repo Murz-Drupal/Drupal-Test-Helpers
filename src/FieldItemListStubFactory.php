@@ -30,6 +30,7 @@ class FieldItemListStubFactory extends TestCase {
    */
   public function __construct(FieldTypeManagerStub $fieldTypeManagerStub) {
     $this->fieldTypeManagerStub = $fieldTypeManagerStub;
+    $this->unitTestHelpers = new UnitTestHelpers();
   }
 
   /**
@@ -80,6 +81,23 @@ class FieldItemListStubFactory extends TestCase {
       $definition = $this->createFieldItemDefinitionStub($name, $type, StringItem::class);
     }
     $field = new FieldItemList($definition, $name, $parent);
+    $field = $this->unitTestHelpers->createPartialMockWithCostructor(FieldItemList::class,
+      [
+        'applyDefaultValue',
+      ],
+      [$definition, $name, $parent]
+    );
+
+    // We have no information about default values because of missing configs,
+    // so just return the same object.
+    UnitTestHelpers::bindClosureToClassMethod(
+      function ($notify = TRUE) {
+        return $this;
+      },
+      $field,
+      'applyDefaultValue'
+    );
+
     $field->setValue($values);
 
     return $field;
