@@ -18,15 +18,14 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
     $entityTypeManagerStub = $this->createPartialMock(EntityTypeManager::class, [
       'findDefinitions',
 
-      /** Custom helper functions for the stub: */
-
-      /** Adds a definition to the static storage. */
+      // Custom helper functions for the stub:
+      // Adds a definition to the static storage.
       'stubAddDefinition',
 
-      /** Adds or creates a handler. */
+      // Adds or creates a handler.
       'stubGetOrCreateHandler',
 
-      /** Adds or creates a storage. */
+      // Adds or creates a storage.
       'stubGetOrCreateStorage',
     ]);
 

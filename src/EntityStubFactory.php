@@ -166,17 +166,24 @@ class EntityStubFactory extends UnitTestCase {
   }
 
   /**
-   * Returns the Field Type Manager stub.
+   * Returns the FieldTypeManagerStub.
    */
   public function getFieldTypeManagerStub() {
     return $this->fieldTypeManagerStub;
   }
 
   /**
-   * Returns the Field Type Manager stub.
+   * Returns the FieldItemListStubFactory.
    */
   public function getFieldItemListStubFactory() {
     return $this->fieldItemListStubFactory;
+  }
+
+  /**
+   * Returns the TypedDataManagerStub.
+   */
+  public function getTypedDataManagerStub() {
+    return $this->typedDataManagerStub;
   }
 
   /**

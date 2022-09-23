@@ -16,19 +16,27 @@ class TypedDataManagerStubFactory extends UnitTestCase {
    */
   public function createInstance() {
     /** @var \Drupal\Core\TypedData\TypedDataManager|\PHPUnit\Framework\MockObject\MockObject $instance */
-    $instance = $this->createPartialMock(TypedDataManager::class, ['getDefinition']);
+    $instance = $this->createPartialMock(TypedDataManager::class, [
+      'getDefinition',
+      'stubAddPlugin',
+    ]);
     UnitTestHelpers::bindClosureToClassMethod(
       function ($plugin_id, $exception_on_invalid = TRUE) {
-        // @todo Add support for other plugins.
-        if ($plugin_id == 'string') {
-          $definition = UnitTestHelpers::getPluginDefinition(StringData::class, 'TypedData');
-          return $definition;
-        }
-        return NULL;
+        return $this->stubPluginsDefinition[$plugin_id] ?? NULL;
       },
       $instance,
       'getDefinition'
     );
+
+    UnitTestHelpers::bindClosureToClassMethod(
+      function ($class) {
+        $definition = UnitTestHelpers::getPluginDefinition($class, 'TypedData');
+        $this->stubPluginsDefinition[$definition['id']] = $definition;
+      },
+      $instance,
+      'stubAddPlugin'
+    );
+    $instance->stubAddPlugin(StringData::class);
 
     return $instance;
   }

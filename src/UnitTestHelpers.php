@@ -3,7 +3,6 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
-use Drupal\Component\Plugin\Definition\PluginDefinition;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -41,7 +40,7 @@ class UnitTestHelpers extends UnitTestCase {
     $reader->addNamespace('Drupal\Core\Annotation');
     $reader->addNamespace('Drupal\Core\\' . $plugin . '\Annotation');
 
-    // If no annotation name is passed, just getting the first anotatin;
+    // If no annotation name is passed, just getting the first anotation.
     if (!$annotationName) {
       $annotation = current($reader->getClassAnnotations($rc));
     }

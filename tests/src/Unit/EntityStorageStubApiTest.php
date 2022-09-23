@@ -34,6 +34,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
     $node1Values = [
       'type' => 'article',
       'title' => 'My cool article',
+      'empty_field' => NULL,
       'body' => 'Very interesting article text.',
       'field_sign' => 'Alice',
       'field_tags' => [
@@ -52,6 +53,9 @@ class EntityStorageStubApiTest extends UnitTestCase {
     $this->assertEquals($node1Values['title'], $node1Entity->title->value);
     $this->assertEquals($node1Values['field_tags'], $node1Entity->field_tags->getValue());
     $this->assertEquals($node1Values['field_tags'][1]['target_id'], $node1Entity->field_tags[1]->getValue()['target_id']);
+
+    $this->assertFalse($node1Entity->title->isEmpty());
+    $this->assertTrue($node1Entity->empty_field->isEmpty());
 
     $node1Entity->save();
     $node1EntityId = $node1Entity->id();

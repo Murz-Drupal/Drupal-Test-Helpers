@@ -28,18 +28,17 @@ class EntityStorageStubFactory extends UnitTestCase {
       'loadByProperties',
       'delete',
 
-      /** Custom helper functions for the stub: */
-
-      /** Attaches an entity type object to the stub. */
+      // Custom helper functions for the stub:
+      // Attaches an entity type object to the stub.
       'setEntityType',
 
-      /** Generates a next entity id, emulating DB autoincrement behavior. */
+      // Generates a next entity id, emulating DB autoincrement behavior.
       'stubGetNewEntityId',
 
-      /** Adds or replaces an entity to the static storage. */
+      // Adds or replaces an entity to the static storage.
       'stubAddEntity',
 
-      /** Deletes an entity from the static storage. */
+      // Deletes an entity from the static storage.
       'stubDeleteEntity',
     ]);
 

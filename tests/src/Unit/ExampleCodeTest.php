@@ -14,6 +14,9 @@ use Drupal\Tests\UnitTestCase;
  */
 class ExampleCodeTest extends UnitTestCase {
 
+  /**
+   * Tests the module Example code.
+   */
   public function testExampleCode() {
     $entityStubFactory = new EntityStubFactory();
 

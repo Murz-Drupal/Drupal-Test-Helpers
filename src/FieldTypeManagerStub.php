@@ -63,7 +63,9 @@ class FieldTypeManagerStub extends UnitTestCase {
     $fieldTypePluginManager
       ->method('createFieldItem')
       ->willReturnCallback(function ($items, $index, $values) {
-        $itemClass = $items->getFieldDefinition()->getItemDefinition()->getClass();
+        if ($items->getFieldDefinition()->getItemDefinition()) {
+          $itemClass = $items->getFieldDefinition()->getItemDefinition()->getClass();
+        }
         foreach ($this->fieldItemClassByListClassMap as $listClass => $itemClassCandidate) {
           if ($items instanceof $listClass) {
             $itemClass = $itemClassCandidate;
