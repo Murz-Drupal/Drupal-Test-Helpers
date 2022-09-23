@@ -28,7 +28,7 @@ class UnitTestHelpers extends UnitTestCase {
   /**
    * Parses the annotation for a class and gets the definition.
    */
-  public static function getPluginDefinition(string $class, string $plugin, string $annotationName = NULL): PluginDefinition|array {
+  public static function getPluginDefinition(string $class, string $plugin, string $annotationName = NULL) {
     static $definitions;
 
     if (isset($definitions[$plugin][$class])) {
