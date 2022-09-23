@@ -27,6 +27,7 @@ class EntityStorageStubFactory extends UnitTestCase {
       'loadMultiple',
       'loadByProperties',
       'delete',
+      'invokeHook',
 
       /** Custom helper functions for the stub: */
 
@@ -49,9 +50,16 @@ class EntityStorageStubFactory extends UnitTestCase {
     // we've got an error "Indirect modification of overloaded property
     // Mock_SqlContentEntityStorage_6202ec22::$stubStorage has no effect" if
     // try to use a new own property for this.
-    $propertyToStoreEntities = 'tableMapping';
+    $propertyToStoreEntities = 'database';
 
     $entityStorageStub->stubEntityStorageById = [];
+
+    UnitTestHelpers::bindClosureToClassMethod(
+      function () {
+      },
+      $entityStorageStub,
+      'invokeHook'
+     );
 
     UnitTestHelpers::bindClosureToClassMethod(
       function (EntityTypeInterface $entityType) {

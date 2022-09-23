@@ -5,6 +5,7 @@ namespace Drupal\test_helpers;
 use Drupal\Component\Uuid\Php as PhpUuid;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
 use Drupal\Core\Field\Plugin\Field\FieldType\StringItem;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Tests\UnitTestCase;
@@ -82,11 +83,13 @@ class EntityStubFactory extends UnitTestCase {
     $entityTypeId = $storageNew->getEntityTypeId();
 
     $storage = $this->entityTypeManager->stubGetOrCreateStorage($entityTypeId, $storageNew);
+    $bundle = $values[$entityTypeDefinition->getKey('bundle')] ?? $entityTypeId;
 
     // Creating a stub of the entity.
+    // @todo Try to init with a real constructor.
     /** @var \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject $entity */
     $entity = $this->createPartialMock($entityClass, [
-      'getEntityTypeId',
+      // 'getEntityTypeId',
       // 'getFieldDefinitions',
       'save',
       'delete',
@@ -104,9 +107,24 @@ class EntityStubFactory extends UnitTestCase {
     // Filling values to the entity array.
     $fieldItemListStubFactory = $this->fieldItemListStubFactory;
     UnitTestHelpers::bindClosureToClassMethod(
-      function (array $values) use ($fieldItemListStubFactory, $options) {
+      function (array $values) use ($fieldItemListStubFactory, $options, $entityTypeId, $bundle) {
+        // Pre-filling entity keys.
+        $this->entityTypeId = $entityTypeId;
+        $this->entityKeys['bundle'] = $bundle ? $bundle : $this->entityTypeId;
+        foreach ($this->getEntityType()->getKeys() as $key => $field) {
+          if (isset($values[$field])) {
+            $this->entityKeys[$key] = $values[$field];
+          }
+        }
+        $this->langcodeKey = $this->getEntityType()->getKey('langcode');
+        $this->defaultLangcodeKey = $this->getEntityType()->getKey('default_langcode');
+        $this->revisionTranslationAffectedKey = $this->getEntityType()->getKey('revision_translation_affected');
+
         // Filling common values.
-        $this->translations[LanguageInterface::LANGCODE_DEFAULT] = ['status' => TRUE];
+        $this->translations[LanguageInterface::LANGCODE_DEFAULT] = [
+          'status' => TRUE,
+          'entity' => $this,
+        ];
 
         // Filling values to the entity array.
         foreach ($values as $name => $value) {
@@ -115,7 +133,9 @@ class EntityStubFactory extends UnitTestCase {
           }
           // @todo Convert entity to TypedDataInterface and pass to the
           // item list initialization as a third argument $parent.
-          $field = $fieldItemListStubFactory->create($name, $value, $definition ?? NULL);
+          // $parent = EntityAdapter::createFromEntity($this);
+          $parent = NULL;
+          $field = $fieldItemListStubFactory->create($name, $value, $definition ?? NULL, $parent);
           $this->fieldDefinitions[$name] = $field->getFieldDefinition();
           $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
         }
@@ -125,14 +145,6 @@ class EntityStubFactory extends UnitTestCase {
       'stubInitValues'
     );
     $entity->stubInitValues($values);
-
-    UnitTestHelpers::bindClosureToClassMethod(
-      function () use ($entityTypeId) {
-        return $entityTypeId;
-      },
-      $entity,
-      'getEntityTypeId'
-    );
 
     UnitTestHelpers::bindClosureToClassMethod(
       function () use ($storage) {
