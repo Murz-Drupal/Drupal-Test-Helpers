@@ -5,6 +5,7 @@ namespace Drupal\test_helpers;
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Tests\UnitTestCase;
+use Iterator;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -80,12 +81,20 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * Gets the service from the Drupal container, or creates a new one.
+   * Gets the Drupal services container, or creates a new one.
    */
-  public static function getFromContainerOrCreate(string $serviceName, object $class): ?object {
+  public static function getContainerOrCreate(): object {
     $container = \Drupal::hasContainer()
       ? \Drupal::getContainer()
       : new ContainerBuilder();
+    return $container;
+  }
+
+  /**
+   * Gets the service from the Drupal container, or creates a new one.
+   */
+  public static function getFromContainerOrCreate(string $serviceName, object $class): object {
+    $container = self::getContainerOrCreate();
     if (!$container->has($serviceName)) {
       $container->set($serviceName, $class);
       \Drupal::setContainer($container);
@@ -113,6 +122,16 @@ class UnitTestHelpers extends UnitTestCase {
   public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
     $doClosure = $closure->bindTo($class, get_class($class));
     $class->method($method)->willReturnCallback($doClosure);
+  }
+
+  /**
+   * Tests simple create() and __construct() functions.
+   */
+  public function doTestCreateAndConstruct(string $class, array $createArguments = []): object {
+    $container = self::getContainerOrCreate();
+    $classInstance = $class::create($container, ...$createArguments);
+    $this->assertInstanceOf($class, $classInstance);
+    return $classInstance;
   }
 
 }
