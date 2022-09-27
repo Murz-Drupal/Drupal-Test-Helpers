@@ -105,7 +105,7 @@ class UnitTestHelpers extends UnitTestCase {
   /**
    * Creates a partial mock for the class and call constructor with arguments.
    */
-  public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs): MockObject {
+  public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs = []): MockObject {
     return $this->getMockBuilder($originalClassName)
       ->setConstructorArgs($constructorArgs)
       ->disableOriginalClone()
