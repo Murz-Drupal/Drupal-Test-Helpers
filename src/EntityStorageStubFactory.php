@@ -7,16 +7,11 @@ use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * The Entity Storage Stub class.
+ * The Entity Storage Stub class factory.
+ *
+ * Stub factory for class Drupal\Core\Entity\Sql\SqlContentEntityStorage.
  */
 class EntityStorageStubFactory extends UnitTestCase {
-
-  /**
-   * Constructs a new EntityStorageStubFactory.
-   */
-  public function __construct() {
-    $this->entityTypeManager = \Drupal::service('entity_type.manager');
-  }
 
   /**
    * Creates an entity type stub and defines a static storage for it.
@@ -92,19 +87,21 @@ class EntityStorageStubFactory extends UnitTestCase {
     UnitTestHelpers::bindClosureToClassMethod(
       function (array $values = []) use ($propertyToStoreEntities) {
         $entities = [];
-        foreach ($this->$propertyToStoreEntities as $entity) {
-          foreach ($values as $key => $value) {
-            // Now getting only the `value` property to compare.
-            // @todo Try to check the main property and get it.
-            if (
-              empty($entity->$key)
-              || empty($entity->$key->value)
-              || $entity->$key->value != $value
-            ) {
-              continue 2;
+        if (is_iterable($this->$propertyToStoreEntities)) {
+          foreach ($this->$propertyToStoreEntities as $entity) {
+            foreach ($values as $key => $value) {
+              // Now getting only the `value` property to compare.
+              // @todo Try to check the main property and get it.
+              if (
+                empty($entity->$key)
+                || empty($entity->$key->value)
+                || $entity->$key->value != $value
+              ) {
+                continue 2;
+              }
             }
+            $entities[] = $entity;
           }
-          $entities[] = $entity;
         }
         return $entities;
       },
@@ -149,10 +146,10 @@ class EntityStorageStubFactory extends UnitTestCase {
   public function initEntityDefinition($entityClass) {
     $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity', '\Drupal\Core\Entity\Annotation\ContentEntityType');
     $entityTypeId = $entityTypeDefinition->get('id');
-    $entityTypeDefinition = $this->entityTypeManager->getDefinition($entityTypeId, FALSE);
+    $entityTypeDefinition = \Drupal::service('entity_type.manager')->getDefinition($entityTypeId, FALSE);
     if (!$entityTypeDefinition) {
       $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity');
-      $this->entityTypeManager->stubAddDefinition($entityTypeId, $entityTypeDefinition);
+      \Drupal::service('entity_type.manager')->stubAddDefinition($entityTypeId, $entityTypeDefinition);
     }
     return $entityTypeDefinition;
   }

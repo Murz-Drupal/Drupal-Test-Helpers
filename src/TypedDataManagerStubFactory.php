@@ -2,17 +2,28 @@
 
 namespace Drupal\test_helpers;
 
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\TypedData\Plugin\DataType\StringData;
 use Drupal\Core\TypedData\TypedDataManager;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * The Entity Storage Stub class.
+ * The TypedDataManagerStubFactory class.
  */
 class TypedDataManagerStubFactory extends UnitTestCase {
 
   /**
-   * Creates an entity type stub and defines a static storage for it.
+   * Constructs a new TypedDataManagerStubFactory.
+   */
+  public function __construct() {
+    UnitTestHelpers::addToContainer('entity_field.manager', $this->createMock(EntityFieldManagerInterface::class));
+    UnitTestHelpers::addToContainer('entity_type.manager', (new EntityTypeManagerStubFactory())->create());
+    UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
+  }
+
+  /**
+   * Creates an instance of TypedDataManagerStub.
    */
   public function createInstance() {
     /** @var \Drupal\Core\TypedData\TypedDataManager|\PHPUnit\Framework\MockObject\MockObject $instance */

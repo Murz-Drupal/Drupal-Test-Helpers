@@ -5,7 +5,6 @@ namespace Drupal\test_helpers;
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Tests\UnitTestCase;
-use Iterator;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -105,15 +104,18 @@ class UnitTestHelpers extends UnitTestCase {
   /**
    * Creates a partial mock for the class and call constructor with arguments.
    */
-  public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs = []): MockObject {
-    return $this->getMockBuilder($originalClassName)
+  public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs = [], array $addMethods = NULL): MockObject {
+    $mockBuilder = $this->getMockBuilder($originalClassName)
       ->setConstructorArgs($constructorArgs)
       ->disableOriginalClone()
       ->disableArgumentCloning()
       ->disallowMockingUnknownTypes()
-      ->onlyMethods(empty($methods) ? NULL : $methods)
       // ->enableProxyingToOriginalMethods()
-      ->getMock();
+      ->onlyMethods(empty($methods) ? NULL : $methods);
+    if (!empty($addMethods)) {
+      $mockBuilder->addMethods($addMethods);
+    }
+    return $mockBuilder->getMock();
   }
 
   /**

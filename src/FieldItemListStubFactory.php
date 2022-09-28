@@ -11,7 +11,7 @@ use Drupal\Core\TypedData\TypedDataInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The FieldItemList Stub factory.
+ * The FieldItemListStubFactory class.
  */
 class FieldItemListStubFactory extends TestCase {
 
@@ -24,12 +24,13 @@ class FieldItemListStubFactory extends TestCase {
 
   /**
    * Constructs a new EntityStubFactory.
-   *
-   * @param \Drupal\test_helpers\FieldTypeManagerStub $fieldTypeManagerStub
-   *   The Field Type Manager stub to use.
    */
-  public function __construct(FieldTypeManagerStub $fieldTypeManagerStub) {
-    $this->fieldTypeManagerStub = $fieldTypeManagerStub;
+  public function __construct() {
+    $this->fieldTypeManagerStub = new FieldTypeManagerStub();
+
+    // Reusing a string field type definition as default one.
+    // $stringItemDefinition = UnitTestHelpers::getPluginDefinition(StringItem::class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
+    // $this->fieldTypeManagerStub->addDefinition('string', $stringItemDefinition);.
     $this->unitTestHelpers = new UnitTestHelpers();
   }
 

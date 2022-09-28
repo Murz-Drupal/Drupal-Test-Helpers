@@ -2,13 +2,48 @@
 
 namespace Drupal\test_helpers;
 
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
+use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * The Entity Storage Stub.
+ * The EntityTypeManagerStubFactory class.
  */
 class EntityTypeManagerStubFactory extends UnitTestCase {
+
+  /**
+   * Constructs a new FieldTypeManagerStub.
+   */
+  public function __construct() {
+    UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
+    UnitTestHelpers::addToContainer('entity_field.manager', $this->createMock(EntityFieldManagerInterface::class));
+    UnitTestHelpers::addToContainer('entity.query.sql', new EntityQueryServiceStub());
+
+    /** @var \Drupal\Core\Entity\EntityFieldManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityFieldManager */
+    $entityFieldManager = \Drupal::service('entity_field.manager');
+    $entityFieldManager
+      ->method('getFieldDefinitions')
+      ->willReturnCallback(function ($entityTypeId, $bundle) {
+        // @todo Make a proper return of field definitions.
+        return [];
+      });
+
+    /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
+    $entityRepository = \Drupal::service('entity.repository');
+    $entityRepository
+      ->method('loadEntityByUuid')
+      ->willReturnCallback(function ($entityTypeId, $uuid) {
+        $entityTypeStorage = \Drupal::service('entity_type.manager')->getStorage($entityTypeId);
+        $uuidProperty = $entityTypeStorage->getEntityType()->getKey('uuid');
+        return current($entityTypeStorage->loadByProperties([$uuidProperty => $uuid]) ?? []);
+      });
+
+    $entityRepository
+      ->method('getTranslationFromContext')
+      ->will($this->returnArgument(0));
+  }
 
   /**
    * Constructs a new FieldTypeManagerStub.
@@ -27,6 +62,12 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
 
       // Adds or creates a storage.
       'stubGetOrCreateStorage',
+
+      // Initialises the stub object.
+      'stubInit',
+
+      // Resets all static storages to empty values.
+      'stubReset',
     ]);
 
     UnitTestHelpers::bindClosureToClassMethod(
@@ -41,7 +82,6 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
       function (string $pluginId, object $definition = NULL, $forceOverride = FALSE) {
         if ($forceOverride || !isset($this->definitions[$pluginId])) {
           $this->definitions[$pluginId] = $definition;
-          // $this->handlers['storage'][$pluginId] =
         }
         return $this->definitions[$pluginId];
       },
@@ -60,14 +100,41 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
       'stubGetOrCreateHandler'
     );
 
+    $entityLastInstalledSchemaRepository = $this->createMock(EntityLastInstalledSchemaRepositoryInterface::class);
     UnitTestHelpers::bindClosureToClassMethod(
-      function (string $entityTypeId, object $storage = NULL, $forceOverride = FALSE) {
-        $storage = $this->stubGetOrCreateHandler('storage', $entityTypeId, $storage);
+      function () use ($entityLastInstalledSchemaRepository) {
+        $this->container = UnitTestHelpers::getContainerOrCreate();
+        $this->entityLastInstalledSchemaRepository = $entityLastInstalledSchemaRepository;
+      },
+      $entityTypeManagerStub,
+      'stubInit'
+    );
+    $entityTypeManagerStub->stubInit();
+
+    UnitTestHelpers::bindClosureToClassMethod(
+      function () {
+        $this->definitions = [];
+      },
+      $entityTypeManagerStub,
+      'stubReset'
+    );
+
+    UnitTestHelpers::addToContainer('entity_type.manager', $entityTypeManagerStub);
+
+    $entityStorageStubFactory = new EntityStorageStubFactory();
+
+    UnitTestHelpers::bindClosureToClassMethod(
+      function (string $entityClass, object $storage = NULL, $forceOverride = FALSE) use ($entityStorageStubFactory) {
+        $storageNew = $entityStorageStubFactory->createInstance($entityClass);
+        $entityTypeId = $storageNew->getEntityTypeId();
+
+        $storage = $this->stubGetOrCreateHandler('storage', $entityTypeId, $storageNew);
         return $storage;
       },
       $entityTypeManagerStub,
       'stubGetOrCreateStorage'
     );
+
     return $entityTypeManagerStub;
   }
 

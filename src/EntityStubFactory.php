@@ -3,15 +3,11 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Uuid\Php as PhpUuid;
-use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\Core\Entity\EntityRepositoryInterface;
-use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
-use Drupal\Core\Field\Plugin\Field\FieldType\StringItem;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * The Entity Storage Stub class.
+ * The EntityStubFactory class.
  */
 class EntityStubFactory extends UnitTestCase {
 
@@ -19,45 +15,15 @@ class EntityStubFactory extends UnitTestCase {
    * Constructs a new EntityStubFactory.
    */
   public function __construct() {
-    $this->fieldTypeManagerStub = new FieldTypeManagerStub();
-    $this->fieldItemListStubFactory = new FieldItemListStubFactory($this->fieldTypeManagerStub);
-    $this->entityTypeManager = (new EntityTypeManagerStubFactory())->create();
+    if (!\Drupal::hasService('entity_type.manager')) {
+      UnitTestHelpers::addToContainer('entity_type.manager', (new EntityTypeManagerStubFactory())->create());
+    }
+    $this->entityTypeManager = \Drupal::service('entity_type.manager');
+    // $this->fieldTypeManagerStub = new FieldTypeManagerStub();
+    $this->fieldItemListStubFactory = new FieldItemListStubFactory();
     $this->typedDataManagerStub = (new TypedDataManagerStubFactory())->createInstance();
-
-    UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
-    UnitTestHelpers::addToContainer('entity_field.manager', $this->createMock(EntityFieldManagerInterface::class));
-    UnitTestHelpers::addToContainer('entity_type.manager', $this->entityTypeManager);
     UnitTestHelpers::addToContainer('typed_data_manager', $this->typedDataManagerStub);
     UnitTestHelpers::addToContainer('uuid', new PhpUuid());
-
-    // Reusing a string field type definition as default one.
-    $stringItemDefinition = UnitTestHelpers::getPluginDefinition(StringItem::class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
-    $this->fieldTypeManagerStub->addDefinition('string', $stringItemDefinition);
-
-    /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
-    $entityRepository = \Drupal::service('entity.repository');
-    $entityRepository
-      ->method('loadEntityByUuid')
-      ->willReturnCallback(function ($entityTypeId, $uuid) {
-        $entityTypeStorage = \Drupal::service('entity_type.manager')->getStorage($entityTypeId);
-        $uuidProperty = $entityTypeStorage->getEntityType()->getKey('uuid');
-        return current($entityTypeStorage->loadByProperties([$uuidProperty => $uuid]) ?? []);
-      });
-
-    $entityRepository
-      ->method('getTranslationFromContext')
-      ->will($this->returnArgument(0));
-
-    $this->entityStorageStubFactory = new EntityStorageStubFactory();
-
-    /** @var \Drupal\Core\Entity\EntityFieldManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityFieldManager */
-    $entityFieldManager = \Drupal::service('entity_field.manager');
-    $entityFieldManager
-      ->method('getFieldDefinitions')
-      ->willReturnCallback(function ($entityTypeId, $bundle) {
-        // @todo Make a proper return of field definitions.
-        return [];
-      });
   }
 
   /**
@@ -78,11 +44,9 @@ class EntityStubFactory extends UnitTestCase {
    */
   public function create(string $entityClass, array $values = [], array $options = []) {
     // Creating a new entity storage stub instance, if not exists.
-    $storageNew = $this->entityStorageStubFactory->createInstance($entityClass);
-    $entityTypeDefinition = $storageNew->getEntityType();
-    $entityTypeId = $storageNew->getEntityTypeId();
-
-    $storage = $this->entityTypeManager->stubGetOrCreateStorage($entityTypeId, $storageNew);
+    $storage = $this->entityTypeManager->stubGetOrCreateStorage($entityClass);
+    $entityTypeDefinition = $storage->getEntityType();
+    $entityTypeId = $storage->getEntityTypeId();
     $bundle = $values[$entityTypeDefinition->getKey('bundle')] ?? $entityTypeId;
 
     // Creating a stub of the entity.
