@@ -23,12 +23,15 @@ class EntityQueryStubFactory extends UnitTestCase {
     $this->namespaces = QueryBase::getNamespaces($this);
     $this->namespaces[] = 'Drupal\Core\Entity\Query\Sql';
     UnitTestHelpers::addToContainer('test_helpers.unit_test_helpers', new UnitTestHelpers());
+
+    $pdoMock = $this->createMock('Drupal\Tests\Core\Database\Stub\StubPDO');
+    $this->dbConnection = new StubConnection($pdoMock, []);
   }
 
   /**
    * Instantiates an entity query for a given entity type.
    *
-   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
+   * @param \Drupal\Core\Entity\EntityTypeInterface $entityType
    *   The entity type definition.
    * @param string $conjunction
    *   The operator to use to combine conditions: 'AND' or 'OR'.
@@ -38,17 +41,20 @@ class EntityQueryStubFactory extends UnitTestCase {
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   An entity query for a specific configuration entity type.
    */
-  public function get(EntityTypeInterface $entity_type, string $conjunction, callable $executeFunction = NULL) {
+  public function get(EntityTypeInterface $entityType = NULL, string $conjunction = 'AND', callable $executeFunction = NULL) {
     if ($executeFunction === NULL) {
       $executeFunction = function () {
         return [];
       };
     }
-    $pdoMock = $this->createMock('Drupal\Tests\Core\Database\Stub\StubPDO');
-    $dbConnectionStub = new StubConnection($pdoMock, []);
+
+    if ($entityType === NULL) {
+      $entityType = $this->createMock(EntityTypeInterface::class);
+    }
+
     $queryStub = \Drupal::service('test_helpers.unit_test_helpers')->createPartialMockWithCostructor(Query::class, [
       'execute',
-    ], [$entity_type, $conjunction, $dbConnectionStub, $this->namespaces], [
+    ], [$entityType, $conjunction, $this->dbConnection, $this->namespaces], [
       'stubCheckConditionsMatch',
     ]);
 
@@ -61,7 +67,7 @@ class EntityQueryStubFactory extends UnitTestCase {
   }
 
   /**
-   * Pe.
+   * Performs matching of passed conditions with the query.
    */
   public static function matchConditions(Condition $conditionsExpectedObject, Condition $conditionsObject, $onlyListed = FALSE): bool {
     if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
@@ -87,7 +93,7 @@ class EntityQueryStubFactory extends UnitTestCase {
   }
 
   /**
-   *
+   * Performs matching of a single condition with expected.
    */
   public static function matchCondition(array $conditionExpected, array $conditionExists, $onlyListed = FALSE): bool {
     if (is_object($conditionExists['field'] ?? NULL)) {
