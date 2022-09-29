@@ -104,6 +104,10 @@ class EntityStubFactory extends UnitTestCase {
           $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
         }
 
+        /**
+         * @todo Register field definitions to the EntityFieldManager via
+         * \Drupal::service('entity_field.manager')->stubSetBaseFieldDefinitons($this->fieldDefinitions);
+         */
       },
       $entity,
       'stubInitValues'

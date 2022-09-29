@@ -4,6 +4,7 @@ namespace Drupal\test_helpers;
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Query\QueryBase;
+use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\Query\Sql\Query;
 use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\UnitTestCase;
@@ -47,44 +48,67 @@ class EntityQueryStubFactory extends UnitTestCase {
     $dbConnectionStub = new StubConnection($pdoMock, []);
     $queryStub = \Drupal::service('test_helpers.unit_test_helpers')->createPartialMockWithCostructor(Query::class, [
       'execute',
-    ], [$entity_type, $conjunction, $dbConnectionStub, $this->namespaces], ['stubIsConditionsExist']);
+    ], [$entity_type, $conjunction, $dbConnectionStub, $this->namespaces], [
+      'stubCheckConditionsMatch',
+    ]);
 
     \Drupal::service('test_helpers.unit_test_helpers')::bindClosureToClassMethod($executeFunction, $queryStub, 'execute');
-    \Drupal::service('test_helpers.unit_test_helpers')::bindClosureToClassMethod(function (array $conditionsExpected, $onlyListed = FALSE) {
-      $compareConditions = function ($condition1, $condition2) {
-        if (($condition1['field'] ?? NULL) != ($condition2['field'] ?? NULL)) {
-          return FALSE;
-        }
-        if (($condition1['value'] ?? NULL) != ($condition2['value'] ?? NULL)) {
-          return FALSE;
-        }
-        if (($condition1['operator'] ?? NULL) != ($condition2['operator'] ?? NULL)) {
-          return FALSE;
-        }
-        if (($condition1['langcode'] ?? NULL) != ($condition2['langcode'] ?? NULL)) {
-          return FALSE;
-        }
-        return TRUE;
-      };
-
-      $conditions = $this->condition->conditions();
-      foreach ($conditions as $condition) {
-        foreach ($conditionsExpected as $delta => $conditionExpected) {
-          if ($compareConditions($condition, $conditionExpected)) {
-            $conditionsFound[$delta] = TRUE;
-          }
-        }
-      }
-      if (count($conditionsFound) != count($conditionsExpected)) {
-        return FALSE;
-      }
-      if ($onlyListed && count($conditions) != count($conditionsExpected)) {
-        return FALSE;
-      }
-      return TRUE;
-    }, $queryStub, 'stubIsConditionsExist');
+    \Drupal::service('test_helpers.unit_test_helpers')::bindClosureToClassMethod(function (Condition $conditionsExpected, $onlyListed = FALSE) {
+      return EntityQueryStubFactory::matchConditions($conditionsExpected, $this->condition, $onlyListed);
+    }, $queryStub, 'stubCheckConditionsMatch');
 
     return $queryStub;
+  }
+
+  /**
+   * Pe.
+   */
+  public static function matchConditions(Condition $conditionsExpectedObject, Condition $conditionsObject, $onlyListed = FALSE): bool {
+    if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
+      return FALSE;
+    }
+    $conditions = $conditionsObject->conditions();
+    $conditionsExpected = $conditionsExpectedObject->conditions();
+    $conditionsFound = [];
+    foreach ($conditions as $condition) {
+      foreach ($conditionsExpected as $delta => $conditionExpected) {
+        if (EntityQueryStubFactory::matchCondition($conditionExpected, $condition, $onlyListed)) {
+          $conditionsFound[$delta] = TRUE;
+        }
+      }
+    }
+    if (count($conditionsFound) != count($conditionsExpected)) {
+      return FALSE;
+    }
+    if ($onlyListed && (count($conditions) != count($conditionsExpected))) {
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  /**
+   *
+   */
+  public static function matchCondition(array $conditionExpected, array $conditionExists, $onlyListed = FALSE): bool {
+    if (is_object($conditionExists['field'] ?? NULL)) {
+      if (!is_object($conditionExpected['field'] ?? NULL)) {
+        return FALSE;
+      }
+      return self::matchConditions($conditionExpected['field'], $conditionExists['field'], $onlyListed);
+    }
+    if (($conditionExpected['field'] ?? NULL) != ($conditionExists['field'] ?? NULL)) {
+      return FALSE;
+    }
+    if (($conditionExpected['value'] ?? NULL) != ($conditionExists['value'] ?? NULL)) {
+      return FALSE;
+    }
+    if (($conditionExpected['operator'] ?? NULL) != ($conditionExists['operator'] ?? NULL)) {
+      return FALSE;
+    }
+    if (($conditionExpected['langcode'] ?? NULL) != ($conditionExists['langcode'] ?? NULL)) {
+      return FALSE;
+    }
+    return TRUE;
   }
 
 }

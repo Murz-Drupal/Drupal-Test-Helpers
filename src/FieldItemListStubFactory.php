@@ -6,8 +6,8 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\Field\Plugin\Field\FieldType\StringItem;
 use Drupal\Core\TypedData\TypedDataInterface;
+use Drupal\test_helpers\Stubs\StubItem;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -37,24 +37,21 @@ class FieldItemListStubFactory extends TestCase {
   /**
    * Creates a field definition stub.
    *
-   * @param string $name
-   *   Field name.
-   * @param string $type
-   *   Type of the creating field.
    * @param string $class
-   *   The class name to use for item definition.
+   *   Field class.
    *
    * @return \Drupal\Core\Field\FieldDefinitionInterface
    *   A field field definition stub.
    */
-  public function createFieldItemDefinitionStub(string $name, string $type, string $class = NULL): FieldDefinitionInterface {
+  public static function createFieldItemDefinitionStub(string $class = NULL): FieldDefinitionInterface {
     if (!$class) {
-      $class = StringItem::class;
+      // $class = StringItem::class;
+      $class = StubItem::class;
     }
+    $definition = UnitTestHelpers::getPluginDefinition($class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
     // @todo Now it's a quick initialization of BaseFieldDefinition,
     // will be good to add support for other field types.
-    $field_definition = BaseFieldDefinition::create($type);
-    $field_definition->setName($name);
+    $field_definition = BaseFieldDefinition::create($definition['id']);
     $field_definition->getItemDefinition()->setClass($class);
     return $field_definition;
   }
@@ -78,8 +75,8 @@ class FieldItemListStubFactory extends TestCase {
     if (!$definition) {
       // @todo Now it's a hard-coded type, will be good to add support for
       // custom types.
-      $type = 'string';
-      $definition = $this->createFieldItemDefinitionStub($name, $type, StringItem::class);
+      $definition = self::createFieldItemDefinitionStub(StubItem::class);
+      $definition->setName($name);
     }
     $field = new FieldItemList($definition, $name, $parent);
     $field = $this->unitTestHelpers->createPartialMockWithCostructor(FieldItemList::class,

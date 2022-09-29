@@ -37,9 +37,48 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     $entityQueryTestResult = ['1', '42'];
     $testClass = $this;
     \Drupal::service('entity.query.sql')->stubAddExecuteFunction('node', 'AND', function () use ($entityQueryTestResult, $titleValues, $testClass) {
-      $conditions = $this->condition->conditions();
-      // Checking that conditions are successfully added to the query.
-      $testClass->assertEquals($titleValues, $conditions[0]['value']);
+      // Checking that mandatory conditions are present in the query.
+      $conditionsMandatory = $this->andConditionGroup();
+      $conditionsMandatory->condition('title', $titleValues, 'IN');
+      $conditionsMandatory->condition('field_category', 2);
+      $orConditionGroup = $this->orConditionGroup();
+      $orConditionGroup->condition('field_color', 'red');
+      $orConditionGroup->condition('field_style', 'modern');
+      $conditionsMandatory->condition($orConditionGroup);
+      $testClass->assertTrue($this->stubCheckConditionsMatch($conditionsMandatory));
+
+      // Checking onlyListed mode returns false, because we have more conditions.
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatory, TRUE));
+
+      // Checking that wrong conditions check is return FALSE.
+      $conditionsMandatoryWrong1 = $this->orConditionGroup();
+      $conditionsMandatoryWrong1->condition('title', $titleValues, 'IN');
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong1));
+
+      $conditionsMandatoryWrong2 = $this->andConditionGroup();
+      $conditionsMandatoryWrong2->condition('title', $titleValues, 'NOT IN');
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong2));
+
+      $conditionsMandatoryWrong3 = $this->andConditionGroup();
+      $conditionsMandatoryWrong3->condition('title', [], 'IN');
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong3));
+
+      $conditionsMandatoryWrong4 = $this->andConditionGroup();
+      $conditionsMandatoryWrong4->condition('field_category', 2, 'NOT IN');
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong4));
+
+      $conditionsMandatoryWrong5 = $this->andConditionGroup();
+      $orConditionGroup = $this->orConditionGroup();
+      $orConditionGroup->condition('field_color', 'blue');
+      $conditionsMandatoryWrong5->condition($orConditionGroup);
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong5));
+
+      $conditionsMandatoryWrong6 = $this->andConditionGroup();
+      $orConditionGroup = $this->andConditionGroup();
+      $orConditionGroup->condition('field_color', 'red');
+      $conditionsMandatoryWrong6->condition($orConditionGroup);
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong6));
+
       // Returning a pre-defined result for the query.
       return $entityQueryTestResult;
     });
@@ -49,6 +88,11 @@ class EntityQueryServiceStubTest extends UnitTestCase {
       ->getQuery();
     $entityQuery->condition('title', $titleValues, 'IN');
     $entityQuery->condition('field_category', 2);
+    $orConditionGroup = $entityQuery->orConditionGroup();
+    $orConditionGroup->condition('field_color', 'red');
+    $orConditionGroup->condition('field_style', 'modern');
+    $orConditionGroup->condition('field_size', 'XL');
+    $entityQuery->condition($orConditionGroup);
     $result = $entityQuery->execute();
 
     $this->assertSame($entityQueryTestResult, $result);

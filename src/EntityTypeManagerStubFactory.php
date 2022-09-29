@@ -2,7 +2,6 @@
 
 namespace Drupal\test_helpers;
 
-use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
@@ -18,17 +17,9 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
    */
   public function __construct() {
     UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
-    UnitTestHelpers::addToContainer('entity_field.manager', $this->createMock(EntityFieldManagerInterface::class));
+    UnitTestHelpers::addToContainer('entity_field.manager', (new EntityFieldManagerStubFactory)->createInstance());
     UnitTestHelpers::addToContainer('entity.query.sql', new EntityQueryServiceStub());
-
-    /** @var \Drupal\Core\Entity\EntityFieldManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityFieldManager */
-    $entityFieldManager = \Drupal::service('entity_field.manager');
-    $entityFieldManager
-      ->method('getFieldDefinitions')
-      ->willReturnCallback(function ($entityTypeId, $bundle) {
-        // @todo Make a proper return of field definitions.
-        return [];
-      });
+    UnitTestHelpers::addToContainer('string_translation', $this->getStringTranslationStub());
 
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
     $entityRepository = \Drupal::service('entity.repository');
@@ -127,7 +118,11 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
       function (string $entityClass, object $storage = NULL, $forceOverride = FALSE) use ($entityStorageStubFactory) {
         $storageNew = $entityStorageStubFactory->createInstance($entityClass);
         $entityTypeId = $storageNew->getEntityTypeId();
-
+        /* @todo Get and register base fields definitions via something like:
+         * $entityType = $storageNew->getEntityType();
+         * $baseFieldDefinitions = $entityClass::baseFieldDefinitions($entityType);
+         * \Drupal::service('entity_field.manager')->stubSetBaseFieldDefinitons($entityTypeId, $baseFieldDefinitions);
+         */
         $storage = $this->stubGetOrCreateHandler('storage', $entityTypeId, $storageNew);
         return $storage;
       },
