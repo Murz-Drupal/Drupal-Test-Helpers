@@ -4,6 +4,7 @@ namespace Drupal\test_helpers;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\TypedData\Plugin\DataType\StringData;
 use Drupal\Core\TypedData\TypedDataManager;
 use Drupal\Tests\UnitTestCase;
 
@@ -63,6 +64,7 @@ class TypedDataManagerStubFactory extends UnitTestCase {
       'stubAddDefinition'
     );
 
+    $instance->stubAddPlugin(StringData::class);
     /* @todo Try to register popular definitions via something like:
      * $instance->stubAddPlugin(StringData::class);
      * $instance->stubAddPlugin(EntityAdapter::class);
