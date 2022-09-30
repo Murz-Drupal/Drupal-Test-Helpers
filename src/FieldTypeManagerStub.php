@@ -3,7 +3,7 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Field\FieldTypePluginManager;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinitionInterface;
 use Drupal\Core\TypedData\DataDefinitionInterface;
 use Drupal\Tests\UnitTestCase;
@@ -34,7 +34,20 @@ class FieldTypeManagerStub extends UnitTestCase {
 
     $this->fieldItemClassByListClassMap = [];
 
-    $fieldTypePluginManager = UnitTestHelpers::addToContainer('plugin.manager.field.field_type', $this->createMock(FieldTypePluginManagerInterface::class));
+    $fieldTypePluginManagerNew = $this->createPartialMock(FieldTypePluginManager::class, [
+      'getDefinitions',
+      'getDefinition',
+      'getDefaultStorageSettings',
+      'getDefaultFieldSettings',
+      'createFieldItem',
+
+      /* Adds the definition, to the static storage. */
+      'stubAddDefinition',
+      /* Defines the mapping of list class with field item class. */
+      'stubDefineFieldItemClassByListClass',
+    ]);
+
+    $fieldTypePluginManager = UnitTestHelpers::addToContainer('plugin.manager.field.field_type', $fieldTypePluginManagerNew);
 
     $fieldTypePluginManager
       ->method('getDefinitions')
@@ -110,23 +123,22 @@ class FieldTypeManagerStub extends UnitTestCase {
 
         return $fieldItem;
       });
-  }
 
-  /**
-   * Adds the definition, to the static storage.
-   */
-  public function addDefinition(string $fieldType, $definition = []) {
-    if (!isset($definition['id'])) {
-      $definition['id'] = $fieldType;
-    }
-    $this->definitions[$fieldType] = $definition;
-  }
+    $fieldTypePluginManager
+      ->method('stubDefineFieldItemClassByListClass')
+      ->willReturnCallback(function (string $listClass, string $itemClass) {
+        $this->fieldItemClassByListClassMap[$listClass] = $itemClass;
+      });
 
-  /**
-   * Defines the mapping of list class with field item class.
-   */
-  public function defineFieldItemClassByListClass(string $listClass, string $itemClass) {
-    $this->fieldItemClassByListClassMap[$listClass] = $itemClass;
+    $fieldTypePluginManager
+      ->method('stubAddDefinition')
+      ->willReturnCallback(function (string $fieldType, $definition = []) {
+        if (!isset($definition['id'])) {
+          $definition['id'] = $fieldType;
+        }
+        $this->definitions[$fieldType] = $definition;
+      });
+
   }
 
 }
