@@ -3,7 +3,9 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Uuid\Php as PhpUuid;
+use Drupal\Core\Language\LanguageDefault;
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\Core\Language\LanguageManager;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -24,6 +26,8 @@ class EntityStubFactory extends UnitTestCase {
     $this->typedDataManagerStub = (new TypedDataManagerStubFactory())->createInstance();
     UnitTestHelpers::addToContainer('typed_data_manager', $this->typedDataManagerStub);
     UnitTestHelpers::addToContainer('uuid', new PhpUuid());
+    $languageDefault = new LanguageDefault(['id' => 'en', 'name' => 'English']);
+    UnitTestHelpers::addToContainer('language_manager', new LanguageManager($languageDefault));
   }
 
   /**

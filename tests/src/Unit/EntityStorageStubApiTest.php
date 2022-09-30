@@ -58,10 +58,14 @@ class EntityStorageStubApiTest extends UnitTestCase {
     $this->assertTrue($node1Entity->empty_field->isEmpty());
 
     $node1Entity->save();
-    $node1EntityId = $node1Entity->id();
-
     $this->assertEquals(1, $node1Entity->id());
     $this->assertEquals(1, preg_match('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i', $node1Entity->uuid()));
+
+    $node1EntityId = $node1Entity->id();
+    $node1Link = $node1Entity->toLink();
+    $this->assertEquals($node1Values['title'], $node1Link->getText());
+    $this->assertEquals("entity.node.canonical", $node1Link->getUrl()->getRouteName());
+    $this->assertEquals("1", $node1Link->getUrl()->getRouteParameters()['node']);
 
     $node2Values = [
       'nid' => '42',
