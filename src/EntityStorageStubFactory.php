@@ -16,7 +16,7 @@ class EntityStorageStubFactory {
    * Constructs a new EntityStorageStubFactory.
    */
   public function __construct() {
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
   }
 
   /**
@@ -24,7 +24,7 @@ class EntityStorageStubFactory {
    */
   public function createInstance(string $entityClass) {
     /** @var \Drupal\Core\Entity\Sql\SqlContentEntityStorage|\PHPUnit\Framework\MockObject\MockObject $entityStorageStub */
-    $entityStorageStub = $this->unitTestCaseApi->createPartialMock(SqlContentEntityStorage::class, [
+    $entityStorageStub = $this->unitTestHelpers->createPartialMock(SqlContentEntityStorage::class, [
       'loadMultiple',
       'loadByProperties',
       'delete',

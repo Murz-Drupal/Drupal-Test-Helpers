@@ -30,11 +30,11 @@ class FieldTypeManagerStub {
    * Constructs a new FieldTypeManagerStub.
    */
   public function __construct() {
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
 
     $this->fieldItemClassByListClassMap = [];
 
-    $fieldTypePluginManagerNew = $this->unitTestCaseApi->createPartialMock(FieldTypePluginManager::class, [
+    $fieldTypePluginManagerNew = $this->unitTestHelpers->createPartialMock(FieldTypePluginManager::class, [
       'getDefinitions',
       'getDefinition',
       'getDefaultStorageSettings',

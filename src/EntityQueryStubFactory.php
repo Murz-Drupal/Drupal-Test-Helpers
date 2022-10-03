@@ -22,10 +22,9 @@ class EntityQueryStubFactory {
   public function __construct() {
     $this->namespaces = QueryBase::getNamespaces($this);
     $this->namespaces[] = 'Drupal\Core\Entity\Query\Sql';
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
     $this->unitTestHelpers = UnitTestHelpers::getInstance();
     /** @var \Drupal\Tests\Core\Database\Stub\StubPDO|\PHPUnit\Framework\MockObject\MockObject $pdoMock */
-    $pdoMock = $this->unitTestCaseApi->createMock(StubPDO::class);
+    $pdoMock = $this->unitTestHelpers->createMock(StubPDO::class);
     $this->dbConnection = new StubConnection($pdoMock, []);
   }
 
@@ -50,7 +49,7 @@ class EntityQueryStubFactory {
     }
 
     if ($entityType === NULL) {
-      $entityType = $this->unitTestCaseApi->createMock(EntityTypeInterface::class);
+      $entityType = $this->unitTestHelpers->createMock(EntityTypeInterface::class);
     }
 
     $queryStub = $this->unitTestHelpers->createPartialMockWithCostructor(Query::class, [

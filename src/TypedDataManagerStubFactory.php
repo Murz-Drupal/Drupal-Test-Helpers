@@ -16,10 +16,10 @@ class TypedDataManagerStubFactory {
    * Constructs a new TypedDataManagerStubFactory.
    */
   public function __construct() {
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
-    UnitTestHelpers::addToContainer('entity_field.manager', $this->unitTestCaseApi->createMock(EntityFieldManagerInterface::class));
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
+    UnitTestHelpers::addToContainer('entity_field.manager', $this->unitTestHelpers->createMock(EntityFieldManagerInterface::class));
     UnitTestHelpers::addToContainer('entity_type.manager', (new EntityTypeManagerStubFactory())->create());
-    UnitTestHelpers::addToContainer('entity.repository', $this->unitTestCaseApi->createMock(EntityRepositoryInterface::class));
+    UnitTestHelpers::addToContainer('entity.repository', $this->unitTestHelpers->createMock(EntityRepositoryInterface::class));
   }
 
   /**
@@ -27,7 +27,7 @@ class TypedDataManagerStubFactory {
    */
   public function createInstance() {
     /** @var \Drupal\Core\TypedData\TypedDataManager|\PHPUnit\Framework\MockObject\MockObject $instance */
-    $instance = $this->unitTestCaseApi->createPartialMock(TypedDataManager::class, [
+    $instance = $this->unitTestHelpers->createPartialMock(TypedDataManager::class, [
       'getDefinition',
       'stubAddPlugin',
       'stubAddDefinition',

@@ -16,7 +16,7 @@ class EntityStubFactory {
    * Constructs a new EntityStubFactory.
    */
   public function __construct() {
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
     if (!\Drupal::hasService('entity_type.manager')) {
       UnitTestHelpers::addToContainer('entity_type.manager', (new EntityTypeManagerStubFactory())->create());
     }
@@ -56,7 +56,7 @@ class EntityStubFactory {
     // Creating a stub of the entity.
     // @todo Try to init with a real constructor.
     /** @var \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject $entity */
-    $entity = $this->unitTestCaseApi->createPartialMock($entityClass, [
+    $entity = $this->unitTestHelpers->createPartialMock($entityClass, [
       // 'getEntityTypeId',
       // 'getFieldDefinitions',
       'save',

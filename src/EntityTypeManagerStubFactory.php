@@ -15,11 +15,11 @@ class EntityTypeManagerStubFactory {
    * Constructs a new FieldTypeManagerStub.
    */
   public function __construct() {
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
-    UnitTestHelpers::addToContainer('entity.repository', $this->unitTestCaseApi->createMock(EntityRepositoryInterface::class));
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
+    UnitTestHelpers::addToContainer('entity.repository', $this->unitTestHelpers->createMock(EntityRepositoryInterface::class));
     UnitTestHelpers::addToContainer('entity_field.manager', (new EntityFieldManagerStubFactory)->createInstance());
     UnitTestHelpers::addToContainer('entity.query.sql', new EntityQueryServiceStub());
-    UnitTestHelpers::addToContainer('string_translation', $this->unitTestCaseApi->getStringTranslationStub());
+    UnitTestHelpers::addToContainer('string_translation', $this->unitTestHelpers->getStringTranslationStub());
 
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
     $entityRepository = \Drupal::service('entity.repository');
@@ -33,7 +33,7 @@ class EntityTypeManagerStubFactory {
 
     $entityRepository
       ->method('getTranslationFromContext')
-      ->will($this->unitTestCaseApi->returnArgument(0));
+      ->will($this->unitTestHelpers->returnArgument(0));
   }
 
   /**
@@ -41,7 +41,7 @@ class EntityTypeManagerStubFactory {
    */
   public function create() {
     /** @var \Drupal\Core\Entity\EntityTypeManager|\PHPUnit\Framework\MockObject\MockObject $entityTypeManagerStub */
-    $entityTypeManagerStub = $this->unitTestCaseApi->createPartialMock(EntityTypeManager::class, [
+    $entityTypeManagerStub = $this->unitTestHelpers->createPartialMock(EntityTypeManager::class, [
       'findDefinitions',
 
       // Custom helper functions for the stub:
@@ -91,7 +91,7 @@ class EntityTypeManagerStubFactory {
       'stubGetOrCreateHandler'
     );
 
-    $entityLastInstalledSchemaRepository = $this->unitTestCaseApi->createMock(EntityLastInstalledSchemaRepositoryInterface::class);
+    $entityLastInstalledSchemaRepository = $this->unitTestHelpers->createMock(EntityLastInstalledSchemaRepositoryInterface::class);
     UnitTestHelpers::bindClosureToClassMethod(
       function () use ($entityLastInstalledSchemaRepository) {
         $this->container = UnitTestHelpers::getContainerOrCreate();

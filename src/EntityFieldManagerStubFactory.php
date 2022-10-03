@@ -13,7 +13,7 @@ class EntityFieldManagerStubFactory {
    * Constructs a new EntityFieldManagerStubFactory.
    */
   public function __construct() {
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
   }
 
   /**
@@ -22,7 +22,7 @@ class EntityFieldManagerStubFactory {
   public function createInstance() {
 
     /** @var \Drupal\Core\Entity\EntityFieldManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityFieldManager */
-    $entityFieldManager = $this->unitTestCaseApi->createPartialMock(EntityFieldManager::class, [
+    $entityFieldManager = $this->unitTestHelpers->createPartialMock(EntityFieldManager::class, [
       'stubSetBaseFieldDefinitons',
       'stubSetFieldDefinitons',
     ]);

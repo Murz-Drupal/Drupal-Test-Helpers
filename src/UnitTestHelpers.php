@@ -3,23 +3,18 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\test_helpers\Traits\SingletonTrait;
+use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Helpers for TVH Unit tests.
  */
-class UnitTestHelpers {
+class UnitTestHelpers extends UnitTestCase {
   use SingletonTrait {
     __construct as __originalConstruct;
-  }
-
-  /**
-   * Constructs a new UnitTestHelpers.
-   */
-  public function __construct() {
-    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
   }
 
   /**
@@ -115,7 +110,7 @@ class UnitTestHelpers {
    * Creates a partial mock for the class and call constructor with arguments.
    */
   public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs = [], array $addMethods = NULL): MockObject {
-    $mockBuilder = $this->unitTestCaseApi->getMockBuilder($originalClassName)
+    $mockBuilder = $this->getMockBuilder($originalClassName)
       ->setConstructorArgs($constructorArgs)
       ->disableOriginalClone()
       ->disableArgumentCloning()
@@ -142,8 +137,44 @@ class UnitTestHelpers {
   public function doTestCreateAndConstruct(string $class, array $createArguments = []): object {
     $container = self::getContainerOrCreate();
     $classInstance = $class::create($container, ...$createArguments);
-    $this->unitTestCaseApi->assertInstanceOf($class, $classInstance);
+    $this->assertInstanceOf($class, $classInstance);
     return $classInstance;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getRandomGenerator() {
+    return parent::getRandomGenerator();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getContainerWithCacheTagsInvalidator(CacheTagsInvalidatorInterface $cache_tags_validator) {
+    return parent::getContainerWithCacheTagsInvalidator($cache_tags_validator);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getClassResolverStub() {
+    return parent::getClassResolverStub();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function createMock(string $originalClassName): MockObject {
+    return parent::createMock($originalClassName);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function createPartialMock(string $originalClassName, array $methods): MockObject {
+    return parent::createPartialMock($originalClassName, $methods);
+  }
+
 
 }
