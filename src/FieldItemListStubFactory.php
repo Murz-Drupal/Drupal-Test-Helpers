@@ -8,12 +8,11 @@ use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\Stubs\StubItem;
-use PHPUnit\Framework\TestCase;
 
 /**
  * The FieldItemListStubFactory class.
  */
-class FieldItemListStubFactory extends TestCase {
+class FieldItemListStubFactory {
 
   /**
    * The Field Type Manager stub.
@@ -31,7 +30,7 @@ class FieldItemListStubFactory extends TestCase {
     // Reusing a string field type definition as default one.
     // $stringItemDefinition = UnitTestHelpers::getPluginDefinition(StringItem::class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
     // $this->fieldTypeManagerStub->addDefinition('string', $stringItemDefinition);.
-    $this->unitTestHelpers = new UnitTestHelpers();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
   }
 
   /**

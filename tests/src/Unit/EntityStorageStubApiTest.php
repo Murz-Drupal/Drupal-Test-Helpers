@@ -20,7 +20,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
    */
   protected function setUp(): void {
     $this->entityStubFactory = new EntityStubFactory();
-    $this->unitTestHelpers = new UnitTestHelpers();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
   }
 
   /**

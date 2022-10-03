@@ -7,14 +7,14 @@ use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\Query\Sql\Query;
 use Drupal\Tests\Core\Database\Stub\StubConnection;
-use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\Core\Database\Stub\StubPDO;
 
 /**
  * The Entity Storage Stub class.
  *
  * A stub for class Drupal\Core\Entity\Query\Sql\QueryFactory.
  */
-class EntityQueryStubFactory extends UnitTestCase {
+class EntityQueryStubFactory {
 
   /**
    * Constructs a QueryStubFactory object.
@@ -22,9 +22,10 @@ class EntityQueryStubFactory extends UnitTestCase {
   public function __construct() {
     $this->namespaces = QueryBase::getNamespaces($this);
     $this->namespaces[] = 'Drupal\Core\Entity\Query\Sql';
-    UnitTestHelpers::addToContainer('test_helpers.unit_test_helpers', new UnitTestHelpers());
-
-    $pdoMock = $this->createMock('Drupal\Tests\Core\Database\Stub\StubPDO');
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
+    /** @var \Drupal\Tests\Core\Database\Stub\StubPDO|\PHPUnit\Framework\MockObject\MockObject $pdoMock */
+    $pdoMock = $this->unitTestCaseApi->createMock(StubPDO::class);
     $this->dbConnection = new StubConnection($pdoMock, []);
   }
 
@@ -35,13 +36,13 @@ class EntityQueryStubFactory extends UnitTestCase {
    *   The entity type definition.
    * @param string $conjunction
    *   The operator to use to combine conditions: 'AND' or 'OR'.
-   * @param callable $executeFunction
+   * @param \Closure $executeFunction
    *   The function to use for `execute` call.
    *
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   An entity query for a specific configuration entity type.
    */
-  public function get(EntityTypeInterface $entityType = NULL, string $conjunction = 'AND', callable $executeFunction = NULL) {
+  public function get(EntityTypeInterface $entityType = NULL, string $conjunction = 'AND', \Closure $executeFunction = NULL) {
     if ($executeFunction === NULL) {
       $executeFunction = function () {
         return [];
@@ -49,17 +50,17 @@ class EntityQueryStubFactory extends UnitTestCase {
     }
 
     if ($entityType === NULL) {
-      $entityType = $this->createMock(EntityTypeInterface::class);
+      $entityType = $this->unitTestCaseApi->createMock(EntityTypeInterface::class);
     }
 
-    $queryStub = \Drupal::service('test_helpers.unit_test_helpers')->createPartialMockWithCostructor(Query::class, [
+    $queryStub = $this->unitTestHelpers->createPartialMockWithCostructor(Query::class, [
       'execute',
     ], [$entityType, $conjunction, $this->dbConnection, $this->namespaces], [
       'stubCheckConditionsMatch',
     ]);
 
-    \Drupal::service('test_helpers.unit_test_helpers')::bindClosureToClassMethod($executeFunction, $queryStub, 'execute');
-    \Drupal::service('test_helpers.unit_test_helpers')::bindClosureToClassMethod(function (Condition $conditionsExpected, $onlyListed = FALSE) {
+    UnitTestHelpers::bindClosureToClassMethod($executeFunction, $queryStub, 'execute');
+    UnitTestHelpers::bindClosureToClassMethod(function (Condition $conditionsExpected, $onlyListed = FALSE) {
       return EntityQueryStubFactory::matchConditions($conditionsExpected, $this->condition, $onlyListed);
     }, $queryStub, 'stubCheckConditionsMatch');
 

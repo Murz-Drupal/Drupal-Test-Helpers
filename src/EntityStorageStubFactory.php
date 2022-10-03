@@ -4,21 +4,27 @@ namespace Drupal\test_helpers;
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * The Entity Storage Stub class factory.
  *
  * Stub factory for class Drupal\Core\Entity\Sql\SqlContentEntityStorage.
  */
-class EntityStorageStubFactory extends UnitTestCase {
+class EntityStorageStubFactory {
+
+  /**
+   * Constructs a new EntityStorageStubFactory.
+   */
+  public function __construct() {
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+  }
 
   /**
    * Creates an entity type stub and defines a static storage for it.
    */
   public function createInstance(string $entityClass) {
     /** @var \Drupal\Core\Entity\Sql\SqlContentEntityStorage|\PHPUnit\Framework\MockObject\MockObject $entityStorageStub */
-    $entityStorageStub = $this->createPartialMock(SqlContentEntityStorage::class, [
+    $entityStorageStub = $this->unitTestCaseApi->createPartialMock(SqlContentEntityStorage::class, [
       'loadMultiple',
       'loadByProperties',
       'delete',
@@ -146,10 +152,12 @@ class EntityStorageStubFactory extends UnitTestCase {
   public function initEntityDefinition($entityClass) {
     $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity', '\Drupal\Core\Entity\Annotation\ContentEntityType');
     $entityTypeId = $entityTypeDefinition->get('id');
-    $entityTypeDefinition = \Drupal::service('entity_type.manager')->getDefinition($entityTypeId, FALSE);
+    /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
+    $entityTypeManager = \Drupal::service('entity_type.manager');
+    $entityTypeDefinition = $entityTypeManager->getDefinition($entityTypeId, FALSE);
     if (!$entityTypeDefinition) {
       $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity');
-      \Drupal::service('entity_type.manager')->stubAddDefinition($entityTypeId, $entityTypeDefinition);
+      $entityTypeManager->stubAddDefinition($entityTypeId, $entityTypeDefinition);
     }
     return $entityTypeDefinition;
   }

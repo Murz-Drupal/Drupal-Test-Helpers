@@ -5,21 +5,21 @@ namespace Drupal\test_helpers;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * The EntityTypeManagerStubFactory class.
  */
-class EntityTypeManagerStubFactory extends UnitTestCase {
+class EntityTypeManagerStubFactory {
 
   /**
    * Constructs a new FieldTypeManagerStub.
    */
   public function __construct() {
-    UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+    UnitTestHelpers::addToContainer('entity.repository', $this->unitTestCaseApi->createMock(EntityRepositoryInterface::class));
     UnitTestHelpers::addToContainer('entity_field.manager', (new EntityFieldManagerStubFactory)->createInstance());
     UnitTestHelpers::addToContainer('entity.query.sql', new EntityQueryServiceStub());
-    UnitTestHelpers::addToContainer('string_translation', $this->getStringTranslationStub());
+    UnitTestHelpers::addToContainer('string_translation', $this->unitTestCaseApi->getStringTranslationStub());
 
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
     $entityRepository = \Drupal::service('entity.repository');
@@ -33,7 +33,7 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
 
     $entityRepository
       ->method('getTranslationFromContext')
-      ->will($this->returnArgument(0));
+      ->will($this->unitTestCaseApi->returnArgument(0));
   }
 
   /**
@@ -41,7 +41,7 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
    */
   public function create() {
     /** @var \Drupal\Core\Entity\EntityTypeManager|\PHPUnit\Framework\MockObject\MockObject $entityTypeManagerStub */
-    $entityTypeManagerStub = $this->createPartialMock(EntityTypeManager::class, [
+    $entityTypeManagerStub = $this->unitTestCaseApi->createPartialMock(EntityTypeManager::class, [
       'findDefinitions',
 
       // Custom helper functions for the stub:
@@ -91,7 +91,7 @@ class EntityTypeManagerStubFactory extends UnitTestCase {
       'stubGetOrCreateHandler'
     );
 
-    $entityLastInstalledSchemaRepository = $this->createMock(EntityLastInstalledSchemaRepositoryInterface::class);
+    $entityLastInstalledSchemaRepository = $this->unitTestCaseApi->createMock(EntityLastInstalledSchemaRepositoryInterface::class);
     UnitTestHelpers::bindClosureToClassMethod(
       function () use ($entityLastInstalledSchemaRepository) {
         $this->container = UnitTestHelpers::getContainerOrCreate();

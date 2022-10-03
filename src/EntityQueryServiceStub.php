@@ -4,14 +4,13 @@ namespace Drupal\test_helpers;
 
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryFactoryInterface;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * The EntityQueryServiceStub class.
  *
  * A stub for class Drupal\Core\Entity\Query\Sql\QueryFactory.
  */
-class EntityQueryServiceStub extends UnitTestCase implements QueryFactoryInterface {
+class EntityQueryServiceStub implements QueryFactoryInterface {
 
   /**
    * Constructs a new EntityQueryServiceStub.

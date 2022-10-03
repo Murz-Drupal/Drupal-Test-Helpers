@@ -6,12 +6,11 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldTypePluginManager;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinitionInterface;
 use Drupal\Core\TypedData\DataDefinitionInterface;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * The Entity Storage Stub.
  */
-class FieldTypeManagerStub extends UnitTestCase {
+class FieldTypeManagerStub {
 
   /**
    * Static storage for defined definitions.
@@ -31,10 +30,11 @@ class FieldTypeManagerStub extends UnitTestCase {
    * Constructs a new FieldTypeManagerStub.
    */
   public function __construct() {
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
 
     $this->fieldItemClassByListClassMap = [];
 
-    $fieldTypePluginManagerNew = $this->createPartialMock(FieldTypePluginManager::class, [
+    $fieldTypePluginManagerNew = $this->unitTestCaseApi->createPartialMock(FieldTypePluginManager::class, [
       'getDefinitions',
       'getDefinition',
       'getDefaultStorageSettings',

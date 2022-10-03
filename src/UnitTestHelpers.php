@@ -4,18 +4,28 @@ namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\Traits\SingletonTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Helpers for TVH Unit tests.
  */
-class UnitTestHelpers extends UnitTestCase {
+class UnitTestHelpers {
+  use SingletonTrait {
+    __construct as __originalConstruct;
+  }
+
+  /**
+   * Constructs a new UnitTestHelpers.
+   */
+  public function __construct() {
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+  }
 
   /**
    * Gets an accessible method from class using reflection.
    */
-  public static function getAccessibleMethod(\stdclass $className, string $methodName): \ReflectionMethod {
+  public static function getAccessibleMethod(object|string $className, string $methodName): \ReflectionMethod {
     $class = new \ReflectionClass($className);
     $method = $class
       ->getMethod($methodName);
@@ -105,7 +115,7 @@ class UnitTestHelpers extends UnitTestCase {
    * Creates a partial mock for the class and call constructor with arguments.
    */
   public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs = [], array $addMethods = NULL): MockObject {
-    $mockBuilder = $this->getMockBuilder($originalClassName)
+    $mockBuilder = $this->unitTestCaseApi->getMockBuilder($originalClassName)
       ->setConstructorArgs($constructorArgs)
       ->disableOriginalClone()
       ->disableArgumentCloning()
@@ -132,7 +142,7 @@ class UnitTestHelpers extends UnitTestCase {
   public function doTestCreateAndConstruct(string $class, array $createArguments = []): object {
     $container = self::getContainerOrCreate();
     $classInstance = $class::create($container, ...$createArguments);
-    $this->assertInstanceOf($class, $classInstance);
+    $this->unitTestCaseApi->assertInstanceOf($class, $classInstance);
     return $classInstance;
   }
 

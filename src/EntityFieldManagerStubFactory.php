@@ -3,17 +3,17 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Core\Entity\EntityFieldManager;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * The EntityFieldManagerStubFactory class.
  */
-class EntityFieldManagerStubFactory extends UnitTestCase {
+class EntityFieldManagerStubFactory {
 
   /**
    * Constructs a new EntityFieldManagerStubFactory.
    */
   public function __construct() {
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
   }
 
   /**
@@ -22,7 +22,7 @@ class EntityFieldManagerStubFactory extends UnitTestCase {
   public function createInstance() {
 
     /** @var \Drupal\Core\Entity\EntityFieldManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityFieldManager */
-    $entityFieldManager = $this->createPartialMock(EntityFieldManager::class, [
+    $entityFieldManager = $this->unitTestCaseApi->createPartialMock(EntityFieldManager::class, [
       'stubSetBaseFieldDefinitons',
       'stubSetFieldDefinitons',
     ]);

@@ -6,17 +6,17 @@ use Drupal\Component\Uuid\Php as PhpUuid;
 use Drupal\Core\Language\LanguageDefault;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManager;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * The EntityStubFactory class.
  */
-class EntityStubFactory extends UnitTestCase {
+class EntityStubFactory {
 
   /**
    * Constructs a new EntityStubFactory.
    */
   public function __construct() {
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
     if (!\Drupal::hasService('entity_type.manager')) {
       UnitTestHelpers::addToContainer('entity_type.manager', (new EntityTypeManagerStubFactory())->create());
     }
@@ -56,7 +56,7 @@ class EntityStubFactory extends UnitTestCase {
     // Creating a stub of the entity.
     // @todo Try to init with a real constructor.
     /** @var \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject $entity */
-    $entity = $this->createPartialMock($entityClass, [
+    $entity = $this->unitTestCaseApi->createPartialMock($entityClass, [
       // 'getEntityTypeId',
       // 'getFieldDefinitions',
       'save',
@@ -77,6 +77,7 @@ class EntityStubFactory extends UnitTestCase {
     UnitTestHelpers::bindClosureToClassMethod(
       function (array $values) use ($fieldItemListStubFactory, $options, $entityTypeId, $bundle) {
         // Pre-filling entity keys.
+        /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $this */
         $this->entityTypeId = $entityTypeId;
         $this->entityKeys['bundle'] = $bundle ? $bundle : $this->entityTypeId;
         foreach ($this->getEntityType()->getKeys() as $key => $field) {

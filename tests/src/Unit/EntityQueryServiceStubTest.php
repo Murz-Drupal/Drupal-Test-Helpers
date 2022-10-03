@@ -20,7 +20,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    */
   protected function setUp(): void {
     (new EntityTypeManagerStubFactory())->create();
-    $this->unitTestHelpers = new UnitTestHelpers();
+    $this->unitTestHelpers = UnitTestHelpers::getInstance();
   }
 
   /**

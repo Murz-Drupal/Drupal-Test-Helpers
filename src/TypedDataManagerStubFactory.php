@@ -6,20 +6,20 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\TypedData\Plugin\DataType\StringData;
 use Drupal\Core\TypedData\TypedDataManager;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * The TypedDataManagerStubFactory class.
  */
-class TypedDataManagerStubFactory extends UnitTestCase {
+class TypedDataManagerStubFactory {
 
   /**
    * Constructs a new TypedDataManagerStubFactory.
    */
   public function __construct() {
-    UnitTestHelpers::addToContainer('entity_field.manager', $this->createMock(EntityFieldManagerInterface::class));
+    $this->unitTestCaseApi = UnitTestCaseApi::getInstance();
+    UnitTestHelpers::addToContainer('entity_field.manager', $this->unitTestCaseApi->createMock(EntityFieldManagerInterface::class));
     UnitTestHelpers::addToContainer('entity_type.manager', (new EntityTypeManagerStubFactory())->create());
-    UnitTestHelpers::addToContainer('entity.repository', $this->createMock(EntityRepositoryInterface::class));
+    UnitTestHelpers::addToContainer('entity.repository', $this->unitTestCaseApi->createMock(EntityRepositoryInterface::class));
   }
 
   /**
@@ -27,7 +27,7 @@ class TypedDataManagerStubFactory extends UnitTestCase {
    */
   public function createInstance() {
     /** @var \Drupal\Core\TypedData\TypedDataManager|\PHPUnit\Framework\MockObject\MockObject $instance */
-    $instance = $this->createPartialMock(TypedDataManager::class, [
+    $instance = $this->unitTestCaseApi->createPartialMock(TypedDataManager::class, [
       'getDefinition',
       'stubAddPlugin',
       'stubAddDefinition',
