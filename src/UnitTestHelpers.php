@@ -8,6 +8,7 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\test_helpers\Traits\SingletonTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Helpers for TVH Unit tests.
@@ -176,5 +177,25 @@ class UnitTestHelpers extends UnitTestCase {
     return parent::createPartialMock($originalClassName, $methods);
   }
 
+
+  /**
+   * {@inheritdoc}
+   */
+  public function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
+    if ($servicesYamlFile) {
+      $services = Yaml::parseFile(DRUPAL_ROOT . '/' . $servicesYamlFile)['services'];
+      $serviceClass = $services[$serviceName]['class'] ?? FALSE;
+    }
+    else {
+      require_once dirname(__FILE__) . '/DrupalCoreServicesMap.inc.php';
+      $serviceClass = DRUPAL_CORE_SERVICES_MAP[$serviceName] ?? FALSE;
+    }
+    if (!$serviceClass) {
+      throw new \Exception("Service '$serviceName' is missing in the list.");
+    }
+    $service = $this->createMock($serviceClass);
+    self::addToContainer($serviceName, $service);
+    return $service;
+  }
 
 }
