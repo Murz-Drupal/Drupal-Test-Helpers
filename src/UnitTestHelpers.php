@@ -20,7 +20,7 @@ class UnitTestHelpers extends UnitTestCase {
   /**
    * Gets an accessible method from class using reflection.
    */
-  public static function getAccessibleMethod(object|string $className, string $methodName): \ReflectionMethod {
+  public static function getAccessibleMethod(object $className, string $methodName): \ReflectionMethod {
     $class = new \ReflectionClass($className);
     $method = $class
       ->getMethod($methodName);
