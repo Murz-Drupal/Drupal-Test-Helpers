@@ -30,13 +30,20 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * @covers ::get
    */
   public function testEntityQueryService() {
-    \Drupal::service('entity_type.manager')->stubGetOrCreateStorage(Node::class);
+
+    /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface $entityTypeManager */
+    $entityTypeManager = \Drupal::service('entity_type.manager');
+    $entityTypeManager->stubGetOrCreateStorage(Node::class);
 
     // Creating a custom function to generate the query result.
     $titleValues = ['Title 1', 'Title 2'];
     $entityQueryTestResult = ['1', '42'];
+    /** @var \Drupal\Tests\test_helpers\Unit\EntityQueryServiceStubTest $testClass */
     $testClass = $this;
-    \Drupal::service('entity.query.sql')->stubAddExecuteFunction('node', 'AND', function () use ($entityQueryTestResult, $titleValues, $testClass) {
+    /** @var Drupal\test_helpers\EntityQueryServiceStub $entityQuerySql*/
+    $entityQuerySql = \Drupal::service('entity.query.sql');
+    $entityQuerySql->stubAddExecuteHandler(function () use ($entityQueryTestResult, $titleValues, $testClass) {
+      /** @var \Drupal\Core\Database\Query\SelectInterface|\Drupal\test_helpers\QueryStubItemInterface $this */
       // Checking that mandatory conditions are present in the query.
       $conditionsMandatory = $this->andConditionGroup();
       $conditionsMandatory->condition('title', $titleValues, 'IN');
@@ -49,6 +56,10 @@ class EntityQueryServiceStubTest extends UnitTestCase {
 
       // Checking onlyListed mode returns false, because we have more conditions.
       $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatory, TRUE));
+
+      // Checking onlyListed mode returns true with exact conditions list.
+      $orConditionGroup->condition('field_size', 'XL');
+      $testClass->assertTrue($this->stubCheckConditionsMatch($conditionsMandatory, TRUE));
 
       // Checking that wrong conditions check is return FALSE.
       $conditionsMandatoryWrong1 = $this->orConditionGroup();
@@ -81,7 +92,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
 
       // Returning a pre-defined result for the query.
       return $entityQueryTestResult;
-    });
+    }, 'node');
 
     $entityQuery = \Drupal::service('entity_type.manager')
       ->getStorage('node')

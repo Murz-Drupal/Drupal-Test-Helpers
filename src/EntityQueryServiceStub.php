@@ -2,6 +2,7 @@
 
 namespace Drupal\test_helpers;
 
+use Drupal\Core\Database\Query\ConditionInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryFactoryInterface;
 
@@ -25,15 +26,12 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
    * Gets the query for entity type.
    */
   public function get($entityType, $conjunction) {
-    $entityTypeId = $entityType->id();
-    if (isset($this->executeFunctions[$entityTypeId][$conjunction])) {
-      $executeFunction = $this->executeFunctions[$entityTypeId][$conjunction];
-    }
-    else {
-      $executeFunction = function () {
+    $executeFunction =
+      $this->executeFunctions[$entityType->id()]
+      ?? $this->executeFunctions['all']
+      ?? function () {
         return [];
       };
-    }
     $query = $this->queryStubFactory->get($entityType, $conjunction, $executeFunction);
     return $query;
   }
@@ -42,25 +40,19 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
    * Gets the aggregate query for entity type.
    */
   public function getAggregate($entityType, $conjunction) {
-    $entityTypeId = $entityType->id();
-    if (isset($this->executeFunctions[$entityTypeId][$conjunction])) {
-      $executeFunction = $this->executeFunctions[$entityTypeId][$conjunction];
-    }
-    else {
-      $executeFunction = function () {
-        return [];
-      };
-    }
-    // @todo Implement a getAggregate call.
-    $query = $this->queryStubFactory->get($entityType, $conjunction, $executeFunction);
-    return $query;
+    // @todo Implement a custom getAggregate call.
+    return $this->get($entityType, $conjunction);
   }
 
   /**
    * Adds an execute callback function to the particular entity type.
    */
-  public function stubAddExecuteFunction(string $entityTypeId, string $conjunction, callable $function) {
-    $this->executeFunctions[$entityTypeId][$conjunction] = $function;
+  public function stubAddExecuteHandler(callable $function, string $entityTypeId = 'all') {
+    $this->executeFunctions[$entityTypeId] = $function;
+  }
+
+  public function stubCheckConditionsMatch(ConditionInterface $conditionsExpected, $onlyListed = FALSE) {
+    return UnitTestHelpers::matchConditions($conditionsExpected, $this->condition, $onlyListed);
   }
 
 }

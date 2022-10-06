@@ -4,7 +4,6 @@ namespace Drupal\test_helpers;
 
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
-use Drupal\Core\Entity\EntityTypeManager;
 
 /**
  * The EntityTypeManagerStubFactory class.
@@ -14,6 +13,11 @@ class EntityTypeManagerStubFactory {
   /**
    * Constructs a new FieldTypeManagerStub.
    */
+  /**
+   * @var \Drupal\test_helpers\UnitTestHelpers
+   */
+  private $unitTestHelpers;
+
   public function __construct() {
     $this->unitTestHelpers = UnitTestHelpers::getInstance();
     UnitTestHelpers::addToContainer('entity.repository', $this->unitTestHelpers->createMock(EntityRepositoryInterface::class));
@@ -39,9 +43,9 @@ class EntityTypeManagerStubFactory {
   /**
    * Constructs a new FieldTypeManagerStub.
    */
-  public function create() {
-    /** @var \Drupal\Core\Entity\EntityTypeManager|\PHPUnit\Framework\MockObject\MockObject $entityTypeManagerStub */
-    $entityTypeManagerStub = $this->unitTestHelpers->createPartialMock(EntityTypeManager::class, [
+  public function create(): EntityTypeManagerStubInterface {
+    /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface|\PHPUnit\Framework\MockObject\MockObject $entityTypeManagerStub */
+    $entityTypeManagerStub = $this->unitTestHelpers->createPartialMock(EntityTypeManagerStub::class, [
       'findDefinitions',
 
       // Custom helper functions for the stub:
