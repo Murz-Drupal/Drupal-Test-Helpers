@@ -31,7 +31,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     $entityQueryTestResult = ['1', '42'];
     /** @var \Drupal\Tests\test_helpers\Unit\EntityQueryServiceStubTest $testClass */
     $testClass = $this;
-    /** @var Drupal\test_helpers\EntityQueryServiceStub $entityQuerySql*/
+    /** @var \Drupal\test_helpers\EntityQueryServiceStub $entityQuerySql */
     $entityQuerySql = \Drupal::service('entity.query.sql');
     $entityQuerySql->stubAddExecuteHandler(function () use ($entityQueryTestResult, $titleValues, $testClass) {
       /** @var \Drupal\Core\Database\Query\SelectInterface|\Drupal\test_helpers\QueryStubItemInterface $this */

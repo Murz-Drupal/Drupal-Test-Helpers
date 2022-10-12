@@ -1,0 +1,7 @@
+test_helpers_example.page:
+  path: '/test_helpers_example/page'
+  defaults:
+    _title: 'Test Helpers Example: list of articles'
+    _controller: '\Drupal\test_helpers_example\Controller\TestHelpersExampleController::articlesList'
+  requirements:
+    _permission: 'access content'
