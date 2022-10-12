@@ -1,13 +1,13 @@
 <?php
 
-namespace Drupal\test_helpers\Stubs;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\test_helpers\UnitTestHelpers;
 
 /**
- * The TypedDataManagerStubFactory class.
+ * A stub of the Drupal's default Token class.
  */
 class TokenStub extends Token {
 

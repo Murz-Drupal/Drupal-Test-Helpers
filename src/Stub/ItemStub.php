@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers\Stubs;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\Component\Utility\Random;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -10,7 +10,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\TypedData\DataDefinition;
 
 /**
- * Defines the 'stub' entity field type.
+ * A stub for Drupal's default FieldItemBase class.
  *
  * @FieldType(
  *   id = "stub",
@@ -21,7 +21,7 @@ use Drupal\Core\TypedData\DataDefinition;
  *   default_formatter = "string"
  * )
  */
-class StubItem extends FieldItemBase {
+class ItemStub extends FieldItemBase {
 
   /**
    * {@inheritdoc}

@@ -10,7 +10,9 @@
  * One-liner:
  * composer require 'drupal/phpstorm_metadata:^1.0@alpha'; drush en phpstorm_metadata; drush phpstorm-metadata:generate; cat ./.phpstorm.meta.php
  * Also it's needed to format the file to Drupal code standars, but phpcbf for
- * some reason can't do this with a strange infinite loop.
+ * some reason can't do this with a strange infinite loop. Also we're using
+ * a non-php extension 'data' to skip this file from `phpcbf` by default, to
+ * prevent such a loop.
  */
 
 namespace Drupal\test_helpers;

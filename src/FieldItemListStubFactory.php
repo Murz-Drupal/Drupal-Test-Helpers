@@ -7,7 +7,7 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
-use Drupal\test_helpers\Stubs\StubItem;
+use Drupal\test_helpers\Stub\ItemStub;
 
 /**
  * The FieldItemListStubFactory class.
@@ -25,12 +25,9 @@ class FieldItemListStubFactory {
    * Constructs a new EntityStubFactory.
    */
   public function __construct() {
-    $this->fieldTypeManagerStub = new FieldTypeManagerStub();
-
     // Reusing a string field type definition as default one.
     // $stringItemDefinition = UnitTestHelpers::getPluginDefinition(StringItem::class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
     // $this->fieldTypeManagerStub->addDefinition('string', $stringItemDefinition);.
-    $this->unitTestHelpers = UnitTestHelpers::getInstance();
   }
 
   /**
@@ -45,7 +42,7 @@ class FieldItemListStubFactory {
   public static function createFieldItemDefinitionStub(string $class = NULL): FieldDefinitionInterface {
     if (!$class) {
       // $class = StringItem::class;
-      $class = StubItem::class;
+      $class = ItemStub::class;
     }
     $definition = UnitTestHelpers::getPluginDefinition($class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
     // @todo Now it's a quick initialization of BaseFieldDefinition,
@@ -70,15 +67,15 @@ class FieldItemListStubFactory {
    * @return \Drupal\Core\Field\FieldItemListInterface
    *   A field item list with items as stubs.
    */
-  public function create(string $name, $values = NULL, FieldDefinitionInterface $definition = NULL, TypedDataInterface $parent = NULL): FieldItemListInterface {
+  public static function create(string $name, $values = NULL, FieldDefinitionInterface $definition = NULL, TypedDataInterface $parent = NULL): FieldItemListInterface {
     if (!$definition) {
       // @todo Now it's a hard-coded type, will be good to add support for
       // custom types.
-      $definition = self::createFieldItemDefinitionStub(StubItem::class);
+      $definition = self::createFieldItemDefinitionStub(ItemStub::class);
       $definition->setName($name);
     }
     $field = new FieldItemList($definition, $name, $parent);
-    $field = $this->unitTestHelpers->createPartialMockWithCostructor(FieldItemList::class,
+    $field = UnitTestHelpers::createPartialMockWithConstructor(FieldItemList::class,
       [
         'applyDefaultValue',
       ],

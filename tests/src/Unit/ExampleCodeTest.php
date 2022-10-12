@@ -3,7 +3,7 @@
 namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\node\Entity\Node;
-use Drupal\test_helpers\EntityStubFactory;
+use Drupal\test_helpers\UnitTestHelpers;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -18,7 +18,6 @@ class ExampleCodeTest extends UnitTestCase {
    * Tests the module Example code.
    */
   public function testExampleCode() {
-    $entityStubFactory = new EntityStubFactory();
 
     $node1Values = [
       'type' => 'article',
@@ -29,14 +28,14 @@ class ExampleCodeTest extends UnitTestCase {
         ['target_id' => 3],
       ],
     ];
-    $node1Entity = $entityStubFactory->create(Node::class, $node1Values);
+    $node1Entity = UnitTestHelpers::createEntityStub(Node::class, $node1Values);
     $node1Entity->save();
 
     $node1EntityId = $node1Entity->id();
     $node1EntityUuid = $node1Entity->uuid();
     $node1EntityType = $node1Entity->getEntityTypeId();
 
-    $node1LoadedById = \Drupal::service('entity_type.manager')->getStorage('node')->load($node1EntityId);
+    $node1LoadedById = UnitTestHelpers::getEntityStorageStub(Node::class)->load($node1EntityId);
 
     $node1LoadedByUuid = \Drupal::service('entity.repository')->loadEntityByUuid($node1EntityType, $node1EntityUuid);
 

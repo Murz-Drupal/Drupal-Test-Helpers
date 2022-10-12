@@ -12,17 +12,7 @@ use Drupal\Core\Database\Query\Condition;
 interface QueryStubItemInterface {
 
   /**
-   * Instantiates an entity query for a given entity type.
-   *
-   * @param \Drupal\Core\Entity\EntityTypeInterface $entityType
-   *   The entity type definition.
-   * @param string $conjunction
-   *   The operator to use to combine conditions: 'AND' or 'OR'.
-   * @param \Closure $executeFunction
-   *   The function to use for `execute` call.
-   *
-   * @return \Drupal\Core\Entity\Query\QueryInterface
-   *   An entity query for a specific configuration entity type.
+   * Performs a match for conditions with expected.
    */
   public function stubCheckConditionsMatch(Condition $conditionsExpected, $onlyListed = FALSE): bool;
 

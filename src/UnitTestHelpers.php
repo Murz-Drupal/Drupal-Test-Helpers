@@ -6,29 +6,33 @@ use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Database\Query\ConditionInterface as QueryConditionInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
-use Drupal\test_helpers\Traits\SingletonTrait;
-use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\Stub\ModuleHandlerStub;
+use Drupal\test_helpers\Stub\TokenStub;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\MockObject\MockObject;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Helpers for TVH Unit tests.
+ * Helper functions to simplify writing of Unit Tests.
  */
-class UnitTestHelpers extends UnitTestCase {
-  use SingletonTrait {
-    // This trick is to allow use of the class not as a singleton too.
-    __construct as __originalConstruct;
-  }
+class UnitTestHelpers {
 
   /**
-   * A dummy constructor.
+   * The list of implemented custom stubs for services.
    */
-  public function __construct() {
-  }
+  const SERVICES_CUSTOM_STUBS = [
+    'entity_type.manager' => EntityTypeManagerStub::class,
+    'database' => DatabaseStub::class,
+    'token' => TokenStub::class,
+    'module_handler' => ModuleHandlerStub::class,
+  ];
 
   /**
-   * Gets protected method from a class using reflection.
+   * Gets a protected method from a class using reflection.
    */
   public static function getProtectedMethod(object $class, string $methodName): \ReflectionMethod {
     $reflection = new \ReflectionClass($class);
@@ -37,6 +41,14 @@ class UnitTestHelpers extends UnitTestCase {
     $method
       ->setAccessible(TRUE);
     return $method;
+  }
+
+  /**
+   * Calls a protected method from a class using reflection.
+   */
+  public static function callProtectedMethod(object $class, string $methodName, array $arguments = []) {
+    $method = self::getProtectedMethod($class, $methodName);
+    return $method->invokeArgs($class, $arguments);
   }
 
   /**
@@ -86,66 +98,6 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * Adds a new service to the Drupal container, if exists - reuse existing.
-   */
-  public static function addToContainer(string $serviceName, object $class, bool $override = FALSE): ?object {
-    $container = \Drupal::hasContainer()
-      ? \Drupal::getContainer()
-      : new ContainerBuilder();
-    $currentService = $container->has($serviceName)
-      ? $container->get($serviceName)
-      : new \stdClass();
-    if (
-      (get_class($currentService) !== get_class($class))
-      || $override
-    ) {
-      $container->set($serviceName, $class);
-    }
-    \Drupal::setContainer($container);
-
-    return $container->get($serviceName);
-  }
-
-  /**
-   * Gets the Drupal services container, or creates a new one.
-   */
-  public static function getContainerOrCreate(): object {
-    $container = \Drupal::hasContainer()
-      ? \Drupal::getContainer()
-      : new ContainerBuilder();
-    return $container;
-  }
-
-  /**
-   * Gets the service from the Drupal container, or creates a new one.
-   */
-  public static function getFromContainerOrCreate(string $serviceName, object $class): object {
-    $container = self::getContainerOrCreate();
-    if (!$container->has($serviceName)) {
-      $container->set($serviceName, $class);
-      \Drupal::setContainer($container);
-    }
-    return $container->get($serviceName);
-  }
-
-  /**
-   * Creates a partial mock for the class and call constructor with arguments.
-   */
-  public function createPartialMockWithCostructor(string $originalClassName, array $methods, array $constructorArgs = [], array $addMethods = NULL): MockObject {
-    $mockBuilder = $this->getMockBuilder($originalClassName)
-      ->setConstructorArgs($constructorArgs)
-      ->disableOriginalClone()
-      ->disableArgumentCloning()
-      ->disallowMockingUnknownTypes()
-      // ->enableProxyingToOriginalMethods()
-      ->onlyMethods(empty($methods) ? NULL : $methods);
-    if (!empty($addMethods)) {
-      $mockBuilder->addMethods($addMethods);
-    }
-    return $mockBuilder->getMock();
-  }
-
-  /**
    * Binds a closure function to a mocked class method.
    */
   public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
@@ -155,53 +107,35 @@ class UnitTestHelpers extends UnitTestCase {
 
   /**
    * Tests simple create() and __construct() functions.
+   *
+   * @param string|object $class
+   *   The class to test, can be a string with path or initialized class.
+   * @param array $createArguments
+   *   The list of arguments for passing to function create().
+   *
+   * @return object
+   *   The initialized class instance.
    */
-  public function doTestCreateAndConstruct(string $class, array $createArguments = []): object {
-    $container = self::getContainerOrCreate();
+  public static function doTestCreateAndConstruct($class, array $createArguments = []): object {
+    $container = UnitTestHelpers::getContainer();
     $classInstance = $class::create($container, ...$createArguments);
-    $this->assertInstanceOf($class, $classInstance);
+    $className = is_string($class) ? $class : get_class($class);
+    Assert::assertInstanceOf($className, $classInstance);
     return $classInstance;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getRandomGenerator() {
-    return parent::getRandomGenerator();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getContainerWithCacheTagsInvalidator(CacheTagsInvalidatorInterface $cache_tags_validator) {
-    return parent::getContainerWithCacheTagsInvalidator($cache_tags_validator);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getClassResolverStub() {
-    return parent::getClassResolverStub();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function createMock(string $originalClassName): MockObject {
-    return parent::createMock($originalClassName);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function createPartialMock(string $originalClassName, array $methods): MockObject {
-    return parent::createPartialMock($originalClassName, $methods);
   }
 
   /**
    * Performs matching of passed conditions with the query.
    */
-  public static function matchConditions(object $conditionsExpectedObject, object $conditionsObject, $onlyListed = FALSE): bool {
+  public static function queryIsSubsetOf(object $query, object $queryExpected, $onlyListed = FALSE): bool {
+    // @todo add checks for range, sort and other query parameters.
+    return self::matchConditions($query->condition, $queryExpected->condition, $onlyListed);
+  }
+
+  /**
+   * Performs matching of passed conditions with the query.
+   */
+  public static function matchConditions(object $conditionsObject, object $conditionsExpectedObject, $onlyListed = FALSE): bool {
     if ($conditionsObject instanceof EntityQueryConditionInterface) {
       if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
         return FALSE;
@@ -226,7 +160,7 @@ class UnitTestHelpers extends UnitTestCase {
           if (!is_object($condition['field']) || !is_object($conditionExpected['field'])) {
             continue;
           }
-          return self::matchConditions($conditionExpected['field'], $condition['field'], $onlyListed);
+          return self::matchConditions($condition['field'], $conditionExpected['field'], $onlyListed);
         }
         if (self::isNestedArraySubsetOf($condition, $conditionExpected)) {
           $conditionsFound[$conditionsExpectedDelta] = TRUE;
@@ -254,9 +188,197 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
+   * Gets a Drupal services container, or creates a new one.
+   */
+  public static function getContainer($forceCreate = FALSE): object {
+    $container = (!$forceCreate && \Drupal::hasContainer())
+      ? \Drupal::getContainer()
+      : new ContainerBuilder();
+    \Drupal::setContainer($container);
+    return $container;
+  }
+
+  /**
+   * Adds a new service to the Drupal container, if exists - reuse existing.
+   */
+  public static function addToContainer(string $serviceName, object $class, bool $override = FALSE): object {
+    $container = self::getContainer();
+    $currentService = $container->has($serviceName)
+      ? $container->get($serviceName)
+      : new \stdClass();
+    if (
+      (get_class($currentService) !== get_class($class))
+      || $override
+    ) {
+      $container->set($serviceName, $class);
+    }
+    return $container->get($serviceName);
+  }
+
+  /**
+   * Gets a service class by name, using Drupal defaults or a custom YAML file.
+   */
+  public static function getServiceClassByName(string $serviceName, string $servicesYamlFile = NULL): string {
+    if ($servicesYamlFile) {
+      // @phpcs-ignore
+      $services = Yaml::parseFile(DRUPAL_ROOT . '/' . $servicesYamlFile)['services'];
+      $serviceClass = $services[$serviceName]['class'] ?? FALSE;
+    }
+    else {
+      require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.data';
+      // @php-ignore
+      $serviceClass = DRUPAL_CORE_SERVICES_MAP[$serviceName] ?? FALSE;
+    }
+    if (!$serviceClass) {
+      throw new \Exception("Service '$serviceName' is missing in the list.");
+    }
+    return $serviceClass;
+  }
+
+  /**
+   * Creates a mock for a service with getting definition from a YAML file.
+   */
+  public static function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
+    $serviceClass = self::getServiceClassByName($serviceName, $servicesYamlFile);
+    $service = UnitTestHelpers::createMock($serviceClass);
+    self::addToContainer($serviceName, $service);
+    return $service;
+  }
+
+  /**
+   * Gets a service stub: custom stub or just a mock for a default Drupal class.
+   */
+  public static function getServiceStub(string $serviceName, bool $onlyCustomMocks = FALSE): object {
+    $container = UnitTestHelpers::getContainer();
+    if ($container->has($serviceName)) {
+      return $container->get($serviceName);
+    }
+    $service = self::getServiceStubClass($serviceName, $onlyCustomMocks);
+    $container->set($serviceName, $service);
+    return $service;
+  }
+
+  /**
+   * Gets the class for a service, including current module implementations.
+   */
+  public static function getServiceStubClass(string $serviceName, bool $onlyCustomMocks = FALSE): object {
+    if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
+      $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
+      $service = new $serviceClass();
+    }
+    elseif ($onlyCustomMocks) {
+      throw new ServiceNotFoundException($serviceName);
+    }
+    else {
+      $service = UnitTestHelpers::createServiceMock($serviceName);
+    }
+    return $service;
+  }
+
+  /**
+   * Gets the service from the Drupal container, or creates a new one.
+   */
+  public static function getOrCreateService(string $serviceName, $class): object {
+    $container = UnitTestHelpers::getContainer();
+    if (!$container->has($serviceName)) {
+      $container->set($serviceName, $class);
+      \Drupal::setContainer($container);
+    }
+    return $container->get($serviceName);
+  }
+
+  /**
+   * Creates a stub for an entity from a given class.
+   */
+  public static function createEntityStub(string $entityClassName, array $values = [], array $options = []): EntityInterface {
+    $entityStorage = self::getEntityStorageStub($entityClassName);
+    return $entityStorage->stubCreateEntity($entityClassName, $values, $options);
+  }
+
+  /**
+   * Gets or initializes an Entity Storage for a given Entity class name.
+   */
+  public static function getEntityStorageStub(string $entityClassName): EntityStorageInterface {
+    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityClassName);
+  }
+
+  /**
+   * Initializes the main services to get mocks for entities.
+   */
+  public static function initEntityTypeManagerStubs(): void {
+    self::getServiceStub('entity_type.manager');
+  }
+
+  /* ************************************************************************ *
+   * Wrappers for UnitTestCase functions to make them available statically.
+   * ************************************************************************ */
+
+  /**
+   * Gets the random generator for the utility methods.
+   */
+  public static function getRandomGenerator() {
+    return UnitTestCaseWrapper::getInstance()->getRandomGenerator();
+  }
+
+  /**
+   * Sets up a container with a cache tags invalidator.
+   */
+  public static function getContainerWithCacheTagsInvalidator(CacheTagsInvalidatorInterface $cache_tags_validator) {
+    return UnitTestCaseWrapper::getInstance()->getContainerWithCacheTagsInvalidator($cache_tags_validator);
+  }
+
+  /**
+   * Returns a stub class resolver.
+   */
+  public static function getClassResolverStub() {
+    return UnitTestCaseWrapper::getInstance()->getClassResolverStub();
+  }
+
+  /**
+   * Returns a stub translation manager that just returns the passed string.
+   */
+  public static function getStringTranslationStub() {
+    return UnitTestCaseWrapper::getInstance()->getStringTranslationStub();
+  }
+
+  /**
+   * Returns a mock object for the specified class.
+   */
+  public static function createMock(string $originalClassName): MockObject {
+    return UnitTestCaseWrapper::getInstance()->createMock($originalClassName);
+  }
+
+  /**
+   * Returns a partial mock object for the specified class.
+   */
+  public static function createPartialMock(string $originalClassName, array $methods): MockObject {
+    return UnitTestCaseWrapper::getInstance()->createPartialMock($originalClassName, $methods);
+  }
+
+  /* ************************************************************************ *
+   * UnitTestCase additions.
+   * ************************************************************************ */
+
+  /**
+   * Creates a partial mock for the class and call constructor with arguments.
+   */
+  public static function createPartialMockWithConstructor(string $originalClassName, array $methods, array $constructorArgs = [], array $addMethods = NULL): MockObject {
+    return UnitTestCaseWrapper::getInstance()->createPartialMockWithConstructor($originalClassName, $methods, $constructorArgs, $addMethods);
+  }
+
+  /**
+   * Creates a partial mock with ability to add custom methods.
+   */
+  public static function createPartialMockWithCustomMethods(string $originalClassName, array $methods, array $addMethods = NULL): MockObject {
+    return UnitTestCaseWrapper::getInstance()->createPartialMockWithCustomMethods($originalClassName, $methods, $addMethods);
+  }
+
+  /* ************************************************************************ *
+   * Internal functions.
+   * ************************************************************************ */
+
+  /**
    * Internal callback helper function for array_uintersect.
-   *
-   * Should be public to be available as a callback.
    */
   private static function isValueSubsetOfCallback($value, $expected): int {
     // The callback function for array_uintersect should return
@@ -268,23 +390,9 @@ class UnitTestHelpers extends UnitTestCase {
   }
 
   /**
-   * {@inheritdoc}
+   * Disables a construtor calls to allow only static calls.
    */
-  public function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
-    if ($servicesYamlFile) {
-      $services = Yaml::parseFile(DRUPAL_ROOT . '/' . $servicesYamlFile)['services'];
-      $serviceClass = $services[$serviceName]['class'] ?? FALSE;
-    }
-    else {
-      require_once dirname(__FILE__) . '/DrupalCoreServicesMap.inc.php';
-      $serviceClass = DRUPAL_CORE_SERVICES_MAP[$serviceName] ?? FALSE;
-    }
-    if (!$serviceClass) {
-      throw new \Exception("Service '$serviceName' is missing in the list.");
-    }
-    $service = $this->createMock($serviceClass);
-    self::addToContainer($serviceName, $service);
-    return $service;
+  private function __construct() {
   }
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers\Traits;
+namespace Drupal\test_helpers\includes;
 
 /**
  * Singleton trait.

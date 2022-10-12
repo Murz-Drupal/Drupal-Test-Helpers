@@ -3,7 +3,6 @@
 namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\node\Entity\Node;
-use Drupal\test_helpers\EntityStubFactory;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\UnitTestHelpers;
 
@@ -14,14 +13,6 @@ use Drupal\test_helpers\UnitTestHelpers;
  * @group test_helpers
  */
 class EntityStorageStubApiTest extends UnitTestCase {
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function setUp(): void {
-    $this->entityStubFactory = new EntityStubFactory();
-    $this->unitTestHelpers = UnitTestHelpers::getInstance();
-  }
 
   /**
    * Tests creating an Entity Stub and storaga eactions.
@@ -42,7 +33,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
         ['target_id' => 3],
       ],
     ];
-    $node1Entity = $this->entityStubFactory->create(Node::class, $node1Values);
+    $node1Entity = UnitTestHelpers::createEntityStub(Node::class, $node1Values);
 
     // The `id` and `uuid` values should be NULL before saving, if not passed in
     // the `$values` array.
@@ -74,7 +65,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
       'field_sign' => 'Alice',
       'body' => 'Pretty boring page text.',
     ];
-    $node2Entity = $this->entityStubFactory->create(Node::class, $node2Values);
+    $node2Entity = UnitTestHelpers::createEntityStub(Node::class, $node2Values);
 
     $this->assertEquals($node2Values['title'], $node2Entity->title->value);
 
@@ -89,7 +80,7 @@ class EntityStorageStubApiTest extends UnitTestCase {
       'field_sign' => 'Bob',
       'body' => 'Very boring page text.',
     ];
-    $node3Entity = $this->entityStubFactory->create(Node::class, $node3Values);
+    $node3Entity = UnitTestHelpers::createEntityStub(Node::class, $node3Values);
     $node3Entity->save();
 
     // The entity id should be auto-incremented over the max value.

@@ -1,12 +1,12 @@
 <?php
 
-namespace Drupal\test_helpers\Stubs;
+namespace Drupal\test_helpers\Stub;
 
 use Consolidation\AnnotatedCommand\Cache\NullCache;
 use Drupal\Core\Extension\ModuleHandler;
 
 /**
- * The TypedDataManagerStubFactory class.
+ * A stub of the Drupal's default ModuleHandler class.
  */
 class ModuleHandlerStub extends ModuleHandler {
 

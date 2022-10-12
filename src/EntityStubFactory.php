@@ -2,32 +2,14 @@
 
 namespace Drupal\test_helpers;
 
-use Drupal\Component\Uuid\Php as PhpUuid;
-use Drupal\Core\Language\LanguageDefault;
 use Drupal\Core\Language\LanguageInterface;
-use Drupal\Core\Language\LanguageManager;
 
 /**
- * The EntityStubFactory class.
+ * A factory for creating stubs of entities.
  */
 class EntityStubFactory {
 
-  /**
-   * Constructs a new EntityStubFactory.
-   */
-  public function __construct() {
-    $this->unitTestHelpers = UnitTestHelpers::getInstance();
-    if (!\Drupal::hasService('entity_type.manager')) {
-      UnitTestHelpers::addToContainer('entity_type.manager', (new EntityTypeManagerStubFactory())->create());
-    }
-    $this->entityTypeManager = \Drupal::service('entity_type.manager');
-    // $this->fieldTypeManagerStub = new FieldTypeManagerStub();
-    $this->fieldItemListStubFactory = new FieldItemListStubFactory();
-    $this->typedDataManagerStub = (new TypedDataManagerStubFactory())->createInstance();
-    UnitTestHelpers::addToContainer('typed_data_manager', $this->typedDataManagerStub);
-    UnitTestHelpers::addToContainer('uuid', new PhpUuid());
-    $languageDefault = new LanguageDefault(['id' => 'en', 'name' => 'English']);
-    UnitTestHelpers::addToContainer('language_manager', new LanguageManager($languageDefault));
+  private function __construct() {
   }
 
   /**
@@ -46,17 +28,18 @@ class EntityStubFactory {
    * @return \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   A mocked entity object.
    */
-  public function create(string $entityClass, array $values = [], array $options = []) {
+  public static function create(string $entityClass, array $values = [], array $options = []) {
     // Creating a new entity storage stub instance, if not exists.
-    $storage = $this->entityTypeManager->stubGetOrCreateStorage($entityClass);
+    $storage = \Drupal::service('entity_type.manager')->stubGetOrCreateStorage($entityClass);
     $entityTypeDefinition = $storage->getEntityType();
     $entityTypeId = $storage->getEntityTypeId();
     $bundle = $values[$entityTypeDefinition->getKey('bundle')] ?? $entityTypeId;
+    \Drupal::service('entity_type.bundle.info')->stubAddBundleInfo($entityTypeId, $bundle);
 
     // Creating a stub of the entity.
     // @todo Try to init with a real constructor.
     /** @var \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject $entity */
-    $entity = $this->unitTestHelpers->createPartialMock($entityClass, [
+    $entity = UnitTestHelpers::createPartialMock($entityClass, [
       // 'getEntityTypeId',
       // 'getFieldDefinitions',
       'save',
@@ -73,9 +56,8 @@ class EntityStubFactory {
     }
 
     // Filling values to the entity array.
-    $fieldItemListStubFactory = $this->fieldItemListStubFactory;
     UnitTestHelpers::bindClosureToClassMethod(
-      function (array $values) use ($fieldItemListStubFactory, $options, $entityTypeId, $bundle) {
+      function (array $values) use ($options, $entityTypeId, $bundle) {
         // Pre-filling entity keys.
         /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $this */
         $this->entityTypeId = $entityTypeId;
@@ -104,7 +86,7 @@ class EntityStubFactory {
           // item list initialization as a third argument $parent.
           // $parent = EntityAdapter::createFromEntity($this);
           $parent = NULL;
-          $field = $fieldItemListStubFactory->create($name, $value, $definition ?? NULL, $parent);
+          $field = FieldItemListStubFactory::create($name, $value, $definition ?? NULL, $parent);
           $this->fieldDefinitions[$name] = $field->getFieldDefinition();
           $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
         }
@@ -141,45 +123,13 @@ class EntityStubFactory {
 
     UnitTestHelpers::bindClosureToClassMethod(
       function () use ($storage) {
-        $storage->stubDeleteEntity($this);
+        $storage->stubDeleteEntityById($this->id());
       },
       $entity,
       'delete'
     );
 
     return $entity;
-  }
-
-  /**
-   * Returns the FieldTypeManagerStub.
-   */
-  public function getFieldTypeManagerStub() {
-    return $this->fieldTypeManagerStub;
-  }
-
-  /**
-   * Returns the FieldItemListStubFactory.
-   */
-  public function getFieldItemListStubFactory() {
-    return $this->fieldItemListStubFactory;
-  }
-
-  /**
-   * Returns the TypedDataManagerStub.
-   */
-  public function getTypedDataManagerStub() {
-    return $this->typedDataManagerStub;
-  }
-
-  /**
-   * Generates a new entity id, using auto increment like method.
-   */
-  public function generateNewEntityId(string $entityType): string {
-    // @todo Make detection of id field type, and calculate only for integers.
-    $id = max(array_keys($this->entitiesStorageById[$entityType] ?? [0])) + 1;
-    // The `id` value for even integer autoincrement is stored as string in
-    // Drupal, so we should follow this behaviour too.
-    return (string) $id;
   }
 
 }

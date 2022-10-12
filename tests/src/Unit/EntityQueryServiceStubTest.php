@@ -3,7 +3,6 @@
 namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\node\Entity\Node;
-use Drupal\test_helpers\EntityTypeManagerStubFactory;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\UnitTestHelpers;
 
@@ -16,14 +15,6 @@ use Drupal\test_helpers\UnitTestHelpers;
 class EntityQueryServiceStubTest extends UnitTestCase {
 
   /**
-   * {@inheritdoc}
-   */
-  protected function setUp(): void {
-    (new EntityTypeManagerStubFactory())->create();
-    $this->unitTestHelpers = UnitTestHelpers::getInstance();
-  }
-
-  /**
    * Tests creating an Entity Stub and storaga eactions.
    *
    * @covers ::__construct
@@ -32,7 +23,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
   public function testEntityQueryService() {
 
     /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface $entityTypeManager */
-    $entityTypeManager = \Drupal::service('entity_type.manager');
+    $entityTypeManager = UnitTestHelpers::getServiceStub('entity_type.manager');
     $entityTypeManager->stubGetOrCreateStorage(Node::class);
 
     // Creating a custom function to generate the query result.

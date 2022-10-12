@@ -6,11 +6,9 @@ use Drupal\sqlite\Driver\Database\sqlite\Connection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 
 /**
- * The ConnectionStubFactory class.
- *
- * A stub for class Drupal\Driver\Database\fake\Connection.
+ * A stub of the Drupal's default Connection class.
  */
-class ConnectionStub extends Connection {
+class DatabaseStub extends Connection {
   /**
    * The UnitsTestHelpers.
    *
@@ -29,8 +27,7 @@ class ConnectionStub extends Connection {
    * Constructs a new object.
    */
   public function __construct() {
-    $this->unitTestHelpers = UnitTestHelpers::getInstance();
-    $this->pdoMock = $this->unitTestHelpers->createMock(StubPDO::class);
+    $this->pdoMock = UnitTestHelpers::createMock(StubPDO::class);
     $this->connectionOptions = [
       'namespace' => 'Drupal\sqlite\Driver\Database\sqlite',
     ];
@@ -40,7 +37,7 @@ class ConnectionStub extends Connection {
   private function mockExecuteForMethod($method, $arguments, $executeFunction) {
     $originalMethod = parent::$method(...$arguments);
     $class = \get_class($originalMethod);
-    $mockedMethod = $this->unitTestHelpers->createPartialMockWithCostructor($class, [
+    $mockedMethod = UnitTestHelpers::createPartialMockWithConstructor($class, [
       'execute',
     ], [$this, ...$arguments]);
 

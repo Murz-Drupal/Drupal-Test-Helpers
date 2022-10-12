@@ -3,14 +3,15 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManager;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinitionInterface;
 use Drupal\Core\TypedData\DataDefinitionInterface;
 
 /**
- * The Entity Storage Stub.
+ * A stub of the Drupal's default FieldTypePluginManager class.
  */
-class FieldTypeManagerStub {
+class FieldTypeManagerStub extends FieldTypePluginManager {
 
   /**
    * Static storage for defined definitions.
@@ -30,115 +31,79 @@ class FieldTypeManagerStub {
    * Constructs a new FieldTypeManagerStub.
    */
   public function __construct() {
-    $this->unitTestHelpers = UnitTestHelpers::getInstance();
-
     $this->fieldItemClassByListClassMap = [];
+  }
 
-    $fieldTypePluginManagerNew = $this->unitTestHelpers->createPartialMock(FieldTypePluginManager::class, [
-      'getDefinitions',
-      'getDefinition',
-      'getDefaultStorageSettings',
-      'getDefaultFieldSettings',
-      'createFieldItem',
+  public function getCachedDefinitions() {
+    return $this->definitions;
+  }
 
-      /* Adds the definition, to the static storage. */
-      'stubAddDefinition',
-      /* Defines the mapping of list class with field item class. */
-      'stubDefineFieldItemClassByListClass',
-    ]);
+  public function getDefaultStorageSettings($type) {
+    return $this->definitions[$type]['storage_settings'] ?? [];
+  }
 
-    $fieldTypePluginManager = UnitTestHelpers::addToContainer('plugin.manager.field.field_type', $fieldTypePluginManagerNew);
+  public function getDefaultFieldSettings($type) {
+    return $this->definitions[$type]['field_settings'] ?? [];
+  }
 
-    $fieldTypePluginManager
-      ->method('getDefinitions')
-      ->willReturnCallback(function () {
-        return $this->definitions;
-      });
+  public function createFieldItem(FieldItemListInterface $items, $index, $values = NULL) {
+    if ($items->getFieldDefinition()->getItemDefinition()) {
+      $itemClass = $items->getFieldDefinition()->getItemDefinition()->getClass();
+    }
+    foreach ($this->fieldItemClassByListClassMap as $listClass => $itemClassCandidate) {
+      if ($items instanceof $listClass) {
+        $itemClass = $itemClassCandidate;
+        break;
+      }
+    }
 
-    $fieldTypePluginManager
-      ->method('getDefinition')
-      ->willReturnCallback(function ($type) {
-        return $this->definitions[$type];
-      });
+    $fieldItemDefinition = $items->getFieldDefinition()->getItemDefinition();
 
-    $fieldTypePluginManager
-      ->method('getDefaultStorageSettings')
-      ->willReturnCallback(function ($type) {
-        return $this->definitions[$type]['storage_settings'] ?? [];
-      });
+    // Using field item definition, if exists.
+    if (is_object($fieldItemDefinition)) {
+      $fieldItemDefinition->setClass($itemClass);
+      $fieldItem = new $itemClass($fieldItemDefinition);
+    }
 
-    $fieldTypePluginManager
-      ->method('getDefaultFieldSettings')
-      ->willReturnCallback(function ($type) {
-        return $this->definitions[$type]['field_settings'] ?? [];
-      });
+    // If field definition is not defined, creating a mock for it.
+    // @todo Make it better.
+    else {
+      $propertyDefinitions['value'] = $this->createMock(DataDefinitionInterface::class);
+      $propertyDefinitions['value']->expects($this->any())
+        ->method('isComputed')
+        ->willReturn(FALSE);
 
-    $fieldTypePluginManager
-      ->method('createFieldItem')
-      ->willReturnCallback(function ($items, $index, $values) {
-        if ($items->getFieldDefinition()->getItemDefinition()) {
-          $itemClass = $items->getFieldDefinition()->getItemDefinition()->getClass();
-        }
-        foreach ($this->fieldItemClassByListClassMap as $listClass => $itemClassCandidate) {
-          if ($items instanceof $listClass) {
-            $itemClass = $itemClassCandidate;
-            break;
-          }
-        }
+      $fieldDefinition = $this->createMock(BaseFieldDefinition::class);
+      $fieldDefinition->expects($this->any())
+        ->method('getPropertyDefinitions')
+        ->willReturn($this->returnValue($propertyDefinitions));
 
-        $fieldItemDefinition = $items->getFieldDefinition()->getItemDefinition();
+      $fieldInstanceDefinition = $this->createMock(FieldItemDataDefinitionInterface::class);
+      $fieldInstanceDefinition->expects($this->any())
+        ->method('getPropertyDefinitions')
+        ->willReturn($this->returnValue($propertyDefinitions));
+      $fieldInstanceDefinition->expects($this->any())
+        ->method('getFieldDefinition')
+        ->willReturn($this->returnValue($fieldDefinition));
 
-        // Using field item definition, if exists.
-        if (is_object($fieldItemDefinition)) {
-          $fieldItemDefinition->setClass($itemClass);
-          $fieldItem = new $itemClass($fieldItemDefinition);
-        }
+      $fieldItem = new $itemClass($fieldInstanceDefinition);
+    }
 
-        // If field definition is not defined, creating a mock for it.
-        // @todo Make it better.
-        else {
-          $propertyDefinitions['value'] = $this->createMock(DataDefinitionInterface::class);
-          $propertyDefinitions['value']->expects($this->any())
-            ->method('isComputed')
-            ->willReturn(FALSE);
+    // Applying the value to the field item.
+    $fieldItem->setValue($values);
 
-          $fieldDefinition = $this->createMock(BaseFieldDefinition::class);
-          $fieldDefinition->expects($this->any())
-            ->method('getPropertyDefinitions')
-            ->willReturn($this->returnValue($propertyDefinitions));
+    return $fieldItem;
+  }
 
-          $fieldInstanceDefinition = $this->createMock(FieldItemDataDefinitionInterface::class);
-          $fieldInstanceDefinition->expects($this->any())
-            ->method('getPropertyDefinitions')
-            ->willReturn($this->returnValue($propertyDefinitions));
-          $fieldInstanceDefinition->expects($this->any())
-            ->method('getFieldDefinition')
-            ->willReturn($this->returnValue($fieldDefinition));
+  public function stubDefineFieldItemClassByListClass(string $listClass, string $itemClass) {
+    $this->fieldItemClassByListClassMap[$listClass] = $itemClass;
+  }
 
-          $fieldItem = new $itemClass($fieldInstanceDefinition);
-        }
-
-        // Applying the value to the field item.
-        $fieldItem->setValue($values);
-
-        return $fieldItem;
-      });
-
-    $fieldTypePluginManager
-      ->method('stubDefineFieldItemClassByListClass')
-      ->willReturnCallback(function (string $listClass, string $itemClass) {
-        $this->fieldItemClassByListClassMap[$listClass] = $itemClass;
-      });
-
-    $fieldTypePluginManager
-      ->method('stubAddDefinition')
-      ->willReturnCallback(function (string $fieldType, $definition = []) {
-        if (!isset($definition['id'])) {
-          $definition['id'] = $fieldType;
-        }
-        $this->definitions[$fieldType] = $definition;
-      });
-
+  public function stubAddDefinition(string $fieldType, $definition = []) {
+    if (!isset($definition['id'])) {
+      $definition['id'] = $fieldType;
+    }
+    $this->definitions[$fieldType] = $definition;
   }
 
 }

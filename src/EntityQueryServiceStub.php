@@ -7,9 +7,7 @@ use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryFactoryInterface;
 
 /**
- * The EntityQueryServiceStub class.
- *
- * A stub for class Drupal\Core\Entity\Query\Sql\QueryFactory.
+ * A stub of the Drupal's default QueryFactoryInterface class.
  */
 class EntityQueryServiceStub implements QueryFactoryInterface {
 
@@ -52,7 +50,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
   }
 
   public function stubCheckConditionsMatch(ConditionInterface $conditionsExpected, $onlyListed = FALSE) {
-    return UnitTestHelpers::matchConditions($conditionsExpected, $this->condition, $onlyListed);
+    return UnitTestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
   }
 
 }

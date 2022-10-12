@@ -10,9 +10,7 @@ use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 
 /**
- * The Entity Storage Stub class.
- *
- * A stub for class Drupal\Core\Entity\Query\Sql\QueryFactory.
+ * The EntityQueryStub factory.
  */
 class EntityQueryStubFactory {
 
@@ -22,9 +20,8 @@ class EntityQueryStubFactory {
   public function __construct() {
     $this->namespaces = QueryBase::getNamespaces($this);
     $this->namespaces[] = 'Drupal\Core\Entity\Query\Sql';
-    $this->unitTestHelpers = UnitTestHelpers::getInstance();
     /** @var \Drupal\Tests\Core\Database\Stub\StubPDO|\PHPUnit\Framework\MockObject\MockObject $pdoMock */
-    $pdoMock = $this->unitTestHelpers->createMock(StubPDO::class);
+    $pdoMock = UnitTestHelpers::createMock(StubPDO::class);
     $this->dbConnection = new StubConnection($pdoMock, []);
   }
 
@@ -49,10 +46,10 @@ class EntityQueryStubFactory {
     }
 
     if ($entityType === NULL) {
-      $entityType = $this->unitTestHelpers->createMock(EntityTypeInterface::class);
+      $entityType = UnitTestHelpers::createMock(EntityTypeInterface::class);
     }
 
-    $queryStub = $this->unitTestHelpers->createPartialMockWithCostructor(Query::class, [
+    $queryStub = UnitTestHelpers::createPartialMockWithConstructor(Query::class, [
       'execute',
     ], [$entityType, $conjunction, $this->dbConnection, $this->namespaces], [
       'stubCheckConditionsMatch',
@@ -60,7 +57,7 @@ class EntityQueryStubFactory {
 
     UnitTestHelpers::bindClosureToClassMethod($executeFunction, $queryStub, 'execute');
     UnitTestHelpers::bindClosureToClassMethod(function (Condition $conditionsExpected, $onlyListed = FALSE) {
-      return UnitTestHelpers::matchConditions($conditionsExpected, $this->condition, $onlyListed);
+      return UnitTestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
     }, $queryStub, 'stubCheckConditionsMatch');
 
     return $queryStub;
