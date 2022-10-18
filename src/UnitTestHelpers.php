@@ -12,6 +12,8 @@ use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use PHPUnit\Framework\Assert;
+use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
+use PHPUnit\Framework\MockObject\MethodNameNotConfiguredException;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\Yaml\Yaml;
@@ -61,6 +63,32 @@ class UnitTestHelpers {
     $property
       ->setAccessible(TRUE);
     return $property->getValue($class);
+  }
+
+  /**
+   * Gets a mocked method from the Mock object to replace return value.
+   *
+   * This allows to replace the return value of the already defined method via
+   * `$mockedMethod->willReturn('New Value')`.
+   *
+   * It's not possible with PHPUnit API, but here is a feature request about it:
+   * https://github.com/sebastianbergmann/phpunit/issues/5070 - please vote!
+   */
+  public static function getMockedMethod(MockObject $mock, string $method) {
+    $invocationHandler = $mock->__phpunit_getInvocationHandler();
+    $configurableMethods = self::getProtectedProperty($invocationHandler, 'configurableMethods');
+    $matchers = self::getProtectedProperty($invocationHandler, 'matchers');
+    foreach ($matchers as $matcher) {
+      $methodNameRuleObject = self::getProtectedProperty($matcher, 'methodNameRule');
+      if ($methodNameRuleObject->matchesName($method)) {
+        return new InvocationMocker(
+            $invocationHandler,
+            $matcher,
+            ...$configurableMethods
+        );
+      }
+    }
+    throw new MethodNameNotConfiguredException();
   }
 
   /**
