@@ -2,10 +2,15 @@
 
 namespace Drupal\Tests\test_helpers\Unit;
 
+use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Routing\UrlGenerator;
 use Drupal\test_helpers\UnitTestHelpers;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 /**
  * Tests UnitTestHelpers functions.
@@ -19,6 +24,7 @@ class UnitTestHelpersTest extends UnitTestCase {
    * @covers ::getMockedMethod
    */
   public function testGetMockedMethod() {
+    /** @var \Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $mock */
     $mock = $this->createMock(EntityInterface::class);
     $mock->method('label')->willReturn('foo');
     $mock->method('id')->willReturn('42');
@@ -57,6 +63,54 @@ class UnitTestHelpersTest extends UnitTestCase {
       return 777;
     });
     $this->assertSame(777, $mock->id());
+  }
+
+  /**
+   * @covers ::initServices
+   */
+  public function testInitServices() {
+    /** @var \Drupal\Core\Entity\EntityTypeInterface|\PHPUnit\Framework\MockObject\MockObject $entityType */
+    $entityType = $this->createMock(EntityTypeInterface::class);
+    $entityType->method('getSingularLabel')->willReturn('my entity');
+
+    /** @var \Drupal\Core\Entity\EntityTypeManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityTypeManager */
+    $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
+    $entityTypeManager->method('getDefinition')->willReturn($entityType);
+
+    UnitTestHelpers::initServices([
+      'entity_type.manager' => $entityTypeManager,
+      'entity_type.bundle.info',
+      'renderer',
+      'string_translation',
+      'url_generator' => UrlGenerator::class,
+    ]);
+
+    // Checking initialized services.
+    try {
+      $service = UnitTestHelpers::doTestCreateAndConstruct(EntityController::class);
+      $this->fail('Previous line should throw an exception.');
+    }
+    catch (ServiceNotFoundException $e) {
+      $this->assertEquals('You have requested a non-existent service "entity.repository".', $e->getMessage());
+    }
+
+    UnitTestHelpers::initServices(['entity.repository']);
+
+    // Testing the behavior on a real service with the 'create' function.
+    $service = UnitTestHelpers::doTestCreateAndConstruct(EntityController::class);
+    $result = $service->addTitle('my_entity');
+    $this->assertSame('Add my entity', $result->__toString());
+
+    // Checking resetting of the container.
+    UnitTestHelpers::initServices(['entity.repository'], TRUE);
+    try {
+      $service = UnitTestHelpers::doTestCreateAndConstruct(EntityController::class);
+      $this->fail('Previous line should throw an exception.');
+    }
+    catch (ServiceNotFoundException $e) {
+      $this->assertStringStartsWith('You have requested a non-existent service', $e->getMessage());
+    }
+
   }
 
 }

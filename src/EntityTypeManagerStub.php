@@ -15,16 +15,16 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
 
   public function __construct() {
     $languageDefault = new LanguageDefault(['id' => 'en', 'name' => 'English']);
-    UnitTestHelpers::addToContainer('language_manager', new LanguageManager($languageDefault));
-    UnitTestHelpers::addToContainer('entity_field.manager', new EntityFieldManagerStub());
-    UnitTestHelpers::addToContainer('entity_type.bundle.info', new EntityTypeBundleInfoStub());
-    UnitTestHelpers::addToContainer('entity.query.sql', new EntityQueryServiceStub());
-    UnitTestHelpers::addToContainer('string_translation', UnitTestHelpers::getStringTranslationStub());
-    UnitTestHelpers::addToContainer('plugin.manager.field.field_type', new FieldTypeManagerStub());
-    UnitTestHelpers::addToContainer('typed_data_manager', new TypedDataManagerStub());
-    UnitTestHelpers::addToContainer('uuid', new PhpUuid());
+    UnitTestHelpers::initService('language_manager', new LanguageManager($languageDefault));
+    UnitTestHelpers::initService('entity_field.manager', new EntityFieldManagerStub());
+    UnitTestHelpers::initService('entity_type.bundle.info', new EntityTypeBundleInfoStub());
+    UnitTestHelpers::initService('entity.query.sql', new EntityQueryServiceStub());
+    UnitTestHelpers::initService('string_translation', UnitTestHelpers::getStringTranslationStub());
+    UnitTestHelpers::initService('plugin.manager.field.field_type', new FieldTypeManagerStub());
+    UnitTestHelpers::initService('typed_data_manager', new TypedDataManagerStub());
+    UnitTestHelpers::initService('uuid', new PhpUuid());
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
-    $entityRepository = UnitTestHelpers::addToContainer('entity.repository', UnitTestHelpers::createMock(EntityRepositoryInterface::class));
+    $entityRepository = UnitTestHelpers::initService('entity.repository', UnitTestHelpers::createMock(EntityRepositoryInterface::class));
     $entityRepository
       ->method('loadEntityByUuid')
       ->willReturnCallback(function ($entityTypeId, $uuid) {
@@ -37,7 +37,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       ->method('getTranslationFromContext')
       ->will(UnitTestCaseWrapper::getInstance()->returnArgument(0));
 
-    // UnitTestHelpers::addToContainer('entity_type.manager', $this);
+    // UnitTestHelpers::initService('entity_type.manager', $this);
   }
 
   public function findDefinitions() {

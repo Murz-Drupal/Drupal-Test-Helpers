@@ -7,7 +7,6 @@ use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Database\Query\ConditionInterface as QueryConditionInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
@@ -18,6 +17,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\Yaml\Yaml;
 
+// This trick is to prevent 'Undefined constant' warnings in code sniffers.
+defined('DRUPAL_ROOT') || define('DRUPAL_ROOT', '');
 /**
  * Helper functions to simplify writing of Unit Tests.
  */
@@ -31,6 +32,14 @@ class UnitTestHelpers {
     'database' => DatabaseStub::class,
     'token' => TokenStub::class,
     'module_handler' => ModuleHandlerStub::class,
+  ];
+
+  /**
+   * The list of implemented custom stubs for services.
+   */
+  const SERVICES_CUSTOM_STUBS_CALLBACKS = [
+    'string_translation' => [self::class, 'getStringTranslationStub'],
+    'class_resolver' => [self::class, 'getClassResolverStub'],
   ];
 
   /**
@@ -144,13 +153,138 @@ class UnitTestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function doTestCreateAndConstruct($class, array $createArguments = []): object {
+  public static function createService($class, array $createArguments = []): object {
     $container = UnitTestHelpers::getContainer();
     $classInstance = $class::create($container, ...$createArguments);
     $className = is_string($class) ? $class : get_class($class);
     Assert::assertInstanceOf($className, $classInstance);
     return $classInstance;
   }
+
+  /**
+   * Gets a Drupal services container, or creates a new one.
+   */
+  public static function getContainer($forceCreate = FALSE): object {
+    $container = (!$forceCreate && \Drupal::hasContainer())
+      ? \Drupal::getContainer()
+      : new ContainerBuilder();
+    \Drupal::setContainer($container);
+    return $container;
+  }
+
+  /**
+   * Initializes a new service and adds to the Drupal container, if not exists.
+   */
+  public static function initService(string $serviceName, $class = NULL, bool $override = FALSE): object {
+    $container = self::getContainer();
+    $currentService = $container->has($serviceName)
+      ? $container->get($serviceName)
+      : new \stdClass();
+    if ($class === NULL) {
+      $class = self::getServiceStub($serviceName);
+    }
+    elseif (is_string($class)) {
+      $class = self::createMock($class);
+    }
+    elseif (!is_object($class)) {
+      throw new \Exception("Class should be an object, string as path to class, or NULL.");
+    }
+    if (
+      (get_class($currentService) !== get_class($class))
+      || $override
+    ) {
+      $container->set($serviceName, $class);
+    }
+    return $container->get($serviceName);
+  }
+
+  /**
+   * Initializes services with creating mocks/stubs for not passed classes.
+   */
+  public static function initServices(array $services, $clearContainer = FALSE): void {
+    if ($clearContainer) {
+      UnitTestHelpers::getContainer(TRUE);
+    }
+    foreach ($services as $key => $value) {
+      // If we have only a service name - just reuse the default behavior.
+      if (is_int($key)) {
+        self::initService($value);
+      }
+      // If we have a service name in key and class in value - pass the class.
+      else {
+        self::initService($key, $value);
+      }
+    }
+  }
+
+  /**
+   * Creates a mock for a service with getting definition from a YAML file.
+   */
+  public static function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
+    $serviceClass = self::getServiceClassByName($serviceName, $servicesYamlFile);
+    $service = UnitTestHelpers::createMock($serviceClass);
+    self::initService($serviceName, $service);
+    return $service;
+  }
+
+  /**
+   * Gets a service stub: custom stub or just a mock for a default Drupal class.
+   */
+  public static function getServiceStub(string $serviceName, bool $onlyCustomMocks = FALSE): object {
+    $container = UnitTestHelpers::getContainer();
+    if ($container->has($serviceName)) {
+      return $container->get($serviceName);
+    }
+    $service = self::getServiceStubClass($serviceName, $onlyCustomMocks);
+    $container->set($serviceName, $service);
+    return $service;
+  }
+
+  /**
+   * Gets a service class by name, using Drupal defaults or a custom YAML file.
+   */
+  public static function getServiceClassByName(string $serviceName, string $servicesYamlFile = NULL): string {
+    if ($servicesYamlFile) {
+      $services = Yaml::parseFile(DRUPAL_ROOT . '/' . $servicesYamlFile)['services'];
+      $serviceClass = $services[$serviceName]['class'] ?? FALSE;
+    }
+    else {
+      require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.data';
+      // This trick is to prevent 'Undefined constant' warnings in code sniffers.
+      defined('DRUPAL_CORE_SERVICES_MAP') || define('DRUPAL_CORE_SERVICES_MAP', '');
+      $serviceClass = DRUPAL_CORE_SERVICES_MAP[$serviceName] ?? FALSE;
+    }
+    if (!$serviceClass) {
+      throw new \Exception("Service '$serviceName' is missing in the list.");
+    }
+    return $serviceClass;
+  }
+
+  /**
+   * Creates a stub for an entity from a given class.
+   */
+  public static function createEntityStub(string $entityClassName, array $values = [], array $options = []): EntityInterface {
+    $entityStorage = self::getEntityStorageStub($entityClassName);
+    return $entityStorage->stubCreateEntity($entityClassName, $values, $options);
+  }
+
+  /**
+   * Gets or initializes an Entity Storage for a given Entity class name.
+   */
+  public static function getEntityStorageStub(string $entityClassName): EntityStorageStub {
+    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityClassName);
+  }
+
+  /**
+   * Initializes the main services to get mocks for entities.
+   */
+  public static function initEntityTypeManagerStubs(): void {
+    self::getServiceStub('entity_type.manager');
+  }
+
+  /* ************************************************************************ *
+   * Helpers for queries.
+   * ************************************************************************ */
 
   /**
    * Performs matching of passed conditions with the query.
@@ -213,128 +347,6 @@ class UnitTestHelpers {
     }
     $result = array_uintersect_assoc($subset, $array, self::class . '::isValueSubsetOfCallback');
     return $result == $subset;
-  }
-
-  /**
-   * Gets a Drupal services container, or creates a new one.
-   */
-  public static function getContainer($forceCreate = FALSE): object {
-    $container = (!$forceCreate && \Drupal::hasContainer())
-      ? \Drupal::getContainer()
-      : new ContainerBuilder();
-    \Drupal::setContainer($container);
-    return $container;
-  }
-
-  /**
-   * Adds a new service to the Drupal container, if exists - reuse existing.
-   */
-  public static function addToContainer(string $serviceName, object $class, bool $override = FALSE): object {
-    $container = self::getContainer();
-    $currentService = $container->has($serviceName)
-      ? $container->get($serviceName)
-      : new \stdClass();
-    if (
-      (get_class($currentService) !== get_class($class))
-      || $override
-    ) {
-      $container->set($serviceName, $class);
-    }
-    return $container->get($serviceName);
-  }
-
-  /**
-   * Gets a service class by name, using Drupal defaults or a custom YAML file.
-   */
-  public static function getServiceClassByName(string $serviceName, string $servicesYamlFile = NULL): string {
-    if ($servicesYamlFile) {
-      // @phpcs-ignore
-      $services = Yaml::parseFile(DRUPAL_ROOT . '/' . $servicesYamlFile)['services'];
-      $serviceClass = $services[$serviceName]['class'] ?? FALSE;
-    }
-    else {
-      require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.data';
-      // @php-ignore
-      $serviceClass = DRUPAL_CORE_SERVICES_MAP[$serviceName] ?? FALSE;
-    }
-    if (!$serviceClass) {
-      throw new \Exception("Service '$serviceName' is missing in the list.");
-    }
-    return $serviceClass;
-  }
-
-  /**
-   * Creates a mock for a service with getting definition from a YAML file.
-   */
-  public static function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
-    $serviceClass = self::getServiceClassByName($serviceName, $servicesYamlFile);
-    $service = UnitTestHelpers::createMock($serviceClass);
-    self::addToContainer($serviceName, $service);
-    return $service;
-  }
-
-  /**
-   * Gets a service stub: custom stub or just a mock for a default Drupal class.
-   */
-  public static function getServiceStub(string $serviceName, bool $onlyCustomMocks = FALSE): object {
-    $container = UnitTestHelpers::getContainer();
-    if ($container->has($serviceName)) {
-      return $container->get($serviceName);
-    }
-    $service = self::getServiceStubClass($serviceName, $onlyCustomMocks);
-    $container->set($serviceName, $service);
-    return $service;
-  }
-
-  /**
-   * Gets the class for a service, including current module implementations.
-   */
-  public static function getServiceStubClass(string $serviceName, bool $onlyCustomMocks = FALSE): object {
-    if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
-      $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
-      $service = new $serviceClass();
-    }
-    elseif ($onlyCustomMocks) {
-      throw new ServiceNotFoundException($serviceName);
-    }
-    else {
-      $service = UnitTestHelpers::createServiceMock($serviceName);
-    }
-    return $service;
-  }
-
-  /**
-   * Gets the service from the Drupal container, or creates a new one.
-   */
-  public static function getOrCreateService(string $serviceName, $class): object {
-    $container = UnitTestHelpers::getContainer();
-    if (!$container->has($serviceName)) {
-      $container->set($serviceName, $class);
-      \Drupal::setContainer($container);
-    }
-    return $container->get($serviceName);
-  }
-
-  /**
-   * Creates a stub for an entity from a given class.
-   */
-  public static function createEntityStub(string $entityClassName, array $values = [], array $options = []): EntityInterface {
-    $entityStorage = self::getEntityStorageStub($entityClassName);
-    return $entityStorage->stubCreateEntity($entityClassName, $values, $options);
-  }
-
-  /**
-   * Gets or initializes an Entity Storage for a given Entity class name.
-   */
-  public static function getEntityStorageStub(string $entityClassName): EntityStorageInterface {
-    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityClassName);
-  }
-
-  /**
-   * Initializes the main services to get mocks for entities.
-   */
-  public static function initEntityTypeManagerStubs(): void {
-    self::getServiceStub('entity_type.manager');
   }
 
   /* ************************************************************************ *
@@ -418,9 +430,59 @@ class UnitTestHelpers {
   }
 
   /**
+   * Gets the class for a service, including current module implementations.
+   */
+  private static function getServiceStubClass(string $serviceName, bool $onlyCustomMocks = FALSE): object {
+    if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
+      $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
+      $service = new $serviceClass();
+    }
+    elseif (isset(self::SERVICES_CUSTOM_STUBS_CALLBACKS[$serviceName])) {
+      $serviceClassCallback = self::SERVICES_CUSTOM_STUBS_CALLBACKS[$serviceName];
+      $service = call_user_func_array($serviceClassCallback, []);
+    }
+    elseif ($onlyCustomMocks) {
+      throw new ServiceNotFoundException($serviceName);
+    }
+    else {
+      $service = UnitTestHelpers::createServiceMock($serviceName);
+    }
+    return $service;
+  }
+
+  /**
    * Disables a construtor calls to allow only static calls.
    */
   private function __construct() {
+  }
+
+  /* ************************************************************************ *
+   * Deprecations.
+   * ************************************************************************ */
+
+  /**
+   * Tests simple create() and __construct() functions.
+   *
+   * @deprecated in test_helpers:1.0.0-alpha7 and is removed from
+   *   test_helpers:1.0.0-beta1. Use UnitTestHelpers::initService().
+   *
+   * @see https://www.drupal.org/project/test_helpers/issues/3315975
+   */
+  public static function doTestCreateAndConstruct($class, array $createArguments = []): object {
+    return self::createService($class, $createArguments);
+  }
+
+  /**
+   * Adds a new service to the Drupal container, if exists - reuse existing.
+   *
+   * @deprecated in test_helpers:1.0.0-alpha7 and is removed from
+   *   test_helpers:1.0.0-beta1. Use UnitTestHelpers::initService().
+   *
+   * @see https://www.drupal.org/project/test_helpers/issues/3315975
+   */
+  public static function addToContainer(string $serviceName, $class = NULL, bool $override = FALSE): object {
+    @trigger_error('Function addToContainer is renamed to initService in test_helpers:1.0.0-alpha7.', E_USER_DEPRECATED);
+    return self::initService($serviceName, $class, $override);
   }
 
 }
