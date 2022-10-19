@@ -4,11 +4,11 @@ namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Drupal\Core\Config\Entity\Query\Query as EntityQuery;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
-use Drupal\Core\Database\Query\Query as DatabaseQuery;
+use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
+use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use PHPUnit\Framework\Assert;
@@ -442,14 +442,36 @@ class UnitTestHelpers {
    *   True if is subset, false if not.
    */
   public static function queryIsSubsetOf(object $query, object $queryExpected, $onlyListed = FALSE): bool {
-    if (
-      !($query instanceof DatabaseQuery && $queryExpected instanceof DatabaseQuery)
-      || !($query instanceof EntityQuery && $queryExpected instanceof EntityQuery)
-    ) {
+    if ($query instanceof DatabaseSelectInterface && $queryExpected instanceof DatabaseSelectInterface) {
+      $order = self::getProtectedProperty($query, 'order');
+      $orderExpected = self::getProtectedProperty($queryExpected, 'order');
+      if (!self::isNestedArraySubsetOf($order, $orderExpected)) {
+        return FALSE;
+      }
+
+    }
+    elseif ($query instanceof EntityQueryInterface && $queryExpected instanceof EntityQueryInterface) {
+      $sort = self::getProtectedProperty($query, 'sort');
+      $sortExpected = self::getProtectedProperty($queryExpected, 'sort');
+      if (!self::isNestedArraySubsetOf($sort, $sortExpected)) {
+        return FALSE;
+      }
+    }
+    else {
       throw new \Exception('Unsupportable query types.');
     }
-    // @todo add checks for range, sort and other query parameters.
-    return self::matchConditions($query->condition, $queryExpected->condition, $onlyListed);
+    $range = self::getProtectedProperty($query, 'range');
+    $rangeExpected = self::getProtectedProperty($queryExpected, 'range');
+    if (!self::isNestedArraySubsetOf($range, $rangeExpected)) {
+      return FALSE;
+    }
+
+    $condition = self::getProtectedProperty($query, 'condition');
+    $conditionExpected = self::getProtectedProperty($queryExpected, 'condition');
+    if (!self::matchConditions($condition, $conditionExpected, $onlyListed)) {
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /**
@@ -519,6 +541,9 @@ class UnitTestHelpers {
    *   True if the array is the subset, false if not.
    */
   public static function isNestedArraySubsetOf($array, $subset): bool {
+    if ($subset == NULL) {
+      return TRUE;
+    }
     if (!is_array($array) || !is_array($subset)) {
       return FALSE;
     }

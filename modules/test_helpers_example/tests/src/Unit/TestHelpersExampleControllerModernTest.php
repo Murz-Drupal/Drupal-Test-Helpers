@@ -24,14 +24,11 @@ class TestHelpersExampleControllerModernTest extends UnitTestCase {
     ($node2 = UnitTestHelpers::createEntityStub(Node::class, ['title' => 'Article 2']))->save();
 
     UnitTestHelpers::getServiceStub('entity.query.sql')->stubAddExecuteHandler(function () use ($node1, $node2) {
-      UnitTestCaseWrapper::assertTrue($this->stubCheckConditionsMatch($this->andConditionGroup()
+      UnitTestCaseWrapper::assertTrue(UnitTestHelpers::queryIsSubsetOf($this, \Drupal::entityQuery('node')
         ->condition('status', 1)
-        ->condition('type', 'article')));
-      UnitTestCaseWrapper::assertTrue(UnitTestHelpers::isNestedArraySubsetOf($this->sort[0], [
-        'field' => 'created',
-        'direction' => 'DESC',
-      ]));
-      UnitTestCaseWrapper::assertEquals(['start' => 0, 'length' => 3], $this->range);
+        ->condition('type', 'article')
+        ->sort('created', 'DESC')
+        ->range(0, 3)));
       return [$node1->id(), $node2->id()];
     });
 
