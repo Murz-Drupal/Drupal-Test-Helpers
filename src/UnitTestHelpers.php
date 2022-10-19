@@ -451,6 +451,9 @@ class UnitTestHelpers {
 
     }
     elseif ($query instanceof EntityQueryInterface && $queryExpected instanceof EntityQueryInterface) {
+      if ($query->getEntityTypeId() != $queryExpected->getEntityTypeId()) {
+        return FALSE;
+      }
       $sort = self::getProtectedProperty($query, 'sort');
       $sortExpected = self::getProtectedProperty($queryExpected, 'sort');
       if (!self::isNestedArraySubsetOf($sort, $sortExpected)) {
