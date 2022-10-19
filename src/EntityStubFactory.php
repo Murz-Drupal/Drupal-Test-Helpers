@@ -25,7 +25,7 @@ class EntityStubFactory {
    *   - definitions: the list of custom field definitions for needed fields.
    *     If not passed - the default one (`StringItem`) will be used.
    *
-   * @return \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @return \Drupal\test_helpers\EntityStubInterface
    *   A mocked entity object.
    */
   public static function create(string $entityClass, array $values = [], array $options = []) {

@@ -21,6 +21,34 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 class UnitTestHelpersTest extends UnitTestCase {
 
   /**
+   * @covers ::getProtectedProperty
+   * @covers ::getProtectedMethod
+   * @covers ::callProtectedMethod
+   */
+  public function testProtectedUtilities() {
+    $class = new ClassWithProtectedItemsStub();
+
+    try {
+      $class->property1;
+      $this->fail("Expected error is not thrown.");
+    }
+    catch (\Error $e) {
+      $this->assertEquals(0, $e->getCode());
+    }
+
+    $this->assertSame($class->getProperty1(), UnitTestHelpers::getProtectedProperty($class, 'property1'));
+    $this->assertNull(UnitTestHelpers::getProtectedProperty($class, 'property2'));
+
+    UnitTestHelpers::setProtectedProperty($class, 'property2', 'bar');
+    $this->assertSame('bar', UnitTestHelpers::getProtectedProperty($class, 'property2'));
+
+    $this->assertSame('bar', UnitTestHelpers::callProtectedMethod($class, 'getProperty2'));
+    $this->assertSame('bar', UnitTestHelpers::callProtectedMethod($class, 'getPropertyByName', ['property2']));
+    $method = UnitTestHelpers::getProtectedMethod($class, 'getPropertyByName');
+    $this->assertSame('foo', $method->invoke($class, 'property1'));
+  }
+
+  /**
    * @covers ::getMockedMethod
    */
   public function testGetMockedMethod() {
@@ -66,9 +94,11 @@ class UnitTestHelpersTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::initServices
+   * @covers ::addServices
+   * @covers ::addService
+   * @covers ::createService
    */
-  public function testInitServices() {
+  public function testAddServices() {
     /** @var \Drupal\Core\Entity\EntityTypeInterface|\PHPUnit\Framework\MockObject\MockObject $entityType */
     $entityType = $this->createMock(EntityTypeInterface::class);
     $entityType->method('getSingularLabel')->willReturn('my entity');
@@ -77,7 +107,7 @@ class UnitTestHelpersTest extends UnitTestCase {
     $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $entityTypeManager->method('getDefinition')->willReturn($entityType);
 
-    UnitTestHelpers::initServices([
+    UnitTestHelpers::addServices([
       'entity_type.manager' => $entityTypeManager,
       'entity_type.bundle.info',
       'renderer',
@@ -87,24 +117,24 @@ class UnitTestHelpersTest extends UnitTestCase {
 
     // Checking initialized services.
     try {
-      $service = UnitTestHelpers::doTestCreateAndConstruct(EntityController::class);
-      $this->fail('Previous line should throw an exception.');
+      $service = UnitTestHelpers::createService(EntityController::class);
+      $this->fail("Expected ServiceNotFoundException is not thrown.");
     }
     catch (ServiceNotFoundException $e) {
       $this->assertEquals('You have requested a non-existent service "entity.repository".', $e->getMessage());
     }
 
-    UnitTestHelpers::initServices(['entity.repository']);
+    UnitTestHelpers::addServices(['entity.repository']);
 
     // Testing the behavior on a real service with the 'create' function.
-    $service = UnitTestHelpers::doTestCreateAndConstruct(EntityController::class);
+    $service = UnitTestHelpers::createService(EntityController::class);
     $result = $service->addTitle('my_entity');
     $this->assertSame('Add my entity', $result->__toString());
 
     // Checking resetting of the container.
-    UnitTestHelpers::initServices(['entity.repository'], TRUE);
+    UnitTestHelpers::addServices(['entity.repository'], TRUE);
     try {
-      $service = UnitTestHelpers::doTestCreateAndConstruct(EntityController::class);
+      $service = UnitTestHelpers::createService(EntityController::class);
       $this->fail('Previous line should throw an exception.');
     }
     catch (ServiceNotFoundException $e) {
