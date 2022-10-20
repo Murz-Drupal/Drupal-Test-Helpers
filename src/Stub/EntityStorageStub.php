@@ -1,9 +1,11 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
+use Drupal\test_helpers\StubFactory\EntityStubFactory;
+use Drupal\test_helpers\UnitTestHelpers;
 
 /**
  * A stub of the Drupal's default SqlContentEntityStorage class.

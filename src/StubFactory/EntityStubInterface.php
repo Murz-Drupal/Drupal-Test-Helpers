@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\StubFactory;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;

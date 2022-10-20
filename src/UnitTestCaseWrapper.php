@@ -63,6 +63,18 @@ class UnitTestCaseWrapper extends UnitTestCase {
 
   /**
    * Creates a partial mock for the class and call constructor with arguments.
+   *
+   * @param string $originalClassName
+   *   The name of the class to mock.
+   * @param array $methods
+   *   An array of methods to mock.
+   * @param array $constructorArgs
+   *   An array of arguments for the constructor.
+   * @param array $addMethods
+   *   An array with new methods to add into the mock.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject
+   *   The mocked object
    */
   public function createPartialMockWithConstructor(string $originalClassName, array $methods = [], array $constructorArgs = [], array $addMethods = NULL): MockObject {
     $mockBuilder = $this->getMockBuilder($originalClassName)
@@ -80,6 +92,16 @@ class UnitTestCaseWrapper extends UnitTestCase {
 
   /**
    * Creates a partial mock with ability to add custom methods.
+   *
+   * @param string $originalClassName
+   *   The name of the class to mock.
+   * @param array $methods
+   *   An array of methods to mock.
+   * @param array $addMethods
+   *   An array with new methods to add into the mock.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject
+   *   The mocked object
    */
   public function createPartialMockWithCustomMethods(string $originalClassName, array $methods = [], array $addMethods = []): MockObject {
     $mockBuilder = $this->getMockBuilder($originalClassName)

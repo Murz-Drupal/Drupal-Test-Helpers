@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\StubFactory;
 
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -8,6 +8,7 @@ use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\Stub\ItemStub;
+use Drupal\test_helpers\UnitTestHelpers;
 
 /**
  * The FieldItemListStubFactory class.

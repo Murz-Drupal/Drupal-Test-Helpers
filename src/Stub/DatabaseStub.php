@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\sqlite\Driver\Database\sqlite\Connection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;

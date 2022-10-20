@@ -1,9 +1,10 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\TypedData\Plugin\DataType\StringData;
 use Drupal\Core\TypedData\TypedDataManager;
+use Drupal\test_helpers\UnitTestHelpers;
 
 /**
  * A stub of the Drupal's default TypedDataManager class.

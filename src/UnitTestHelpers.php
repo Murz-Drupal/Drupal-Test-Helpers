@@ -3,12 +3,16 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
+use Drupal\Component\Uuid\Php;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
+use Drupal\test_helpers\Stub\DatabaseStub;
+use Drupal\test_helpers\Stub\EntityStorageStub;
+use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use PHPUnit\Framework\Assert;
@@ -40,6 +44,7 @@ class UnitTestHelpers {
     'module_handler' => ModuleHandlerStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'class_resolver' => [self::class, 'getClassResolverStub'],
+    'uuid' => Php::class,
   ];
 
   /**
@@ -382,9 +387,9 @@ class UnitTestHelpers {
    *   - values: the field/property values.
    * @param array $options
    *   The array of options.
-   *   @see \Drupal\test_helpers\EntityStubFactory::create()
+   *   @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
    *
-   * @return \Drupal\test_helpers\EntityStubInterface
+   * @return \Drupal\test_helpers\Stub\EntityStubInterface
    *   The stub object for the entity.
    */
   public static function createEntityStub(string $entityTypeClassName, array $values = [], array $options = []) {
@@ -398,7 +403,7 @@ class UnitTestHelpers {
    * @param string $entityTypeClassName
    *   The entity class.
    *
-   * @return \Drupal\test_helpers\EntityStorageStub
+   * @return \Drupal\test_helpers\Stub\EntityStorageStub
    *   The initialized stub of Entity Storage.
    */
   public static function getEntityStorageStub(string $entityTypeClassName): EntityStorageStub {

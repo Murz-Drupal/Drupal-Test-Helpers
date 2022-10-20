@@ -1,10 +1,11 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Database\Query\ConditionInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryFactoryInterface;
+use Drupal\test_helpers\StubFactory\EntityQueryStubFactory;
 
 /**
  * A stub of the Drupal's default QueryFactoryInterface class.

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\StringTranslation\TranslatableMarkup;

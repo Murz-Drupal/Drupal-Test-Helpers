@@ -1,11 +1,12 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\StubFactory;
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\Query\Sql\Query;
+use Drupal\test_helpers\UnitTestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 

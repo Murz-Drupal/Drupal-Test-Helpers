@@ -1,12 +1,13 @@
 <?php
 
-namespace Drupal\test_helpers;
+namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
-use Drupal\Component\Uuid\Php as PhpUuid;
 use Drupal\Core\Language\LanguageDefault;
 use Drupal\Core\Language\LanguageManager;
+use Drupal\test_helpers\UnitTestCaseWrapper;
+use Drupal\test_helpers\UnitTestHelpers;
 
 /**
  * A stub of the Drupal's default EntityTypeManager class.
@@ -15,14 +16,18 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
 
   public function __construct() {
     $languageDefault = new LanguageDefault(['id' => 'en', 'name' => 'English']);
-    UnitTestHelpers::addService('language_manager', new LanguageManager($languageDefault));
-    UnitTestHelpers::addService('entity_field.manager', new EntityFieldManagerStub());
-    UnitTestHelpers::addService('entity_type.bundle.info', new EntityTypeBundleInfoStub());
-    UnitTestHelpers::addService('entity.query.sql', new EntityQueryServiceStub());
-    UnitTestHelpers::addService('string_translation', UnitTestHelpers::getStringTranslationStub());
-    UnitTestHelpers::addService('plugin.manager.field.field_type', new FieldTypeManagerStub());
-    UnitTestHelpers::addService('typed_data_manager', new TypedDataManagerStub());
-    UnitTestHelpers::addService('uuid', new PhpUuid());
+    UnitTestHelpers::addServices([
+      'string_translation',
+      'uuid',
+      'language_manager' => new LanguageManager($languageDefault),
+      'entity_field.manager' => new EntityFieldManagerStub(),
+      'entity_type.bundle.info' => new EntityTypeBundleInfoStub(),
+      'entity.query.sql' => new EntityQueryServiceStub(),
+      'plugin.manager.field.field_type' => new FieldTypeManagerStub(),
+      'typed_data_manager' => new TypedDataManagerStub(),
+      'entity.query.sql' => new EntityQueryServiceStub(),
+      'entity.query.sql' => new EntityQueryServiceStub(),
+    ]);
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
     $entityRepository = UnitTestHelpers::addService('entity.repository', UnitTestHelpers::createMock(EntityRepositoryInterface::class));
     $entityRepository
