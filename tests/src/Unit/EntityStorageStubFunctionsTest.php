@@ -9,14 +9,14 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests EntityStorageStub internal functionality.
  *
- * @coversDefaultClass \Drupal\test_helpers\EntityStorageStub
+ * @coversDefaultClass \Drupal\test_helpers\Stub\EntityStorageStub
  * @group test_helpers
  */
 class EntityStorageStubFunctionsTest extends UnitTestCase {
 
   /**
    * @covers ::__construct
-   * @covers ::generateNewEntityId
+   * @covers ::stubGetNewEntityId
    */
   public function testGenerateNewEntityId() {
     UnitTestHelpers::createEntityStub(Node::class, ['nid' => 42])->save();

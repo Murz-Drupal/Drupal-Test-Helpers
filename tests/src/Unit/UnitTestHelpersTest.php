@@ -7,6 +7,9 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\UrlGenerator;
+use Drupal\Core\Site\Settings;
+use Drupal\language\ConfigurableLanguageManagerInterface;
+use Drupal\language\LanguageNegotiationMethodManager;
 use Drupal\test_helpers\UnitTestHelpers;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
@@ -85,7 +88,7 @@ class UnitTestHelpersTest extends UnitTestCase {
     $labelMethod2->willReturnArgument(1);
     $this->assertEquals('arg1', $mock->label('arg0', 'arg1'));
 
-    // Testing a getter with callback function
+    // Testing a getter with callback function.
     $idMethod = UnitTestHelpers::getMockedMethod($mock, 'id');
     $idMethod->willReturnCallback(function () {
       return 777;
@@ -108,10 +111,10 @@ class UnitTestHelpersTest extends UnitTestCase {
     $entityTypeManager->method('getDefinition')->willReturn($entityType);
 
     UnitTestHelpers::addServices([
+      'entity_type.bundle.info' => NULL,
+      'renderer' => NULL,
+      'string_translation' => NULL,
       'entity_type.manager' => $entityTypeManager,
-      'entity_type.bundle.info',
-      'renderer',
-      'string_translation',
       'url_generator' => UrlGenerator::class,
     ]);
 
@@ -141,6 +144,29 @@ class UnitTestHelpersTest extends UnitTestCase {
       $this->assertStringStartsWith('You have requested a non-existent service', $e->getMessage());
     }
 
+  }
+
+  /**
+   * @covers ::createServiceFromYaml
+   */
+  public function testCreateServiceFromYaml() {
+    UnitTestHelpers::addService('plugin.manager.language_negotiation_method', $this->createMock(LanguageNegotiationMethodManager::class));
+    \Drupal::service('plugin.manager.language_negotiation_method')
+      ->method('getDefinitions')
+      ->willReturn(['method1', 'method2']);
+
+    $service = UnitTestHelpers::createServiceFromYaml(
+      'core/modules/language/language.services.yml',
+      'language_negotiator',
+      [],
+      [
+        'language_manager' => $this->createMock(ConfigurableLanguageManagerInterface::class),
+        'config.factory' => NULL,
+        'settings' => new Settings([]),
+        'request_stack' => NULL,
+      ]
+    );
+    $this->assertEquals(['method1', 'method2'], $service->getNegotiationMethods());
   }
 
 }

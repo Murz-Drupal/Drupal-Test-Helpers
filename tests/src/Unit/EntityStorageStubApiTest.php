@@ -9,7 +9,7 @@ use Drupal\test_helpers\UnitTestHelpers;
 /**
  * Tests EntityStorageStub main API functions.
  *
- * @coversDefaultClass \Drupal\test_helpers\EntityStorageStub
+ * @coversDefaultClass \Drupal\test_helpers\Stub\EntityStorageStub
  * @group test_helpers
  */
 class EntityStorageStubApiTest extends UnitTestCase {

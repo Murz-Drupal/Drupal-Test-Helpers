@@ -9,7 +9,7 @@ use Drupal\test_helpers\UnitTestHelpers;
 /**
  * Tests EntityQueryServiceStubTest class.
  *
- * @coversDefaultClass \Drupal\test_helpers\EntityStorageStub
+ * @coversDefaultClass \Drupal\test_helpers\Stub\EntityQueryServiceStub
  * @group test_helpers
  */
 class EntityQueryServiceStubTest extends UnitTestCase {
@@ -31,7 +31,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     $entityQueryTestResult = ['1', '42'];
     /** @var \Drupal\Tests\test_helpers\Unit\EntityQueryServiceStubTest $testClass */
     $testClass = $this;
-    /** @var \Drupal\test_helpers\EntityQueryServiceStub $entityQuerySql */
+    /** @var \Drupal\test_helpers\Stub\EntityQueryServiceStub $entityQuerySql */
     $entityQuerySql = \Drupal::service('entity.query.sql');
     $entityQuerySql->stubSetExecuteHandler(function () use ($entityQueryTestResult, $titleValues, $testClass) {
       /** @var \Drupal\Core\Database\Query\SelectInterface|\Drupal\test_helpers\QueryStubItemInterface $this */
@@ -45,7 +45,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
       $conditionsMandatory->condition($orConditionGroup);
       $testClass->assertTrue($this->stubCheckConditionsMatch($conditionsMandatory));
 
-      // Checking onlyListed mode returns false, because we have more conditions.
+      // Checking onlyListed mode returns false, when we have more conditions.
       $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatory, TRUE));
 
       // Checking onlyListed mode returns true with exact conditions list.
