@@ -48,7 +48,10 @@ class EntityStorageStubApiTest extends UnitTestCase {
     $this->assertFalse($node1Entity->title->isEmpty());
     $this->assertTrue($node1Entity->empty_field->isEmpty());
 
-    $node1Entity->save();
+    require_once DRUPAL_ROOT . '/core/includes/common.inc';
+    $this->assertEquals(SAVED_NEW, $node1Entity->save());
+    $this->assertEquals(SAVED_UPDATED, $node1Entity->save());
+
     $this->assertEquals(1, $node1Entity->id());
     $this->assertEquals(1, preg_match('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i', $node1Entity->uuid()));
 

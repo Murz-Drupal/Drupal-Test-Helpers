@@ -74,7 +74,7 @@ class EntityStorageStub extends SqlContentEntityStorage {
     return (string) $id;
   }
 
-  public function stubAddEntity($entity) {
+  public function stubStoreEntity($entity) {
     $this->stubEntities[$entity->id()] = $entity;
   }
 

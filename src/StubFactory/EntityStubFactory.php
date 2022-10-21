@@ -113,6 +113,14 @@ class EntityStubFactory {
 
     UnitTestHelpers::bindClosureToClassMethod(
       function () use ($storage) {
+        require_once DRUPAL_ROOT . '/core/includes/common.inc';
+        if ($this->isNew()) {
+          $return = SAVED_NEW;
+        }
+        else {
+          $return = SAVED_UPDATED;
+        }
+
         /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
         $idProperty = $this->getEntityType()->getKey('id') ?? NULL;
         if ($idProperty && empty($this->$idProperty->value)) {
@@ -123,10 +131,9 @@ class EntityStubFactory {
         if ($uuidProperty && empty($this->$uuidProperty->value)) {
           $this->$uuidProperty = \Drupal::service('uuid')->generate();
         }
+        $storage->stubStoreEntity($this);
 
-        $storage->stubAddEntity($this);
-
-        return $this;
+        return $return;
       },
       $entity,
       'save'
