@@ -93,7 +93,12 @@ class EntityStubFactory {
           $parent = NULL;
           $field = FieldItemListStubFactory::create($name, $value, $definition ?? NULL, $parent);
           $this->fieldDefinitions[$name] = $field->getFieldDefinition();
-          $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
+          if (is_object($value)) {
+            $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $value;
+          }
+          else {
+            $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
+          }
         }
 
         /**

@@ -23,7 +23,7 @@ class TestHelpersExampleControllerModernTest extends UnitTestCase {
     ($node1 = UnitTestHelpers::createEntityStub(Node::class, ['title' => 'Article 1']))->save();
     ($node2 = UnitTestHelpers::createEntityStub(Node::class, ['title' => 'Article 2']))->save();
 
-    UnitTestHelpers::getServiceStub('entity.query.sql')->stubAddExecuteHandler(function () use ($node1, $node2) {
+    UnitTestHelpers::getServiceStub('entity.query.sql')->stubSetExecuteHandler(function () use ($node1, $node2) {
       UnitTestCaseWrapper::assertTrue(UnitTestHelpers::queryIsSubsetOf($this, \Drupal::entityQuery('node')
         ->condition('status', 1)
         ->condition('type', 'article')

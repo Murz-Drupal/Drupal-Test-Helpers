@@ -33,7 +33,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     $testClass = $this;
     /** @var \Drupal\test_helpers\EntityQueryServiceStub $entityQuerySql */
     $entityQuerySql = \Drupal::service('entity.query.sql');
-    $entityQuerySql->stubAddExecuteHandler(function () use ($entityQueryTestResult, $titleValues, $testClass) {
+    $entityQuerySql->stubSetExecuteHandler(function () use ($entityQueryTestResult, $titleValues, $testClass) {
       /** @var \Drupal\Core\Database\Query\SelectInterface|\Drupal\test_helpers\QueryStubItemInterface $this */
       // Checking that mandatory conditions are present in the query.
       $conditionsMandatory = $this->andConditionGroup();

@@ -3,6 +3,7 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\sqlite\Driver\Database\sqlite\Connection;
+use Drupal\test_helpers\UnitTestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 
 /**
@@ -34,32 +35,41 @@ class DatabaseStub extends Connection {
     parent::__construct($this->pdoMock, $this->connectionOptions);
   }
 
-  private function mockExecuteForMethod($method, $arguments, $executeFunction) {
-    $originalMethod = parent::$method(...$arguments);
+  private function mockExecuteForMethod($method, $methodArguments) {
+    $originalMethod = parent::$method(...$methodArguments);
     $class = \get_class($originalMethod);
     $mockedMethod = UnitTestHelpers::createPartialMockWithConstructor($class, [
       'execute',
-    ], [$this, ...$arguments]);
+    ],
+    [$this, ...$methodArguments],
+    [
+      'stubExecute',
+    ]);
 
-    $executeFunction = $this->stubExecuteHandlers[$method]
-      ?? $this->stubExecuteHandlers['all']
-      ?? function () {
-        return 'default';
-      };
+    $stubExecuteHandlers = &$this->stubExecuteHandlers;
+    $executeFunction = function () use (&$stubExecuteHandlers, $method) {
+      $function =
+        $stubExecuteHandlers[$method]
+        ?? $stubExecuteHandlers['all']
+        ?? function () {
+          return [];
+        };
+
+      UnitTestHelpers::bindClosureToClassMethod($function, $this, 'stubExecute');
+      return $this->stubExecute();
+    };
     UnitTestHelpers::bindClosureToClassMethod($executeFunction, $mockedMethod, 'execute');
+
     return $mockedMethod;
   }
 
   public function select($table, $alias = NULL, array $options = []) {
-    $arguments = \func_get_args();
-    $executeFunction = function () {
-      return 123;
-    };
-    $select = $this->mockExecuteForMethod('select', $arguments, $executeFunction);
+    $methodArguments = \func_get_args();
+    $select = $this->mockExecuteForMethod('select', $methodArguments);
     return $select;
   }
 
-  public function stubAddExecuteHandler(\Closure $executeFunction, string $method = 'all') {
+  public function stubSetExecuteHandler(\Closure $executeFunction, string $method = 'all') {
     $this->stubExecuteHandlers[$method] = $executeFunction;
   }
 
