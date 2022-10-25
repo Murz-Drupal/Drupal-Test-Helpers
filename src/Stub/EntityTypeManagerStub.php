@@ -63,7 +63,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     return $this->handlers[$handlerType][$entityTypeId];
   }
 
-  public function stubGetOrCreateStorage(string $entityClass, object $storageInstance = NULL, $forceOverride = FALSE) {
+  public function stubGetOrCreateStorage(string $entityClass, object $storageInstance = NULL, $forceOverride = FALSE, array $methods = [], array $addMethods = []) {
     if (!$forceOverride && isset($this->stubEntityStoragesByClass[$entityClass])) {
       return $this->stubEntityStoragesByClass[$entityClass];
     }
@@ -71,7 +71,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       $storage = $storageInstance;
     }
     else {
-      $storage = new EntityStorageStub($entityClass);
+      $storage = UnitTestHelpers::createPartialMockWithConstructor(EntityStorageStub::class, $methods, [$entityClass], $addMethods);
     }
     $entityTypeId = $storage->getEntityTypeId();
     $this->stubEntityStoragesByClass[$entityClass] = $storage;
