@@ -39,7 +39,7 @@ class EntityStubFactory {
     $bundle = $values[$entityTypeDefinition->getKey('bundle')] ?? $entityTypeId;
     $entityTypeBundleInfo = \Drupal::service('entity_type.bundle.info');
     /** @var \Drupal\test_helpers\Stub\EntityTypeBundleInfoStub $entityTypeBundleInfo */
-    $entityTypeBundleInfo->stubAddBundleInfo($entityTypeId, $bundle);
+    $entityTypeBundleInfo->stubSetBundleInfo($entityTypeId, $bundle);
 
     // Creating a stub of the entity.
     // @todo Try to init with a real constructor.
@@ -62,7 +62,7 @@ class EntityStubFactory {
 
     // Filling values to the entity array.
     UnitTestHelpers::bindClosureToClassMethod(
-      function (array $values) use ($options, $entityTypeId, $bundle) {
+      function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition) {
         // Pre-filling entity keys.
         /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
         $this->entityTypeId = $entityTypeId;
@@ -93,11 +93,16 @@ class EntityStubFactory {
           $parent = NULL;
           $field = FieldItemListStubFactory::create($name, $value, $definition ?? NULL, $parent);
           $this->fieldDefinitions[$name] = $field->getFieldDefinition();
-          if (is_object($value)) {
-            $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $value;
+          if ($entityTypeDefinition->getGroup() == 'configuration') {
+            $this->$name = $value;
           }
           else {
-            $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
+            if (is_object($value)) {
+              $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $value;
+            }
+            else {
+              $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
+            }
           }
         }
 
@@ -112,7 +117,7 @@ class EntityStubFactory {
     $entity->stubInitValues($values);
 
     UnitTestHelpers::bindClosureToClassMethod(
-      function () use ($storage) {
+      function () use ($storage, $entityTypeDefinition) {
         require_once DRUPAL_ROOT . '/core/includes/common.inc';
         if ($this->isNew()) {
           $return = SAVED_NEW;
@@ -123,12 +128,12 @@ class EntityStubFactory {
 
         /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
         $idProperty = $this->getEntityType()->getKey('id') ?? NULL;
-        if ($idProperty && empty($this->$idProperty->value)) {
+        if ($idProperty && empty($this->id())) {
           $this->$idProperty = $storage->stubGetNewEntityId();
         }
 
         $uuidProperty = $this->getEntityType()->getKey('uuid') ?? NULL;
-        if ($uuidProperty && empty($this->$uuidProperty->value)) {
+        if ($uuidProperty && empty($this->uuid())) {
           $this->$uuidProperty = \Drupal::service('uuid')->generate();
         }
         $storage->stubStoreEntity($this);

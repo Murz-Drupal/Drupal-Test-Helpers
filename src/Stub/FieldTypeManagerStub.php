@@ -32,6 +32,7 @@ class FieldTypeManagerStub extends FieldTypePluginManager {
    */
   public function __construct() {
     $this->fieldItemClassByListClassMap = [];
+    $this->typedDataManager = \Drupal::service('typed_data_manager');
   }
 
   public function getCachedDefinitions() {
@@ -99,7 +100,7 @@ class FieldTypeManagerStub extends FieldTypePluginManager {
     $this->fieldItemClassByListClassMap[$listClass] = $itemClass;
   }
 
-  public function stubAddDefinition(string $fieldType, $definition = []) {
+  public function stubSetDefinition(string $fieldType, $definition = []) {
     if (!isset($definition['id'])) {
       $definition['id'] = $fieldType;
     }

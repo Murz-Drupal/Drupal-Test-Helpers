@@ -9,7 +9,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  */
 interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
 
-  public function stubAddDefinition(string $pluginId, object $definition = NULL, $forceOverride = FALSE);
+  public function stubSetDefinition(string $pluginId, object $definition = NULL, $forceOverride = FALSE);
 
   public function stubGetOrCreateHandler(string $handlerType, string $entityTypeId, object $handler = NULL, $forceOverride = FALSE);
 

@@ -24,6 +24,8 @@ use Symfony\Component\Yaml\Yaml;
 
 // This trick is to prevent 'Undefined constant' warnings in code sniffers.
 defined('DRUPAL_ROOT') || define('DRUPAL_ROOT', '');
+// This constant is used in some entity definitions from core.
+defined('DRUPAL_OPTIONAL') || define('DRUPAL_OPTIONAL', 1);
 /**
  * Helper functions to simplify writing of Unit Tests.
  */
@@ -176,7 +178,7 @@ class UnitTestHelpers {
    * @return mixed
    *   The definitoin from the plugin.
    */
-  public static function getPluginDefinition(string $class, string $plugin, string $annotationName = NULL) {
+  public static function getPluginDefinition(string $class, string $plugin = 'TypedData', string $annotationName = NULL) {
     static $definitions;
 
     if (isset($definitions[$plugin][$class])) {
@@ -425,14 +427,28 @@ class UnitTestHelpers {
    *   - keys: field/property names.
    *   - values: the field/property values.
    * @param array $options
-   *   The array of options.
-   *   @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
+   *   The array of options:
+   *   - entity_base_type: base type of the entity:
+   *     ContentEntityType or ConfigEntityType, default is ContentEntityType.
+   *   - @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
    *
    * @return \Drupal\test_helpers\Stub\EntityStubInterface
    *   The stub object for the entity.
    */
   public static function createEntityStub(string $entityTypeClassName, array $values = [], array $options = []) {
-    $entityStorage = self::getEntityStorageStub($entityTypeClassName);
+    switch ($options['entity_base_type'] ?? NULL) {
+      default:
+      case 'ContentEntityType':
+        $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
+        break;
+
+      case 'ConfigEntityType':
+        $annotation = '\Drupal\Core\Entity\Annotation\ConfigEntityType';
+        break;
+    }
+    unset($options['entity_base_type']);
+
+    $entityStorage = self::getEntityStorageStub($entityTypeClassName, $annotation);
     return $entityStorage->stubCreateEntity($entityTypeClassName, $values, $options);
   }
 
@@ -445,8 +461,8 @@ class UnitTestHelpers {
    * @return \Drupal\test_helpers\Stub\EntityStorageStub
    *   The initialized stub of Entity Storage.
    */
-  public static function getEntityStorageStub(string $entityTypeClassName): EntityStorageStub {
-    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName);
+  public static function getEntityStorageStub(string $entityTypeClassName, string $annotation = NULL): EntityStorageStub {
+    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName, $annotation);
   }
 
   /**
@@ -716,7 +732,7 @@ class UnitTestHelpers {
    * Gets a service info from a YAML file.
    */
   private static function getServiceInfoFromYaml(string $servicesYamlFile, string $serviceName): array {
-    $services = Yaml::parseFile(DRUPAL_ROOT . '/' . $servicesYamlFile)['services'];
+    $services = Yaml::parseFile((str_starts_with($servicesYamlFile, '/') ? '' : DRUPAL_ROOT) . '/' . $servicesYamlFile)['services'];
     return $services[$serviceName];
   }
 
@@ -725,7 +741,7 @@ class UnitTestHelpers {
    */
   private static function getServiceClassByName(string $serviceName, string $servicesYamlFile = NULL): string {
     if ($servicesYamlFile) {
-      $services = Yaml::parseFile(DRUPAL_ROOT . '/' . $servicesYamlFile)['services'];
+      $services = Yaml::parseFile((str_starts_with($servicesYamlFile, '/') ? '' : DRUPAL_ROOT) . '/' . $servicesYamlFile)['services'];
       $serviceClass = $services[$serviceName]['class'] ?? FALSE;
     }
     else {

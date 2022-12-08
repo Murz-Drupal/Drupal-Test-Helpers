@@ -17,16 +17,28 @@ class EntityStorageStub extends SqlContentEntityStorage {
   protected $entityStubFactory;
 
   /**
+   * A workaround to fix access to the private method of the parent class.
+   */
+  protected $baseEntityClass;
+
+  /**
    * Constructs a new EntityStorageStubFactory.
    */
-  public function __construct($entityClass) {
-
-    $entityType = $this->initEntityDefinition($entityClass);
-
+  public function __construct($entityClass, $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType') {
+    $entityType = $this->initEntityDefinition($entityClass, $annotation);
+    $this->baseEntityClass = $entityType->getClass();
     $this->entityType = $entityType;
     $this->entityTypeId = $entityType->id();
+    $this->entityTypeBundleInfo = \Drupal::service('entity_type.bundle.info');
 
     $this->stubEntityStorageById = [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityClass(?string $bundle = NULL): string {
+    return $this->baseEntityClass;
   }
 
   public function invokeHook($hook, EntityInterface $entity) {
@@ -85,15 +97,15 @@ class EntityStorageStub extends SqlContentEntityStorage {
   /**
    * Initializes an entity definition and adds to storage. Not working yet.
    */
-  public function initEntityDefinition($entityClass) {
-    $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity', '\Drupal\Core\Entity\Annotation\ContentEntityType');
+  public function initEntityDefinition($entityClass, $annotation) {
+    $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity', $annotation);
     $entityTypeId = $entityTypeDefinition->get('id');
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
     $entityTypeManager = \Drupal::service('entity_type.manager');
     $entityTypeDefinition = $entityTypeManager->getDefinition($entityTypeId, FALSE);
     if (!$entityTypeDefinition) {
       $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityClass, 'Entity');
-      $entityTypeManager->stubAddDefinition($entityTypeId, $entityTypeDefinition);
+      $entityTypeManager->stubSetDefinition($entityTypeId, $entityTypeDefinition);
     }
     return $entityTypeDefinition;
   }

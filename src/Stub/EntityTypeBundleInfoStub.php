@@ -18,7 +18,7 @@ class EntityTypeBundleInfoStub extends EntityTypeBundleInfo {
     return $this->bundleInfo;
   }
 
-  public function stubAddBundleInfo(string $entityTypeId, string $bundleName, array $bundleInfo = NULL, $force = FALSE) {
+  public function stubSetBundleInfo(string $entityTypeId, string $bundleName, array $bundleInfo = NULL, $force = FALSE) {
     if ($bundleInfo === NULL) {
       $bundleInfo = [
         'label' => new TranslatableMarkup('@bundleName bundle', ['@bundleName' => $bundleName]),

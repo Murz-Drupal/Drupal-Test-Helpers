@@ -1,21 +1,22 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit;
+namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
 
 use Drupal\node\Entity\Node;
+use Drupal\node\Entity\NodeType;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\UnitTestHelpers;
 
 /**
- * Tests EntityStorageStub main API functions.
+ * Tests CreateEntityStub API function.
  *
- * @coversDefaultClass \Drupal\test_helpers\Stub\EntityStorageStub
+ * @coversDefaultClass \Drupal\test_helpers\UnitTestHelpersTest
  * @group test_helpers
  */
-class EntityStorageStubApiTest extends UnitTestCase {
+class CreateEntityStubTest extends UnitTestCase {
 
   /**
-   * Tests creating an Entity Stub and storaga eactions.
+   * Tests creating Entity Stubs.
    *
    * @covers ::__construct
    * @covers ::create
@@ -117,6 +118,29 @@ class EntityStorageStubApiTest extends UnitTestCase {
     $nodeLoadedMultuple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
     $this->assertCount(2, $nodeLoadedMultuple);
 
+  }
+
+  /**
+   * Tests creating configuration Entities.
+   *
+   * @covers ::__construct
+   * @covers ::create
+   */
+  public function testEntityStorageStubWithConfigurationEntities() {
+    $values = [
+      'type' => 'article',
+      'description' => 'Article description.',
+      'new_revision' => FALSE,
+      'display_submitted' => FALSE,
+    ];
+    $entity = UnitTestHelpers::createEntityStub(NodeType::class, $values, [
+      'entity_base_type' => 'ConfigEntityType',
+    ]);
+    $entity->save();
+    $this->assertEquals($values['type'], $entity->id());
+    $this->assertEquals($values['description'], $entity->getDescription());
+    $this->assertEquals($values['new_revision'], $entity->shouldCreateNewRevision());
+    $this->assertEquals($values['display_submitted'], $entity->displaySubmitted());
   }
 
 }
