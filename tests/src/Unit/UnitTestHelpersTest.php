@@ -160,8 +160,8 @@ class UnitTestHelpersTest extends UnitTestCase {
       'language_negotiator',
       [],
       [
+        0 => 'config.factory',
         'language_manager' => $this->createMock(ConfigurableLanguageManagerInterface::class),
-        'config.factory',
         'settings' => new Settings([]),
         'request_stack' => NULL,
       ]

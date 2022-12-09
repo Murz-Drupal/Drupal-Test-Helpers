@@ -45,14 +45,18 @@ class ClassWithProtectedItemsStub {
   /**
    * The getProperty2.
    */
+  // @codingStandardsIgnoreStart
   private function getProperty2() {
+  // @codingStandardsIgnoreEnd
     return $this->property2;
   }
 
   /**
    * The getPropertyByName.
    */
+  // @codingStandardsIgnoreStart
   private function getPropertyByName($name) {
+  // @codingStandardsIgnoreEnd
     return $this->$name;
   }
 

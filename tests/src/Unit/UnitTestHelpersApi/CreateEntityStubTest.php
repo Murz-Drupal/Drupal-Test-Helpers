@@ -17,9 +17,6 @@ class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating Entity Stubs.
-   *
-   * @covers ::__construct
-   * @covers ::create
    */
   public function testEntityStorageStub() {
     // Creating mocked entities to test the results.
@@ -122,9 +119,6 @@ class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating configuration Entities.
-   *
-   * @covers ::__construct
-   * @covers ::create
    */
   public function testEntityStorageStubWithConfigurationEntities() {
     $values = [
