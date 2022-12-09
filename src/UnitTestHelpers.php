@@ -254,11 +254,12 @@ class UnitTestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function createService($class, array $createArguments = [], array $services = NULL): object {
+  public static function createService($class, array $createArguments = NULL, array $services = NULL): object {
     if ($services !== NULL) {
       self::addServices($services);
     }
     $container = self::getContainer();
+    $createArguments ??= [];
     $classInstance = $class::create($container, ...$createArguments);
     return $classInstance;
   }
