@@ -11,7 +11,9 @@ use Drupal\test_helpers\UnitTestHelpers;
 class EntityFieldManagerStub extends EntityFieldManager {
 
   public function __construct() {
-    $this->languageManager = UnitTestHelpers::getServiceStub('language_manager');
+    $this->languageManager = \Drupal::service('language_manager');
+    $this->entityTypeManager = \Drupal::service('entity_type.manager');
+    $this->moduleHandler = \Drupal::service('module_handler');
   }
 
   public function stubSetBaseFieldDefinitons($entityTypeId, $baseFieldDefinitions) {

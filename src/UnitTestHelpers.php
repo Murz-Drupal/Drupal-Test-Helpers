@@ -3,6 +3,7 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
+use Drupal\Component\Transliteration\PhpTransliteration;
 use Drupal\Component\Uuid\Php;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Cache\MemoryBackendFactory;
@@ -11,11 +12,14 @@ use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
+use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\EntityStorageStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
+use Drupal\test_helpers\Stub\LanguageManagerStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
+use Drupal\test_helpers\Stub\TypedDataManagerStub;
 use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use PHPUnit\Framework\MockObject\MethodNameNotConfiguredException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -43,10 +47,14 @@ class UnitTestHelpers {
     'database' => DatabaseStub::class,
     'token' => TokenStub::class,
     'module_handler' => ModuleHandlerStub::class,
+    'language_manager' => LanguageManagerStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
+    'typed_data_manager' => TypedDataManagerStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'uuid' => Php::class,
     'cache.backend.memory' => MemoryBackendFactory::class,
+    'transliteration' => PhpTransliteration::class,
+    'config.factory' => ConfigFactoryStub::class,
   ];
 
   /**
@@ -556,19 +564,28 @@ class UnitTestHelpers {
       if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
         return FALSE;
       }
+      $conditions = $conditionsObject->conditions();
+      $conditionsExpected = $conditionsExpectedObject->conditions();
     }
     elseif ($conditionsObject instanceof DatabaseQueryConditionInterface) {
       if (strcasecmp($conditionsObject->conditions()['#conjunction'], $conditionsExpectedObject->conditions()['#conjunction']) != 0) {
         return FALSE;
       }
+      $conditions = $conditionsObject->conditions();
+      unset($conditions['#conjunction']);
+      $conditionsExpected = $conditionsExpectedObject->conditions();
+      unset($conditionsExpected['#conjunction']);
+    }
+    elseif (in_array('Drupal\search_api\Query\ConditionGroupInterface', class_implements($conditionsObject))) {
+      if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
+        return FALSE;
+      }
+      $conditions = self::conditionsSearchApiObjectsToArray(self::getProtectedProperty($conditionsObject, 'conditions'));
+      $conditionsExpected = self::conditionsSearchApiObjectsToArray(self::getProtectedProperty($conditionsExpectedObject, 'conditions'));
     }
     else {
       throw new \Exception("Conditions should implement Drupal\Core\Entity\Query\ConditionInterface or Drupal\Core\Database\Query\ConditionInterface.");
     }
-    $conditions = $conditionsObject->conditions();
-    unset($conditions['#conjunction']);
-    $conditionsExpected = $conditionsExpectedObject->conditions();
-    unset($conditionsExpected['#conjunction']);
     $conditionsFound = [];
     foreach ($conditions as $condition) {
       foreach ($conditionsExpected as $conditionsExpectedDelta => $conditionExpected) {
@@ -734,6 +751,21 @@ class UnitTestHelpers {
   private static function getServiceInfoFromYaml(string $servicesYamlFile, string $serviceName): array {
     $services = Yaml::parseFile((str_starts_with($servicesYamlFile, '/') ? '' : DRUPAL_ROOT) . '/' . $servicesYamlFile)['services'];
     return $services[$serviceName];
+  }
+
+
+  /**
+   * Converts a condition in Search API format to the associative array.
+   */
+  private static function conditionsSearchApiObjectsToArray(array $conditionsAsObjects): array {
+    foreach ($conditionsAsObjects as $delta => $conditionAsObject) {
+      $conditions[$delta] = [
+        'field' => $conditionAsObject->getField(),
+        'value' => $conditionAsObject->getValue(),
+        'operator' => $conditionAsObject->getOperator(),
+      ];
+    }
+    return $conditions;
   }
 
   /**

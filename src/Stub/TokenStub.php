@@ -15,6 +15,7 @@ class TokenStub extends Token {
    * Constructs a new TypedDataManagerStubFactory.
    */
   public function __construct() {
+    $this->moduleHandler = \Drupal::service('module_handler');
     $this->renderer = UnitTestHelpers::createMock(RendererInterface::class);
   }
 

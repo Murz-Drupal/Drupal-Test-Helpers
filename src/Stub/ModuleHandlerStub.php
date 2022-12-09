@@ -2,7 +2,7 @@
 
 namespace Drupal\test_helpers\Stub;
 
-use Consolidation\AnnotatedCommand\Cache\NullCache;
+use Drupal\Core\Cache\NullBackend;
 use Drupal\Core\Extension\ModuleHandler;
 
 /**
@@ -15,7 +15,7 @@ class ModuleHandlerStub extends ModuleHandler {
    */
   public function __construct() {
     $this->moduleList = [];
-    $this->cacheBackend = new NullCache();
+    $this->cacheBackend = new NullBackend('test_helpers');
   }
 
 }

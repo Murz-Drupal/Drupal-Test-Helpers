@@ -2,6 +2,9 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
+use Drupal\Core\TypedData\DataDefinition;
+use Drupal\Core\TypedData\Plugin\DataType\ItemList;
 use Drupal\Core\TypedData\Plugin\DataType\StringData;
 use Drupal\Core\TypedData\TypedDataManager;
 use Drupal\test_helpers\UnitTestHelpers;
@@ -15,17 +18,19 @@ class TypedDataManagerStub extends TypedDataManager {
    * Constructs a new TypedDataManagerStubFactory.
    */
   public function __construct() {
-    $this->stubAddPlugin(StringData::class);
+    $this->stubSetPlugin(EntityAdapter::class);
+    $this->stubSetPlugin(ItemList::class);
+    $this->stubSetPlugin(StringData::class);
     /* @todo Try to register popular definitions via something like:
-     * $instance->stubAddPlugin(StringData::class);
-     * $instance->stubAddPlugin(EntityAdapter::class);
-     * $instance->stubAddPlugin(EntityReferenceItem::class);
-     * $instance->stubAddPlugin(StringData::class, 'TypedData', 'field_item');
-     * $instance->stubAddPlugin(StringLongItem::class, 'Field', 'field_item');
+     * $instance->stubSetPlugin(StringData::class);
+     * $instance->stubSetPlugin(EntityAdapter::class);
+     * $instance->stubSetPlugin(EntityReferenceItem::class);
+     * $instance->stubSetPlugin(StringData::class, 'TypedData', 'field_item');
+     * $instance->stubSetPlugin(StringLongItem::class, 'Field', 'field_item');
      * $definition = UnitTestHelpers::getPluginDefinition(StringLongItem::class, 'Field');
-     * $instance->stubAddDefinition('field_item:' . $definition['id'], $definition);
+     * $instance->stubSetDefinition($definition, 'field_item');
      * $definition = UnitTestHelpers::getPluginDefinition(BooleanItem::class, 'Field');
-     * $instance->stubAddDefinition('field_item:' . $definition['id'], $definition);
+     * $instance->stubSetDefinition($definition, 'field_item');
      */
   }
 
@@ -33,18 +38,41 @@ class TypedDataManagerStub extends TypedDataManager {
     return $this->stubPluginsDefinition[$plugin_id] ?? NULL;
   }
 
-  public function stubAddPlugin($class, $plugin = 'TypedData', $namespace = NULL) {
+  public function stubInitPlugin($class, $plugin = 'TypedData', $namespace = NULL) {
     $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
-    if ($namespace) {
-      $this->stubPluginsDefinition[$namespace . ':' . $definition['id']] = $definition;
+    $id = self::getIdWithNamespace($definition['id'], $namespace);
+
+    if (!isset($definition['list_class'])) {
+      $definition['list_class'] = 'Drupal\Core\Field\FieldItemList';
     }
-    else {
-      $this->stubPluginsDefinition[$definition['id']] = $definition;
-    }
+
+    $definitionClass = $definition['definition_class'];
+    $definitionObject = new $definitionClass($definition);
+    $this->stubPluginsDefinition[$id] = new $class($definitionObject);
+    $this->stubPluginsDefinition[$id]->setTypedDataManager($this);
   }
 
-  public function stubAddDefinition(string $id, $definition) {
-    $this->stubPluginsDefinition[$id] = $definition;
+  public function stubSetPlugin($class, $plugin = 'TypedData', $namespace = NULL) {
+    $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
+    if (!isset($definition['list_class'])) {
+      $definition['list_class'] = 'Drupal\Core\Field\FieldItemList';
+    }
+    $this->stubPluginsDefinition[self::getIdWithNamespace($definition['id'], $namespace)] = $definition;
+  }
+
+  public function stubSetDefinition($definition, $namespace = NULL, $customId = NULL) {
+    $this->stubPluginsDefinition[self::getIdWithNamespace($customId ?? $definition['id'], $namespace)] = $definition;
+  }
+
+  public function stubSetDefinitionFromClass(string $class, $plugin = 'TypedData', $namespace = NULL) {
+    $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
+    self::stubSetDefinition($definition, $plugin, $namespace);
+  }
+
+  private function getIdWithNamespace(string $id, string $namespace = NULL) {
+    return $namespace
+      ? $namespace . ':' . $id
+      : $id;
   }
 
 }
