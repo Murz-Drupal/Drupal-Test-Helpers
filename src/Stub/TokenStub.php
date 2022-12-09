@@ -2,6 +2,10 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\test_helpers\UnitTestHelpers;
@@ -12,11 +16,20 @@ use Drupal\test_helpers\UnitTestHelpers;
 class TokenStub extends Token {
 
   /**
-   * Constructs a new TypedDataManagerStubFactory.
+   * @inheritdoc
    */
-  public function __construct() {
-    $this->moduleHandler = \Drupal::service('module_handler');
-    $this->renderer = UnitTestHelpers::createMock(RendererInterface::class);
+  public function __construct(
+    ModuleHandlerInterface $module_handler = NULL,
+    CacheBackendInterface $cache = NULL,
+    LanguageManagerInterface $language_manager = NULL,
+    CacheTagsInvalidatorInterface $cache_tags_invalidator = NULL,
+    RendererInterface $renderer = NULL,
+  ) {
+    $this->cache = $cache;
+    $this->languageManager = $language_manager;
+    $this->moduleHandler = $module_handler ?? \Drupal::service('module_handler');
+    $this->cacheTagsInvalidator = $cache_tags_invalidator;
+    $this->renderer = $renderer ?? UnitTestHelpers::createMock(RendererInterface::class);
   }
 
 }

@@ -10,11 +10,13 @@ use Drupal\Core\Cache\MemoryBackendFactory;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\EntityStorageStub;
+use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LanguageManagerStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
@@ -43,18 +45,19 @@ class UnitTestHelpers {
    * as array in format "[className, functionName]".
    */
   public const SERVICES_CUSTOM_STUBS = [
-    'entity_type.manager' => EntityTypeManagerStub::class,
-    'database' => DatabaseStub::class,
-    'token' => TokenStub::class,
-    'module_handler' => ModuleHandlerStub::class,
-    'language_manager' => LanguageManagerStub::class,
-    'string_translation' => [self::class, 'getStringTranslationStub'],
-    'typed_data_manager' => TypedDataManagerStub::class,
-    'class_resolver' => [self::class, 'getClassResolverStub'],
-    'uuid' => Php::class,
     'cache.backend.memory' => MemoryBackendFactory::class,
-    'transliteration' => PhpTransliteration::class,
+    'class_resolver' => [self::class, 'getClassResolverStub'],
     'config.factory' => ConfigFactoryStub::class,
+    'database' => DatabaseStub::class,
+    'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
+    'entity_type.manager' => EntityTypeManagerStub::class,
+    'language_manager' => LanguageManagerStub::class,
+    'module_handler' => ModuleHandlerStub::class,
+    'string_translation' => [self::class, 'getStringTranslationStub'],
+    'token' => TokenStub::class,
+    'transliteration' => PhpTransliteration::class,
+    'typed_data_manager' => TypedDataManagerStub::class,
+    'uuid' => Php::class,
   ];
 
   /**

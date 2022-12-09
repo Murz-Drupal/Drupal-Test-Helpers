@@ -22,13 +22,12 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       'language_manager',
       'uuid',
       'module_handler',
+      'entity_type.bundle.info',
     ]);
     UnitTestHelpers::addService('typed_data_manager', new TypedDataManagerStub());
     UnitTestHelpers::addServices([
-      'entity_type.bundle.info' => new EntityTypeBundleInfoStub(),
       'entity.query.sql' => new EntityQueryServiceStub(),
       'plugin.manager.field.field_type' => new FieldTypeManagerStub(),
-      'entity.query.sql' => new EntityQueryServiceStub(),
     ]);
     UnitTestHelpers::addService('entity_field.manager', new EntityFieldManagerStub());
     UnitTestHelpers::addService('entity_type.repository', new EntityTypeRepository($this));

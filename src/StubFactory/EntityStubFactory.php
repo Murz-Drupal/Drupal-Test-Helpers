@@ -33,11 +33,11 @@ class EntityStubFactory {
     // Creating a new entity storage stub instance, if not exists.
     /** @var \Drupal\test_helpers\Stub\EntityTypeManagerStub $entityTypeManager */
     $entityTypeManager = \Drupal::service('entity_type.manager');
+    $entityTypeBundleInfo = \Drupal::service('entity_type.bundle.info');
     $storage = $entityTypeManager->stubGetOrCreateStorage($entityClass);
     $entityTypeDefinition = $storage->getEntityType();
     $entityTypeId = $storage->getEntityTypeId();
     $bundle = $values[$entityTypeDefinition->getKey('bundle')] ?? $entityTypeId;
-    $entityTypeBundleInfo = \Drupal::service('entity_type.bundle.info');
     /** @var \Drupal\test_helpers\Stub\EntityTypeBundleInfoStub $entityTypeBundleInfo */
     $entityTypeBundleInfo->stubSetBundleInfo($entityTypeId, $bundle);
 
