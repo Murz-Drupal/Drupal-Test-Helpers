@@ -47,14 +47,12 @@ class UnitTestHelpers {
     'database' => DatabaseStub::class,
     'token' => TokenStub::class,
     'module_handler' => ModuleHandlerStub::class,
-    'language_manager' => LanguageManagerStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'typed_data_manager' => TypedDataManagerStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'uuid' => Php::class,
     'cache.backend.memory' => MemoryBackendFactory::class,
     'transliteration' => PhpTransliteration::class,
-    'config.factory' => ConfigFactoryStub::class,
   ];
 
   /**
