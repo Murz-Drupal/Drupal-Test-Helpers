@@ -10,7 +10,6 @@ use Drupal\Core\Cache\MemoryBackendFactory;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
@@ -469,6 +468,8 @@ class UnitTestHelpers {
    *
    * @param string $entityTypeClassName
    *   The entity class.
+   * @param string $annotation
+   *   The annotation class.
    *
    * @return \Drupal\test_helpers\Stub\EntityStorageStub
    *   The initialized stub of Entity Storage.
@@ -711,6 +712,58 @@ class UnitTestHelpers {
     return UnitTestCaseWrapper::getInstance()->createPartialMockWithCustomMethods($originalClassName, $methods, $addMethods);
   }
 
+  /**
+   * Sets an array as the iterator on a mocked object.
+   * @param array $array
+   *   The array with data.
+   * @param \PHPUnit\Framework\MockObject\MockObject $mock
+   *   The mocked object.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject
+   *   The mocked object.
+   */
+  public static function addIteratorToMock(array $array, MockObject $mock): MockObject {
+    $iterator = new \ArrayIterator($array);
+
+    $mock->method('rewind')
+      ->willReturnCallback(function () use ($iterator): void {
+        $iterator->rewind();
+      });
+
+    $mock->method('current')
+      ->willReturnCallback(function () use ($iterator) {
+        return $iterator->current();
+      });
+
+    $mock->method('key')
+      ->willReturnCallback(function () use ($iterator) {
+        return $iterator->key();
+      });
+
+    $mock->method('next')
+      ->willReturnCallback(function () use ($iterator): void {
+        $iterator->next();
+      });
+
+    $mock->method('valid')
+      ->willReturnCallback(function () use ($iterator): bool {
+        return $iterator->valid();
+      });
+
+    $mock->method('offsetGet')
+      ->willReturnCallback(function ($key) use ($iterator) {
+        return $iterator[$key];
+      });
+
+    $mock->method('offsetSet')
+      ->willReturnCallback(function ($key, $value) use ($iterator) {
+        return $iterator[$key] = $value;
+      });
+
+    // @todo Check if the method getIterator is defined and mock it too.
+    return $mock;
+  }
+
   /* ************************************************************************ *
    * Internal functions.
    * ************************************************************************ */
@@ -756,7 +809,6 @@ class UnitTestHelpers {
     $services = Yaml::parseFile((str_starts_with($servicesYamlFile, '/') ? '' : DRUPAL_ROOT) . '/' . $servicesYamlFile)['services'];
     return $services[$serviceName];
   }
-
 
   /**
    * Converts a condition in Search API format to the associative array.
