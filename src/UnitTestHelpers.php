@@ -266,7 +266,7 @@ class UnitTestHelpers {
   /**
    * Creates a service from YAML file with passing services as arguments.
    *
-   * @param string $file
+   * @param string $servicesYamlFile
    *   The path to the YAML file.
    * @param string $name
    *   The name of the service.
@@ -279,13 +279,13 @@ class UnitTestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function createServiceFromYaml(string $file, string $name, array $additionalArguments = [], array $services = NULL): object {
+  public static function createServiceFromYaml(string $servicesYamlFile, string $name, array $additionalArguments = [], array $services = NULL): object {
     if ($services !== NULL) {
       self::addServices($services);
     }
-    $serviceInfo = self::getServiceInfoFromYaml($file, $name);
+    $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $name);
     $classArguments = [];
-    foreach ($serviceInfo['arguments'] as $argument) {
+    foreach (($serviceInfo['arguments'] ?? []) as $argument) {
       if (substr($argument, 0, 1) == '@') {
         $classArguments[] = \Drupal::service(substr($argument, 1));
       }
@@ -636,6 +636,35 @@ class UnitTestHelpers {
     return $result == $subset;
   }
 
+  /**
+   * Calls an event subscriber function.
+   *
+   * @param string $servicesYamlFile
+   *   The path to a services.yml file.
+   * @param string $serviceName
+   *   The name of the service in the services.yml file.
+   * @param mixed $eventObject
+   *   An Event object.
+   */
+  public static function callEventSubscriber(string $servicesYamlFile, string $serviceName, string $eventName, &$event): void {
+    $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $serviceName);
+    // Checking the presention of 'event_subscriber' tag.
+    $tagFound = FALSE;
+    foreach ($serviceInfo['tags'] as $tag) {
+      if ($tag['name'] == 'event_subscriber') {
+        $tagFound = TRUE;
+        break;
+      }
+    }
+    if (!$tagFound) {
+      throw new \Exception("EventSubscriber $serviceName misses the 'event_subscriber' tag in the service definition");
+    }
+
+    $service = self::createServiceFromYaml($servicesYamlFile, $serviceName);
+    $subscribedEvents = $service->getSubscribedEvents();
+    self::callClassMethods($service, $subscribedEvents[$eventName], [$event]);
+  }
+
   /* ************************************************************************ *
    * Wrappers for UnitTestCase functions to make them available statically.
    * ************************************************************************ */
@@ -845,6 +874,53 @@ class UnitTestHelpers {
   }
 
   /**
+   * Calls class methods from the passed list.
+   *
+   * A helper function for testing event subscribers
+   *
+   * @param object $class
+   *   The class to use.
+   * @param mixed $methods
+   *   The list of methods to call. Can be a string or array, supported formats:
+   *   - 'methodName'
+   *   - ['methodName', $priority]
+   *   - [['methodName1', $priority], ['methodName2']]
+   * @param array $arguments
+   *   Arguments to pass to the method.
+   */
+  private static function callClassMethods(object $class, $methods, array $arguments = []) {
+    $methodsToCall = [];
+    // When a single method is passed as string.
+    if (is_string($methods)) {
+      $methodsToCall[] = $methods;
+    }
+    // When a single method is passed as array with function and priority.
+    elseif (is_numeric($methods[1] ?? NULL)) {
+      $methodsToCall[$methods[1]] = $methods[0];
+    }
+    // When a list of methids is passed as array.
+    else {
+      foreach ($methods as $method) {
+        if (is_string($method)) {
+          $methodsToCall[] = $method;
+        }
+        elseif (is_array($method)) {
+          if (isset($method[1])) {
+            $methodsToCall[$method[1]] = $method[0];
+          }
+          else {
+            $methodsToCall[] = $method[0];
+          }
+        }
+      }
+    }
+    ksort($methodsToCall);
+    foreach ($methodsToCall as $method) {
+      $class->$method(...$arguments);
+    }
+  }
+
+  /**
    * Disables a construtor calls to allow only static calls.
    */
   private function __construct() {
@@ -863,6 +939,7 @@ class UnitTestHelpers {
    * @see https://www.drupal.org/project/test_helpers/issues/3315975
    */
   public static function doTestCreateAndConstruct($class, array $createArguments = []): object {
+    @trigger_error('doTestCreateAndConstruct is deprecated in test_helpers:1.0.0-alpha6 and is removed from test_helpers:1.0.0-beta3. Renamed. See https://www.drupal.org/project/test_helpers/issues/3315975', E_USER_DEPRECATED);
     return self::createService($class, $createArguments);
   }
 
@@ -875,7 +952,7 @@ class UnitTestHelpers {
    * @see https://www.drupal.org/project/test_helpers/issues/3315975
    */
   public static function addToContainer(string $serviceName, $class = NULL, bool $override = FALSE): object {
-    @trigger_error('addToContainer is deprecated in test_helpers:1.0.0-alpha6 and is removed from test_helpers:1.0.0-beta1. Renamed. See https://www.drupal.org/project/test_helpers/issues/3315975', E_USER_DEPRECATED);
+    @trigger_error('addToContainer is deprecated in test_helpers:1.0.0-alpha6 and is removed from test_helpers:1.0.0-beta3. Renamed. See https://www.drupal.org/project/test_helpers/issues/3315975', E_USER_DEPRECATED);
     return self::addService($serviceName, $class, $override);
   }
 
