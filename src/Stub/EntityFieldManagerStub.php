@@ -3,6 +3,7 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Entity\EntityFieldManager;
+use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
 use Drupal\test_helpers\UnitTestHelpers;
 
 /**
@@ -14,6 +15,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
     $this->languageManager = \Drupal::service('language_manager');
     $this->entityTypeManager = \Drupal::service('entity_type.manager');
     $this->moduleHandler = \Drupal::service('module_handler');
+    $this->entityLastInstalledSchemaRepository = UnitTestHelpers::createMock(EntityLastInstalledSchemaRepository::class);
   }
 
   public function stubSetBaseFieldDefinitons($entityTypeId, $baseFieldDefinitions) {

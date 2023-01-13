@@ -15,12 +15,10 @@ use Drupal\test_helpers\UnitTestHelpers;
 class EntityQueryServiceStubTest extends UnitTestCase {
 
   /**
-   * Tests creating an Entity Stub and storaga eactions.
-   *
    * @covers ::__construct
    * @covers ::get
    */
-  public function testEntityQueryService() {
+  public function testMatchingConditions() {
 
     /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface $entityTypeManager */
     $entityTypeManager = UnitTestHelpers::getServiceStub('entity_type.manager');
@@ -98,6 +96,65 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     $result = $entityQuery->execute();
 
     $this->assertSame($entityQueryTestResult, $result);
+  }
+
+  public function testEndToEndApi() {
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'title' => 'Node 1',
+      'bundle' => '100',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'title' => 'Node 2',
+      'bundle' => '200',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'title' => 'Node 3',
+      'bundle' => '300',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'title' => NULL,
+      'bundle' => '400',
+    ])->save();
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', 'Node 2');
+    $this->assertSame(['2'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', ['Node 2', 'Node 1'], 'IN');
+    $this->assertSame(['1', '2'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', ['Node 2', 'Node 1'], 'NOT IN');
+    $this->assertSame(['3', '4'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '<');
+    $this->assertSame(['1'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '<=');
+    $this->assertSame(['1', '2'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '>');
+    $this->assertSame(['3', '4'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '>=');
+    $this->assertSame(['2', '3', '4'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '<>');
+    $this->assertSame(['1', '3', '4'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', NULL, 'IS NULL');
+    $this->assertSame(['4'], $query->execute());
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', NULL, 'IS NOT NULL');
+    $this->assertSame(['1', '2', '3'], $query->execute());
   }
 
 }

@@ -10,17 +10,21 @@ use Drupal\Core\Cache\MemoryBackendFactory;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
+use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\test_helpers\lib\TestHelpersStaticStorageService;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
-use Drupal\test_helpers\Stub\EntityStorageStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LanguageManagerStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
+use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use PHPUnit\Framework\MockObject\MethodNameNotConfiguredException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -44,6 +48,7 @@ class UnitTestHelpers {
    * as array in format "[className, functionName]".
    */
   public const SERVICES_CUSTOM_STUBS = [
+    'test_helpers.static_storage' => TestHelpersStaticStorageService::class,
     'cache.backend.memory' => MemoryBackendFactory::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'config.factory' => ConfigFactoryStub::class,
@@ -51,6 +56,7 @@ class UnitTestHelpers {
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
     'language_manager' => LanguageManagerStub::class,
+    'logger.factory' => LoggerChannelFactory::class,
     'module_handler' => ModuleHandlerStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'token' => TokenStub::class,
@@ -443,7 +449,7 @@ class UnitTestHelpers {
    *     ContentEntityType or ConfigEntityType, default is ContentEntityType.
    *   - @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
    *
-   * @return \Drupal\test_helpers\Stub\EntityStubInterface
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
    *   The stub object for the entity.
    */
   public static function createEntityStub(string $entityTypeClassName, array $values = [], array $options = []) {
@@ -459,8 +465,12 @@ class UnitTestHelpers {
     }
     unset($options['entity_base_type']);
 
-    $entityStorage = self::getEntityStorageStub($entityTypeClassName, $annotation);
-    return $entityStorage->stubCreateEntity($entityTypeClassName, $values, $options);
+    // Initiating entity storage.
+    self::getEntityStorageStub($entityTypeClassName, $annotation);
+
+    $entity = EntityStubFactory::create($entityTypeClassName, $values, $options);
+
+    return $entity;
   }
 
   /**
@@ -471,10 +481,10 @@ class UnitTestHelpers {
    * @param string $annotation
    *   The annotation class.
    *
-   * @return \Drupal\test_helpers\Stub\EntityStorageStub
+   * @return \Drupal\Core\Entity\EntityStorageInterface
    *   The initialized stub of Entity Storage.
    */
-  public static function getEntityStorageStub(string $entityTypeClassName, string $annotation = NULL): EntityStorageStub {
+  public static function getEntityStorageStub(string $entityTypeClassName, string $annotation = NULL): EntityStorageInterface {
     return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName, $annotation);
   }
 
@@ -615,6 +625,85 @@ class UnitTestHelpers {
   }
 
   /**
+   * Matches a EntityQuery conditon to entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to use.
+   * @param array $condition
+   *   The condition to check.
+   *
+   * @return bool
+   *   True if matches, false if not.
+   */
+  public static function matchEntityCondition(EntityInterface $entity, array $condition): bool {
+    $value = $entity->{$condition['field']} ? $entity->{$condition['field']}->getValue() : NULL;
+    switch ($condition['operator']) {
+      case 'IN':
+        if ($value == NULL && !empty($condition['value'])) {
+          return FALSE;
+        }
+        foreach ($value as $valueItem) {
+          if (!in_array($valueItem['value'] ?? NULL, $condition['value'])) {
+            return FALSE;
+          }
+        }
+        return TRUE;
+
+      case 'NOT IN':
+        if ($value == NULL && !empty($condition['value'])) {
+          return TRUE;
+        }
+        foreach ($value as $valueItem) {
+          if (in_array($valueItem['value'], $condition['value'])) {
+            return FALSE;
+          }
+        }
+        return TRUE;
+
+      // NULL is treated as `=` condition for EntityQery queries.
+      case NULL:
+      case '=':
+        foreach ($value as $valueItem) {
+          if (($valueItem['value'] ?? NULL) == $condition['value']) {
+            return TRUE;
+          }
+        }
+        return FALSE;
+
+      // NULL is treated as `=` condition for EntityQery queries.
+      case NULL:
+      case '=':
+        foreach ($value as $valueItem) {
+          if (($valueItem['value'] ?? NULL) == $condition['value']) {
+            return TRUE;
+          }
+        }
+        return FALSE;
+
+      case 'IS NULL':
+        return empty($value);
+
+      case 'IS NOT NULL':
+        return !empty($value);
+
+      case '<>':
+      case '>':
+      case '<':
+      case '>=':
+      case '<=':
+        foreach ($value as $valueItem) {
+          if (eval("return '" . addslashes($valueItem['value'] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
+            return TRUE;
+          }
+        }
+        return FALSE;
+
+      default:
+        throw new \Exception('Not implemented yet.');
+    }
+  }
+
+  /**
    * Performs a check if the actial array is a subset of expected.
    *
    * @param mixed $array
@@ -643,8 +732,10 @@ class UnitTestHelpers {
    *   The path to a services.yml file.
    * @param string $serviceName
    *   The name of the service in the services.yml file.
-   * @param mixed $eventObject
-   *   An Event object.
+   * @param string $eventName
+   *   The Event name.
+   * @param mixed $event
+   *   The Event object.
    */
   public static function callEventSubscriber(string $servicesYamlFile, string $serviceName, string $eventName, &$event): void {
     $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $serviceName);
@@ -743,6 +834,7 @@ class UnitTestHelpers {
 
   /**
    * Sets an array as the iterator on a mocked object.
+   *
    * @param array $array
    *   The array with data.
    * @param \PHPUnit\Framework\MockObject\MockObject $mock
@@ -876,7 +968,7 @@ class UnitTestHelpers {
   /**
    * Calls class methods from the passed list.
    *
-   * A helper function for testing event subscribers
+   * A helper function for testing event subscribers.
    *
    * @param object $class
    *   The class to use.
@@ -884,7 +976,7 @@ class UnitTestHelpers {
    *   The list of methods to call. Can be a string or array, supported formats:
    *   - 'methodName'
    *   - ['methodName', $priority]
-   *   - [['methodName1', $priority], ['methodName2']]
+   *   - [['methodName1', $priority], ['methodName2']].
    * @param array $arguments
    *   Arguments to pass to the method.
    */

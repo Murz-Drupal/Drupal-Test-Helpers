@@ -6,6 +6,7 @@ use Drupal\Core\Database\Query\ConditionInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryFactoryInterface;
 use Drupal\test_helpers\StubFactory\EntityQueryStubFactory;
+use Drupal\test_helpers\UnitTestHelpers;
 
 /**
  * A stub of the Drupal's default QueryFactoryInterface class.
@@ -29,7 +30,19 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
       $this->executeFunctions[$entityType->id()]
       ?? $this->executeFunctions['all']
       ?? function () {
-        return [];
+        $result = [];
+        $storage = UnitTestHelpers::addService('entity_type.manager')->getStorage($this->entityTypeId);
+        $allEntities = $storage->loadMultiple();
+        foreach ($allEntities as $entity) {
+          foreach ($this->condition->conditions() as $condition) {
+            if (!UnitTestHelpers::matchEntityCondition($entity, $condition)) {
+              continue 2;
+            }
+          }
+          $result[] = $entity->id();
+        }
+
+        return $result;
       };
     $query = $this->queryStubFactory->get($entityType, $conjunction, $executeFunction);
     return $query;

@@ -23,11 +23,11 @@ class TokenStub extends Token {
     CacheBackendInterface $cache = NULL,
     LanguageManagerInterface $language_manager = NULL,
     CacheTagsInvalidatorInterface $cache_tags_invalidator = NULL,
-    RendererInterface $renderer = NULL,
+    RendererInterface $renderer = NULL
   ) {
     $this->cache = $cache;
     $this->languageManager = $language_manager;
-    $this->moduleHandler = $module_handler ?? \Drupal::service('module_handler');
+    $this->moduleHandler = $module_handler ?? UnitTestHelpers::addService('module_handler');
     $this->cacheTagsInvalidator = $cache_tags_invalidator;
     $this->renderer = $renderer ?? UnitTestHelpers::createMock(RendererInterface::class);
   }
