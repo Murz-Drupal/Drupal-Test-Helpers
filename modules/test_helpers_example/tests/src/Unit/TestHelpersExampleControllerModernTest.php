@@ -3,7 +3,6 @@
 namespace src\Unit;
 
 use Drupal\node\Entity\Node;
-use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\test_helpers\UnitTestHelpers;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\Tests\UnitTestCase;
@@ -20,21 +19,16 @@ class TestHelpersExampleControllerModernTest extends UnitTestCase {
    * @covers ::articlesList
    */
   public function testArticlesList() {
-    ($node1 = UnitTestHelpers::createEntityStub(Node::class, ['title' => 'Article 1']))->save();
-    ($node2 = UnitTestHelpers::createEntityStub(Node::class, ['title' => 'Article 2']))->save();
-
-    UnitTestHelpers::getServiceStub('entity.query.sql')->stubSetExecuteHandler(function () use ($node1, $node2) {
-      UnitTestCaseWrapper::assertTrue(UnitTestHelpers::queryIsSubsetOf($this, \Drupal::entityQuery('node')
-        ->condition('status', 1)
-        ->condition('type', 'article')
-        ->sort('created', 'DESC')
-        ->range(0, 3)));
-      return [$node1->id(), $node2->id()];
-    });
+    UnitTestHelpers::createEntityStub(Node::class, ['type' => 'article', 'title' => 'Article 1', 'status' => '1'])->save();
+    UnitTestHelpers::createEntityStub(Node::class, ['type' => 'article', 'title' => 'Article 2', 'status' => '1'])->save();
+    UnitTestHelpers::createEntityStub(Node::class, ['type' => 'page', 'title' => 'Page 1', 'status' => '0'])->save();
+    UnitTestHelpers::createEntityStub(Node::class, ['type' => 'article', 'title' => 'Article 3', 'status' => '0'])->save();
+    UnitTestHelpers::createEntityStub(Node::class, ['type' => 'article', 'title' => 'Article 4', 'status' => '1'])->save();
 
     $result = (new TestHelpersExampleController())->articlesList();
 
-    $this->assertEquals('Article 1 (1)', $result['#items'][0]->getText());
+    $this->assertCount(2, $result['#items']);
+    $this->assertEquals('Article 4 (5)', $result['#items'][0]->getText());
     $this->assertEquals('Article 2 (2)', $result['#items'][1]->getText());
   }
 

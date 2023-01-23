@@ -39,9 +39,42 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
               continue 2;
             }
           }
-          $result[] = $entity->id();
+          $resultEntities[] = $entity;
+          // $result[] = $entity->id();
         }
-
+        if ($this->sort) {
+          $sortList = array_reverse($this->sort);
+          foreach ($sortList as $rule) {
+            usort($resultEntities, function ($a, $b) use ($rule) {
+              if ($rule['direction'] == 'DESC') {
+                $val2 = $a->{$rule['field']}->value ?? NULL;
+                $val1 = $b->{$rule['field']}->value ?? NULL;
+              }
+              else {
+                $val1 = $a->{$rule['field']}->value ?? NULL;
+                $val2 = $b->{$rule['field']}->value ?? NULL;
+              }
+              if (is_string($val1) && is_string($val1)) {
+                // For now let's use default comparison. It's not easy to detect
+                // right string comparison rules, because it depends a lot on
+                // database's field configuration.
+                // If it doesn't fit for some tests - just use stubExecute to
+                // check the conditions manually and hardcode the result.
+                return strcmp($val1, $val2);
+              }
+              else {
+                return $val1 <=> $val2;
+              }
+            });
+          }
+        }
+        if ($this->range) {
+          $resultEntities = array_slice($resultEntities, $this->range['start'], $this->range['length']);
+        }
+        $result = [];
+        foreach ($resultEntities as $entity) {
+          $result[$entity->id()] = $entity->id();
+        }
         return $result;
       };
     $query = $this->queryStubFactory->get($entityType, $conjunction, $executeFunction);

@@ -19,7 +19,6 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * @covers ::get
    */
   public function testMatchingConditions() {
-
     /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface $entityTypeManager */
     $entityTypeManager = UnitTestHelpers::getServiceStub('entity_type.manager');
     $entityTypeManager->stubGetOrCreateStorage(Node::class);
@@ -98,63 +97,180 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     $this->assertSame($entityQueryTestResult, $result);
   }
 
-  public function testEndToEndApi() {
+  /**
+   * Tests conditions API.
+   */
+  public function testConditions() {
     UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 1.
       'title' => 'Node 1',
-      'bundle' => '100',
+      'bundle' => '400',
     ])->save();
     UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 2.
       'title' => 'Node 2',
-      'bundle' => '200',
-    ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
-      'title' => 'Node 3',
       'bundle' => '300',
     ])->save();
     UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 100.
+      'title' => 'Node 3',
+      'bundle' => '100',
+      'nid' => '100',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 101.
       'title' => NULL,
-      'bundle' => '400',
+      'bundle' => '200',
     ])->save();
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('title', 'Node 2');
-    $this->assertSame(['2'], $query->execute());
+    $this->assertSame(self::genId([2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', 'Node 2')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('title', ['Node 2', 'Node 1'], 'IN');
-    $this->assertSame(['1', '2'], $query->execute());
+    $this->assertSame(self::genId([1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', ['Node 2', 'Node 1'], 'IN')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('title', ['Node 2', 'Node 1'], 'NOT IN');
-    $this->assertSame(['3', '4'], $query->execute());
+    $this->assertSame(self::genId([1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', ['Node 2', 'Node 1'], 'IN')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('bundle', 200, '<');
-    $this->assertSame(['1'], $query->execute());
+    $this->assertSame(self::genId([100, 101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', ['Node 2', 'Node 1'], 'NOT IN')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('bundle', 200, '<=');
-    $this->assertSame(['1', '2'], $query->execute());
+    $this->assertSame(self::genId([100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '<')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('bundle', 200, '>');
-    $this->assertSame(['3', '4'], $query->execute());
+    $this->assertSame(self::genId([100, 101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '<=')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('bundle', 200, '>=');
-    $this->assertSame(['2', '3', '4'], $query->execute());
+    $this->assertSame(self::genId([1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '>')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('bundle', 200, '<>');
-    $this->assertSame(['1', '3', '4'], $query->execute());
+    $this->assertSame(self::genId([1, 2, 101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '>=')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('title', NULL, 'IS NULL');
-    $this->assertSame(['4'], $query->execute());
+    $this->assertSame(self::genId([1, 2, 100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('bundle', 200, '<>')
+      ->execute());
 
-    $query = \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('title', NULL, 'IS NOT NULL');
-    $this->assertSame(['1', '2', '3'], $query->execute());
+    $this->assertSame(self::genId([101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', NULL, 'IS NULL')
+      ->execute());
+
+    $this->assertSame(self::genId([1, 2, 100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('title', NULL, 'IS NOT NULL')
+      ->execute());
+  }
+
+  /**
+   * Tests range API.
+   */
+  public function testRange() {
+    UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 1.
+      'title' => 'Node 1',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 2.
+      'title' => 'Node 2',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 100.
+      'title' => 'Node 3',
+      'nid' => '100',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 101.
+      'title' => NULL,
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      // The id should be: 102.
+      'title' => 'Node 5',
+    ])->save();
+
+    $this->assertSame(self::genId([2, 100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->range(1, 2)
+      ->execute());
+
+    $this->assertSame(self::genId([101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->condition('nid', 100, '>=')
+      ->range(1, 1)
+      ->execute());
+  }
+
+  /**
+   * Tests sort API.
+   */
+  public function testSort() {
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'field_integer1' => 100,
+      'field_integer2' => 100,
+      'field_string1' => '100',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'field_integer1' => 101,
+      'field_integer2' => 100,
+      'field_string1' => '0',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'field_integer1' => 10,
+      'field_integer2' => 10,
+      'field_string1' => '10',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'field_integer1' => 0,
+      'field_integer2' => 0,
+      'field_string1' => '11',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'field_integer1' => -1,
+      'field_string1' => '111',
+    ])->save();
+    UnitTestHelpers::createEntityStub(Node::class, [
+      'field_integer1' => -10,
+      'field_integer2' => -10,
+      'field_string1' => '-111',
+    ])->save();
+
+    $this->assertSame(self::genId([6, 5, 4, 3, 1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->sort('field_integer1')
+      ->execute());
+
+    $this->assertSame(self::genId([2, 1, 3, 4, 5, 6]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->sort('field_integer1', 'DESC')
+      ->execute());
+
+    $this->assertSame(self::genId([2, 1, 3, 4, 6, 5]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->sort('field_integer2', 'DESC')
+      ->sort('field_integer1', 'DESC')
+      ->execute());
+
+    $this->assertSame(self::genId([6, 2, 3, 1, 4, 5]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->sort('field_string1')
+      ->execute());
+  }
+
+  /**
+   * Generates a keyed array with strings from numeric array.
+   *
+   * @param int[] $ids
+   *   The list of integer ids.
+   *
+   * @return string[]
+   *   The keyed array with strings.
+   */
+  private function genId(array $ids) {
+    foreach ($ids as $id) {
+      $idString = (string) $id;
+      $result[$idString] = $idString;
+    }
+    return $result;
   }
 
 }

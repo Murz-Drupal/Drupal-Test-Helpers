@@ -699,7 +699,7 @@ class UnitTestHelpers {
         return FALSE;
 
       default:
-        throw new \Exception('Not implemented yet.');
+        throw new \Exception('A stub for the "' . $condition['operator'] . '" operator is not implemented yet. Please use function stubSetExecuteHandler() to stub the results.');
     }
   }
 

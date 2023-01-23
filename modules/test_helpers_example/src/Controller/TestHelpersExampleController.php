@@ -10,14 +10,14 @@ use Drupal\Core\Controller\ControllerBase;
 class TestHelpersExampleController extends ControllerBase {
 
   /**
-   * Renders a list of last articles.
+   * Renders a list of two articles, reverse sorted by title.
    */
   public function articlesList() {
     $articlesIds = \Drupal::entityQuery('node')
       ->condition('status', 1)
       ->condition('type', 'article')
-      ->sort('created', 'DESC')
-      ->range(0, 3)
+      ->sort('title', 'DESC')
+      ->range(0, 2)
       ->execute();
 
     $articles = \Drupal::entityTypeManager()

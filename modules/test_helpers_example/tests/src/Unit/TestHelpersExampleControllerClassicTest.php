@@ -27,7 +27,7 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $entityQuery->method('sort')
       ->willReturnCallback(
         function ($field, $direction = 'ASC', $langcode = NULL) use ($entityQuery) {
-          $this->assertEquals('created', $field);
+          $this->assertEquals('title', $field);
           $this->assertEquals('DESC', $direction);
           return $entityQuery;
         }
@@ -36,7 +36,7 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
       ->willReturnCallback(
         function ($start = NULL, $length = NULL) use ($entityQuery) {
           $this->assertEquals(0, $start);
-          $this->assertEquals(3, $length);
+          $this->assertEquals(2, $length);
           return $entityQuery;
         }
       );
