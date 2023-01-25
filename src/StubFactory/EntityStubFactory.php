@@ -10,6 +10,9 @@ use Drupal\test_helpers\UnitTestHelpers;
  */
 class EntityStubFactory {
 
+  /**
+   * Disables the constructor to use only static methods.
+   */
   private function __construct() {
   }
 
@@ -26,7 +29,7 @@ class EntityStubFactory {
    *   - definitions: the list of custom field definitions for needed fields.
    *     If not passed - the default one (`StringItem`) will be used.
    *
-   * @return \Drupal\test_helpers\EntityStubInterface
+   * @return \Drupal\Core\Entity\EntityInterface
    *   A mocked entity object.
    */
   public static function create(string $entityClass, array $values = [], array $options = []) {
@@ -45,10 +48,6 @@ class EntityStubFactory {
     // @todo Try to init with a real constructor.
     /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $entity */
     $entity = UnitTestHelpers::createPartialMock($entityClass, [
-      // 'getEntityTypeId',
-      // 'getFieldDefinitions',
-      'save',
-      'delete',
       'stubInitValues',
       ...($options['methods'] ?? []),
     ]);
@@ -81,6 +80,9 @@ class EntityStubFactory {
           'status' => TRUE,
           'entity' => $this,
         ];
+        if ($this->defaultLangcodeKey) {
+          $values[$this->defaultLangcodeKey] = $values[$this->defaultLangcodeKey] ?? 1;
+        }
 
         // Filling values to the entity array.
         foreach ($values as $name => $value) {
@@ -115,43 +117,6 @@ class EntityStubFactory {
       'stubInitValues'
     );
     $entity->stubInitValues($values);
-
-    UnitTestHelpers::bindClosureToClassMethod(
-      function () use ($storage, $entityTypeDefinition) {
-        require_once DRUPAL_ROOT . '/core/includes/common.inc';
-        if ($this->isNew()) {
-          $return = SAVED_NEW;
-        }
-        else {
-          $return = SAVED_UPDATED;
-        }
-
-        /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
-        $idProperty = $this->getEntityType()->getKey('id') ?? NULL;
-        if ($idProperty && empty($this->id())) {
-          $this->$idProperty = $storage->stubGetNewEntityId();
-        }
-
-        $uuidProperty = $this->getEntityType()->getKey('uuid') ?? NULL;
-        if ($uuidProperty && empty($this->uuid())) {
-          $this->$uuidProperty = \Drupal::service('uuid')->generate();
-        }
-        $storage->stubStoreEntity($this);
-
-        return $return;
-      },
-      $entity,
-      'save'
-    );
-
-    UnitTestHelpers::bindClosureToClassMethod(
-      function () use ($storage) {
-        /** @var \Drupal\test_helpers\StubFactory\EntityStorageStub $this */
-        $storage->stubDeleteEntityById($this->id());
-      },
-      $entity,
-      'delete'
-    );
 
     return $entity;
   }

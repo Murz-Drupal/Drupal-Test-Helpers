@@ -2,16 +2,12 @@
 
 namespace Drupal\test_helpers\StubFactory;
 
-use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Entity\EntityInterface;
-use PHPUnit\Framework\MockObject\MockObject;
-
 /**
  * The Entity Storage Stub class.
  *
  * A stub for class Drupal\Core\Entity\Query\Sql\QueryFactory.
  */
-interface EntityStubInterface extends EntityInterface, ContentEntityInterface, MockObject {
+interface EntityStubInterface {
 
   /**
    * Initializes values for entity from array.

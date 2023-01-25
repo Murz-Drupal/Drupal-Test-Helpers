@@ -8,12 +8,12 @@ use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Class tests TestHelpersExampleController with Test Helpers API.
+ * Tests TestHelpersExampleController with Test Helpers API to check the result.
  *
  * @coversDefaultClass Drupal\test_helpers_example\Controller\TestHelpersExampleController
  * @group test_helpers_example
  */
-class TestHelpersExampleControllerModernTest extends UnitTestCase {
+class TestHelpersExampleControllerModernResultTest extends UnitTestCase {
 
   /**
    * @covers ::articlesList

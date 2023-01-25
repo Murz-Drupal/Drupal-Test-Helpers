@@ -4,60 +4,39 @@ namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
+use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeRepository;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Language\LanguageDefault;
+use Drupal\Core\Language\LanguageManager;
+use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\test_helpers\UnitTestHelpers;
-use DrupalCodeGenerator\ClassResolver\ClassResolverInterface;
 
 /**
  * A stub of the Drupal's default EntityTypeManager class.
  */
 class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManagerStubInterface {
 
-  /**
-   * {@inheritdoc}
-   */
-  public function __construct(
-    \Traversable $namespaces = NULL,
-    ModuleHandlerInterface $module_handler = NULL,
-    CacheBackendInterface $cache = NULL,
-    TranslationInterface $string_translation = NULL,
-    ClassResolverInterface $class_resolver = NULL,
-    EntityLastInstalledSchemaRepositoryInterface $entity_last_installed_schema_repository = NULL
-  ) {
-    // Replacing missing arguments to mocks and stubs.
-    $namespaces ??= new \ArrayObject([]);
-    $module_handler ??= UnitTestHelpers::addService('module_handler');
-    $cache ??= UnitTestHelpers::addService('cache.static');
-    $string_translation ??= UnitTestHelpers::addService('string_translation');
-    $class_resolver ??= UnitTestHelpers::addService('class_resolver');
-    $entity_last_installed_schema_repository ??= UnitTestHelpers::addService('entity.last_installed_schema.repository');
-
-    // Calling original costructor with mocked services.
-    parent::__construct(
-      $namespaces,
-      $module_handler,
-      $cache,
-      $string_translation,
-      $class_resolver,
-      $entity_last_installed_schema_repository
-    );
-
+  public function __construct() {
     UnitTestHelpers::addService('entity_type.manager', $this);
-    UnitTestHelpers::addService('entity_type.repository', new EntityTypeRepository($this));
+    UnitTestHelpers::addServices([
+      'string_translation',
+      'language_manager',
+      'uuid',
+      'module_handler',
+      'entity_type.bundle.info',
+      'cache_tags.invalidator',
+      'database.replica_kill_switch',
+    ]);
     UnitTestHelpers::addService('typed_data_manager', new TypedDataManagerStub());
     UnitTestHelpers::addServices([
-      'entity_type.bundle.info' => NULL,
-      'language_manager' => NULL,
-      'uuid' => NULL,
       'entity.query.sql' => new EntityQueryServiceStub(),
       'plugin.manager.field.field_type' => new FieldTypeManagerStub(),
     ]);
     UnitTestHelpers::addService('entity_field.manager', new EntityFieldManagerStub());
+    UnitTestHelpers::addService('entity_type.repository', new EntityTypeRepository($this));
 
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
     $entityRepository = UnitTestHelpers::addService('entity.repository', UnitTestHelpers::createMock(EntityRepositoryInterface::class));
@@ -72,6 +51,12 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     $entityRepository
       ->method('getTranslationFromContext')
       ->will(UnitTestCaseWrapper::getInstance()->returnArgument(0));
+
+    // @todo Make a proper call of parent::__construct() instead of manual
+    // assinging all here.
+    $this->entityLastInstalledSchemaRepository = UnitTestHelpers::createMock(EntityLastInstalledSchemaRepository::class);
+    $this->moduleHandler = UnitTestHelpers::addService('module_handler');
+    $this->stringTranslation = UnitTestHelpers::addService('string_translation');
   }
 
   public function findDefinitions() {
@@ -93,6 +78,10 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   }
 
   public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, $forceOverride = FALSE, array $methods = [], array $addMethods = []) {
+    $options = [
+      'methods' => $methods,
+      'addMethods' => $addMethods,
+    ];
     if (!$forceOverride && isset($this->stubEntityStoragesByClass[$entityClass])) {
       return $this->stubEntityStoragesByClass[$entityClass];
     }
@@ -102,24 +91,16 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     // In this case the annotation is passed, so we should manually initiate
     // the storage instance.
     elseif (is_string($storageInstanceOrAnnotation)) {
-      $storage = UnitTestHelpers::createPartialMockWithConstructor(EntityStorageStub::class, $methods, [
-        $entityClass,
-        $storageInstanceOrAnnotation,
-      ], $addMethods);
+      $storage = EntityStorageStubFactory::create($entityClass, $storageInstanceOrAnnotation, $options);
     }
     else {
-      $storage = UnitTestHelpers::createPartialMockWithConstructor(EntityStorageStub::class, $methods, [$entityClass], $addMethods);
+      $storage = EntityStorageStubFactory::create($entityClass, NULL, $options);
     }
     $entityTypeId = $storage->getEntityTypeId();
     $this->stubEntityStoragesByClass[$entityClass] = $storage;
     $this->handlers['storage'][$entityTypeId] = $storage;
     $this->definitions[$entityTypeId] = $storage->getEntityType();
     return $storage;
-  }
-
-  public function stubCreateEntity(string $entityClass, array $values = [], array $options = []) {
-    $storage = $this->stubGetOrCreateStorage($entityClass);
-    return $storage->stubCreateEntity($entityClass, $values);
   }
 
   public function stubInit() {
