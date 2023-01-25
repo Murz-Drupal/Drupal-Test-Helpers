@@ -254,14 +254,14 @@ class UnitTestHelpers {
    *   The list of arguments for passing to function create().
    * @param array $services
    *   The array of services to add to the container.
-   *   Format is same as in function addServices().
+   *   Format is same as in function setServices().
    *
    * @return object
    *   The initialized class instance.
    */
   public static function createService($class, array $createArguments = NULL, array $services = NULL): object {
     if ($services !== NULL) {
-      self::addServices($services);
+      self::setServices($services);
     }
     $container = self::getContainer();
     $createArguments ??= [];
@@ -280,14 +280,14 @@ class UnitTestHelpers {
    *   The array additional arguments to the service constructor.
    * @param array $services
    *   The array of services to add to the container.
-   *   Format is same as in function addServices().
+   *   Format is same as in function setServices().
    *
    * @return object
    *   The initialized class instance.
    */
   public static function createServiceFromYaml(string $servicesYamlFile, string $name, array $additionalArguments = [], array $services = NULL): object {
     if ($services !== NULL) {
-      self::addServices($services);
+      self::setServices($services);
     }
     $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $name);
     $classArguments = [];
@@ -321,7 +321,7 @@ class UnitTestHelpers {
   }
 
   /**
-   * Initializes a new service and adds to the Drupal container, if not exists.
+   * Gets the service stub or mock, or initiates a new one if missing.
    *
    * @param string $serviceName
    *   The service name.
@@ -342,7 +342,7 @@ class UnitTestHelpers {
    * @return object
    *   The initialised service object.
    */
-  public static function addService(string $serviceName, $class = NULL, bool $forceOverride = FALSE, array $mockableMethods = [], array $addMockableMethods = []): object {
+  public static function service(string $serviceName, $class = NULL, bool $forceOverride = FALSE, array $mockableMethods = [], array $addMockableMethods = []): object {
     $container = self::getContainer();
     $currentService = $container->has($serviceName)
       ? $container->get($serviceName)
@@ -376,18 +376,18 @@ class UnitTestHelpers {
    * @param bool $clearContainer
    *   Clears the Drupal container, if true.
    */
-  public static function addServices(array $services, bool $clearContainer = FALSE): void {
+  public static function setServices(array $services, bool $clearContainer = FALSE): void {
     if ($clearContainer) {
       UnitTestHelpers::getContainer(TRUE);
     }
     foreach ($services as $key => $value) {
       // If we have only a service name - just reuse the default behavior.
       if (is_int($key)) {
-        self::addService($value);
+        self::service($value);
       }
       // If we have a service name in key and class in value - pass the class.
       else {
-        self::addService($key, $value);
+        self::service($key, $value);
       }
     }
   }
@@ -407,7 +407,7 @@ class UnitTestHelpers {
   public static function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
     $serviceClass = self::getServiceClassByName($serviceName, $servicesYamlFile);
     $service = UnitTestHelpers::createMock($serviceClass);
-    self::addService($serviceName, $service);
+    self::service($serviceName, $service);
     return $service;
   }
 
@@ -692,7 +692,10 @@ class UnitTestHelpers {
       case '>=':
       case '<=':
         foreach ($value as $valueItem) {
+          // To suppress `The use of function eval() is discouraged` warning.
+          // @codingStandardsIgnoreStart
           if (eval("return '" . addslashes($valueItem['value'] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
+            // @codingStandardsIgnoreEnd
             return TRUE;
           }
         }
@@ -1023,29 +1026,54 @@ class UnitTestHelpers {
    * ************************************************************************ */
 
   /**
-   * Tests simple create() and __construct() functions.
+   * Initializes a new service and adds to the Drupal container, if not exists.
    *
-   * @deprecated in test_helpers:1.0.0-alpha7 and is removed from
-   *   test_helpers:1.0.0-beta1. Use UnitTestHelpers::addService().
+   * @param string $serviceName
+   *   The service name.
+   * @param object|string|null $class
+   *   The class to use in service, allowed different types:
+   *   - object: attachs the initialized object to the service.
+   *   - string: creates a mock of the class by passed name.
+   *   - null: use stub from Test Heleprs of default class from Drupal Core.
+   * @param bool $forceOverride
+   *   Control overriding the service:
+   *   - false: overrides only if the class names are different.
+   *   - true: always overrides the class by a new instance.
+   * @param array $mockableMethods
+   *   The list of exist methods to make mokable.
+   * @param array $addMockableMethods
+   *   The list of new methods to make them mokable.
    *
-   * @see https://www.drupal.org/project/test_helpers/issues/3315975
+   * @return object
+   *   The initialised service object.
+   *
+   * @deprecated in test_helpers:1.0.0-beta4 and is removed from
+   *   test_helpers:1.0.0-rc1. Use UnitTestHelpers::service().
+   * @see https://www.drupal.org/project/test_helpers/issues/3336364
    */
-  public static function doTestCreateAndConstruct($class, array $createArguments = []): object {
-    @trigger_error('doTestCreateAndConstruct is deprecated in test_helpers:1.0.0-alpha6 and is removed from test_helpers:1.0.0-beta3. Renamed. See https://www.drupal.org/project/test_helpers/issues/3315975', E_USER_DEPRECATED);
-    return self::createService($class, $createArguments);
+  public static function addService(string $serviceName, $class = NULL, bool $forceOverride = FALSE, array $mockableMethods = [], array $addMockableMethods = []): object {
+    @trigger_error('Function addService() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to service(). See https://www.drupal.org/project/test_helpers/issues/3336364', E_USER_DEPRECATED);
+    return self::service($serviceName, $class, $forceOverride, $mockableMethods, $addMockableMethods);
   }
 
   /**
-   * Adds a new service to the Drupal container, if exists - reuse existing.
+   * Initializes list of services and adds them to the container.
    *
-   * @deprecated in test_helpers:1.0.0-alpha7 and is removed from
-   *   test_helpers:1.0.0-beta1. Use UnitTestHelpers::addService().
+   * @param array $services
+   *   The array with services, supports two formats:
+   *   - non associative array with service names: adds default classes.
+   *   - service name as key and object or null in value: adds the class to the
+   *     service, use NULL to add default class.
+   * @param bool $clearContainer
+   *   Clears the Drupal container, if true.
    *
-   * @see https://www.drupal.org/project/test_helpers/issues/3315975
+   * @deprecated in test_helpers:1.0.0-beta4 and is removed from
+   *   test_helpers:1.0.0-rc1. Use UnitTestHelpers::service().
+   * @see https://www.drupal.org/project/test_helpers/issues/3336364
    */
-  public static function addToContainer(string $serviceName, $class = NULL, bool $override = FALSE): object {
-    @trigger_error('addToContainer is deprecated in test_helpers:1.0.0-alpha6 and is removed from test_helpers:1.0.0-beta3. Renamed. See https://www.drupal.org/project/test_helpers/issues/3315975', E_USER_DEPRECATED);
-    return self::addService($serviceName, $class, $override);
+  public static function addServices(array $services, bool $clearContainer = FALSE): void {
+    @trigger_error('Function addServices() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to setServices(). See https://www.drupal.org/project/test_helpers/issues/3336364', E_USER_DEPRECATED);
+    self::setServices($services, $clearContainer);
   }
 
 }

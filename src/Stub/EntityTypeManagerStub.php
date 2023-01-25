@@ -19,27 +19,49 @@ use Drupal\test_helpers\UnitTestHelpers;
  */
 class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManagerStubInterface {
 
-  public function __construct() {
-    UnitTestHelpers::addService('entity_type.manager', $this);
-    UnitTestHelpers::addServices([
-      'string_translation',
-      'language_manager',
-      'uuid',
-      'module_handler',
-      'entity_type.bundle.info',
-      'cache_tags.invalidator',
-      'database.replica_kill_switch',
-    ]);
-    UnitTestHelpers::addService('typed_data_manager', new TypedDataManagerStub());
-    UnitTestHelpers::addServices([
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(
+    \Traversable $namespaces = NULL,
+    ModuleHandlerInterface $module_handler = NULL,
+    CacheBackendInterface $cache = NULL,
+    TranslationInterface $string_translation = NULL,
+    ClassResolverInterface $class_resolver = NULL,
+    EntityLastInstalledSchemaRepositoryInterface $entity_last_installed_schema_repository = NULL
+  ) {
+    // Replacing missing arguments to mocks and stubs.
+    $namespaces ??= new \ArrayObject([]);
+    $module_handler ??= UnitTestHelpers::service('module_handler');
+    $cache ??= UnitTestHelpers::service('cache.static');
+    $string_translation ??= UnitTestHelpers::service('string_translation');
+    $class_resolver ??= UnitTestHelpers::service('class_resolver');
+    $entity_last_installed_schema_repository ??= UnitTestHelpers::service('entity.last_installed_schema.repository');
+
+    // Calling original costructor with mocked services.
+    parent::__construct(
+      $namespaces,
+      $module_handler,
+      $cache,
+      $string_translation,
+      $class_resolver,
+      $entity_last_installed_schema_repository
+    );
+
+    UnitTestHelpers::service('entity_type.manager', $this);
+    UnitTestHelpers::service('entity_type.repository', new EntityTypeRepository($this));
+    UnitTestHelpers::service('typed_data_manager', new TypedDataManagerStub());
+    UnitTestHelpers::setServices([
+      'entity_type.bundle.info' => NULL,
+      'language_manager' => NULL,
+      'uuid' => NULL,
       'entity.query.sql' => new EntityQueryServiceStub(),
       'plugin.manager.field.field_type' => new FieldTypeManagerStub(),
     ]);
-    UnitTestHelpers::addService('entity_field.manager', new EntityFieldManagerStub());
-    UnitTestHelpers::addService('entity_type.repository', new EntityTypeRepository($this));
+    UnitTestHelpers::service('entity_field.manager', new EntityFieldManagerStub());
 
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
-    $entityRepository = UnitTestHelpers::addService('entity.repository', UnitTestHelpers::createMock(EntityRepositoryInterface::class));
+    $entityRepository = UnitTestHelpers::service('entity.repository', UnitTestHelpers::createMock(EntityRepositoryInterface::class));
     $entityRepository
       ->method('loadEntityByUuid')
       ->willReturnCallback(function ($entityTypeId, $uuid) {

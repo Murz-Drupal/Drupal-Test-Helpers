@@ -31,7 +31,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
       ?? $this->executeFunctions['all']
       ?? function () {
         $result = [];
-        $storage = UnitTestHelpers::addService('entity_type.manager')->getStorage($this->entityTypeId);
+        $storage = UnitTestHelpers::service('entity_type.manager')->getStorage($this->entityTypeId);
         $allEntities = $storage->loadMultiple();
         foreach ($allEntities as $entity) {
           foreach ($this->condition->conditions() as $condition) {

@@ -27,9 +27,9 @@ class TypedDataManagerStub extends TypedDataManager {
     ClassResolverInterface $class_resolver = NULL
   ) {
     $namespaces ??= new \ArrayObject([]);
-    $cache_backend ??= UnitTestHelpers::addService('cache.backend.memory')->get('cache_discovery');
-    $module_handler ??= UnitTestHelpers::addService('module_handler');
-    $class_resolver ??= UnitTestHelpers::addService('class_resolver');
+    $cache_backend ??= UnitTestHelpers::service('cache.backend.memory')->get('cache_discovery');
+    $module_handler ??= UnitTestHelpers::service('module_handler');
+    $class_resolver ??= UnitTestHelpers::service('class_resolver');
     parent::__construct($namespaces, $cache_backend, $module_handler, $class_resolver);
   }
 

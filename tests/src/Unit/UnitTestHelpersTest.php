@@ -110,7 +110,7 @@ class UnitTestHelpersTest extends UnitTestCase {
     $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $entityTypeManager->method('getDefinition')->willReturn($entityType);
 
-    UnitTestHelpers::addServices([
+    UnitTestHelpers::setServices([
       'entity_type.bundle.info' => NULL,
       'renderer' => NULL,
       'string_translation' => NULL,
@@ -127,7 +127,7 @@ class UnitTestHelpersTest extends UnitTestCase {
       $this->assertEquals('You have requested a non-existent service "entity.repository".', $e->getMessage());
     }
 
-    UnitTestHelpers::addServices(['entity.repository']);
+    UnitTestHelpers::setServices(['entity.repository']);
 
     // Testing the behavior on a real service with the 'create' function.
     $service = UnitTestHelpers::createService(EntityController::class);
@@ -135,7 +135,7 @@ class UnitTestHelpersTest extends UnitTestCase {
     $this->assertSame('Add my entity', $result->__toString());
 
     // Checking resetting of the container.
-    UnitTestHelpers::addServices(['entity.repository'], TRUE);
+    UnitTestHelpers::setServices(['entity.repository'], TRUE);
     try {
       $service = UnitTestHelpers::createService(EntityController::class);
       $this->fail('Previous line should throw an exception.');
@@ -150,7 +150,7 @@ class UnitTestHelpersTest extends UnitTestCase {
    * @covers ::createServiceFromYaml
    */
   public function testCreateServiceFromYaml() {
-    UnitTestHelpers::addService('plugin.manager.language_negotiation_method', $this->createMock(LanguageNegotiationMethodManager::class));
+    UnitTestHelpers::service('plugin.manager.language_negotiation_method', $this->createMock(LanguageNegotiationMethodManager::class));
     \Drupal::service('plugin.manager.language_negotiation_method')
       ->method('getDefinitions')
       ->willReturn(['method1', 'method2']);

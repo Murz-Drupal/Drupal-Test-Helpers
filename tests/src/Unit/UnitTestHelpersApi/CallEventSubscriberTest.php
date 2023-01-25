@@ -36,7 +36,7 @@ class CallEventSubscriberTest extends UnitTestCase {
     );
     $this->assertEquals('value2', $event->value);
 
-    UnitTestHelpers::addService('string_translation');
+    UnitTestHelpers::service('string_translation');
     UnitTestHelpers::callEventSubscriber(
       dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
       'test_helpers.event_subscriber_stub',

@@ -27,7 +27,7 @@ class TokenStub extends Token {
   ) {
     $this->cache = $cache;
     $this->languageManager = $language_manager;
-    $this->moduleHandler = $module_handler ?? UnitTestHelpers::addService('module_handler');
+    $this->moduleHandler = $module_handler ?? UnitTestHelpers::service('module_handler');
     $this->cacheTagsInvalidator = $cache_tags_invalidator;
     $this->renderer = $renderer ?? UnitTestHelpers::createMock(RendererInterface::class);
   }
