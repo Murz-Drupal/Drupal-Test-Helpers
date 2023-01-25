@@ -1,6 +1,6 @@
 # Test Helpers
 
-The module provides the API to ssimplify writing Drupal Unit tests. Using the
+The module provides the API to simplify writing Drupal Unit tests. Using the
 API can significantly reduce the amount of code in your Unit Tests to cover all the
 logic of testing functions, using provided stubs of Drupal services.
 
