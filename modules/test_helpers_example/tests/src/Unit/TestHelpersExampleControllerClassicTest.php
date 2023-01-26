@@ -2,10 +2,14 @@
 
 namespace src\Unit;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
+use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Link;
 use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
@@ -27,7 +31,7 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $entityQuery->method('sort')
       ->willReturnCallback(
         function ($field, $direction = 'ASC', $langcode = NULL) use ($entityQuery) {
-          $this->assertEquals('title', $field);
+          $this->assertEquals('created', $field);
           $this->assertEquals('DESC', $direction);
           return $entityQuery;
         }
@@ -78,11 +82,15 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $node1 = $this->createMock(NodeInterface::class);
     $node1->method('id')->willReturn('1');
     $node1->method('label')->willReturn('Article 1');
+    $node1->created = $this->createPartialMock(FieldItemList::class, ['__get']);
+    $node1->created->method('__get')->with('value')->willReturn('1672574400');
     $node1->method('toLink')->willReturnCallback($toLinkMock);
 
     $node2 = $this->createMock(NodeInterface::class);
     $node2->method('id')->willReturn('2');
     $node2->method('label')->willReturn('Article 2');
+    $node2->created = $this->createPartialMock(FieldItemList::class, ['__get']);
+    $node2->created->method('__get')->with('value')->willReturn('1672660800');
     $node2->method('toLink')->willReturnCallback($toLinkMock);
 
     $entityStorage = $this->createMock(EntityStorageInterface::class);
@@ -92,15 +100,25 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $entityTypeManager->method('getStorage')->willReturn($entityStorage);
 
+    $dateFormatter = $this->createMock(DateFormatterInterface::class);
+    $dateFormatter->method('format')->willReturn($this->returnArgument(0));
+
+    $configFactory = $this->createMock(ConfigFactoryInterface::class);
+    $config = $this->createMock(ImmutableConfig::class);
+    $config->method('get')->willReturn(2);
+    $configFactory->method('get')->willReturn($config);
+
     $container = new ContainerBuilder();
     $container->set('entity_type.manager', $entityTypeManager);
+    $container->set('date.formatter', $dateFormatter);
+    $container->set('config.factory', $configFactory);
     \Drupal::setContainer($container);
 
     $controller = new TestHelpersExampleController();
     $result = $controller->articlesList();
 
-    $this->assertEquals('Article 1 (1)', $result['#items'][0]->getText());
-    $this->assertEquals('Article 2 (2)', $result['#items'][1]->getText());
+    $this->assertEquals('Article 1 (1672574400)', $result['#items'][0]->getText());
+    $this->assertEquals('Article 2 (1672660800)', $result['#items'][1]->getText());
   }
 
 }

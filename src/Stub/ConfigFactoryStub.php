@@ -12,7 +12,7 @@ use Drupal\test_helpers\UnitTestHelpers;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * A stub of the Drupal's default LanguageManager class.
+ * A stub of the Drupal's default ConfigFactory class.
  */
 class ConfigFactoryStub extends ConfigFactory {
 

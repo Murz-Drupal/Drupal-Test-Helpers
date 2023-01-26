@@ -20,22 +20,24 @@ class TestHelpersExampleControllerModernConditionsTest extends UnitTestCase {
    * @covers ::articlesList
    */
   public function testArticlesList() {
-    UnitTestHelpers::createEntityStub(Node::class, ['title' => 'Article 1'])->save();
-    UnitTestHelpers::createEntityStub(Node::class, ['title' => 'Article 2'])->save();
+    UnitTestHelpers::service('config.factory')->stubSetConfig('my_site', ['articles_to_display' => 2]);
+    UnitTestHelpers::service('date.formatter')->stubSetFormat('medium', 'Medium', 'd.m.Y');
+    UnitTestHelpers::saveEntityStub(Node::class, ['title' => 'Article 1', 'created' => '1672574400']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['title' => 'Article 2', 'created' => '1672660800']);
 
     UnitTestHelpers::getServiceStub('entity.query.sql')->stubSetExecuteHandler(function () {
       UnitTestCaseWrapper::assertTrue(UnitTestHelpers::queryIsSubsetOf($this, \Drupal::entityQuery('node')
         ->condition('status', 1)
         ->condition('type', 'article')
-        ->sort('title', 'DESC')
+        ->sort('created', 'DESC')
         ->range(0, 2)));
       return ['1', '2'];
     });
 
     $result = (new TestHelpersExampleController())->articlesList();
 
-    $this->assertEquals('Article 1 (1)', $result['#items'][0]->getText());
-    $this->assertEquals('Article 2 (2)', $result['#items'][1]->getText());
+    $this->assertEquals('Article 1 (01.01.2023)', $result['#items'][0]->getText());
+    $this->assertEquals('Article 2 (02.01.2023)', $result['#items'][1]->getText());
   }
 
 }

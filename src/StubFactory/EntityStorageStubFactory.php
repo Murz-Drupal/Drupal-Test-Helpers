@@ -2,6 +2,7 @@
 
 namespace Drupal\test_helpers\StubFactory;
 
+use Drupal\Core\Cache\MemoryCache\MemoryCache;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\test_helpers\UnitTestHelpers;
 
@@ -25,9 +26,28 @@ class EntityStorageStubFactory {
   private function __construct() {
   }
 
-  public static function create(string $entityTypeClass, $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType', array $options = []) {
+  public static function create(string $entityTypeClass, $annotation = NULL, array $options = []) {
+    switch ($annotation) {
+      case 'ContentEntityType':
+      case 'ConfigEntityType':
+        $annotation = '\Drupal\Core\Entity\Annotation\\' . $annotation;
+    }
 
-    $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+    if ($annotation) {
+      $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+    }
+    else {
+      $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
+      $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+      if ($entityTypeDefinition == NULL) {
+        $annotation = '\Drupal\Core\Entity\Annotation\ConfigEntityType';
+        $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+      }
+    }
+
+    if ($entityTypeDefinition == NULL) {
+      throw new \Exception("Can't parse annotation for class \$entityTypeClass using annotation $annotation");
+    }
 
     $entityTypeStorage = $entityTypeDefinition->getStorageClass();
     $staticStorage = &UnitTestHelpers::addService('test_helpers.static_storage')->get('test_helpers.entity_storage_stub.' . $entityTypeDefinition->id());
@@ -39,21 +59,27 @@ class EntityStorageStubFactory {
 
     $constructArguments = NULL;
 
-    if ($annotation == '\Drupal\Core\Entity\Annotation\ContentEntityType') {
-      $constructArguments = [
-        $entityTypeDefinition,
-        UnitTestHelpers::addService('database'),
-        UnitTestHelpers::addService('entity_field.manager'),
-        UnitTestHelpers::addService('cache.entity'),
-        UnitTestHelpers::addService('language_manager'),
-        UnitTestHelpers::addService('entity.memory_cache'),
-        UnitTestHelpers::addService('entity_type.bundle.info'),
-        UnitTestHelpers::addService('entity_type.manager'),
-      ];
+    if ($options['constructorArguments'] ?? NULL) {
+      $constructArguments = $options['constructorArguments'];
     }
-    elseif ($annotation == '\Drupal\Core\Entity\Annotation\ConfigEntityType') {
-      // Does nothing as for now.
-      // @todo Add list of required services.
+    switch ($annotation) {
+      case '\Drupal\Core\Entity\Annotation\ContentEntityType':
+        $configEntityType = FALSE;
+        $constructArguments ??= [
+          $entityTypeDefinition,
+          UnitTestHelpers::addService('database'),
+          UnitTestHelpers::addService('entity_field.manager'),
+          UnitTestHelpers::addService('cache.entity'),
+          UnitTestHelpers::addService('language_manager'),
+          UnitTestHelpers::addService('entity.memory_cache'),
+          UnitTestHelpers::addService('entity_type.bundle.info'),
+          UnitTestHelpers::addService('entity_type.manager'),
+        ];
+        break;
+
+      case '\Drupal\Core\Entity\Annotation\ConfigEntityType':
+        $configEntityType = TRUE;
+        break;
     }
 
     $overridedMethods = [
@@ -99,7 +125,7 @@ class EntityStorageStubFactory {
         $this->memoryCache = UnitTestHelpers::addService('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
         $this->cacheBackend = UnitTestHelpers::addService('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
 
-      });
+      }, $entityStorage, 'stubInit');
 
       $entityStorage->stubInit();
     }

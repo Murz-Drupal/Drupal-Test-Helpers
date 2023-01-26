@@ -20,6 +20,13 @@ use Drupal\test_helpers\UnitTestHelpers;
 class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManagerStubInterface {
 
   /**
+   * Static storage for initialized entity storages.
+   *
+   * @var array;
+   */
+  protected $stubEntityStoragesByClass;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(
@@ -38,6 +45,8 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     $class_resolver ??= UnitTestHelpers::service('class_resolver');
     $entity_last_installed_schema_repository ??= UnitTestHelpers::service('entity.last_installed_schema.repository');
 
+    $this->setContainer(UnitTestHelpers::getContainer());
+
     // Calling original costructor with mocked services.
     parent::__construct(
       $namespaces,
@@ -48,11 +57,13 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       $entity_last_installed_schema_repository
     );
 
-    UnitTestHelpers::service('entity_type.manager', $this);
-    UnitTestHelpers::service('entity_type.repository', new EntityTypeRepository($this));
     UnitTestHelpers::service('typed_data_manager', new TypedDataManagerStub());
     UnitTestHelpers::setServices([
+      'entity_type.manager' => $this,
+      'entity_type.repository' => new EntityTypeRepository($this),
       'entity_type.bundle.info' => NULL,
+      'entity.memory_cache' => NULL,
+      'entity_field.manager' => NULL,
       'language_manager' => NULL,
       'uuid' => NULL,
       'entity.query.sql' => new EntityQueryServiceStub(),

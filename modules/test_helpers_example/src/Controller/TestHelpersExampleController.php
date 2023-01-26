@@ -13,11 +13,13 @@ class TestHelpersExampleController extends ControllerBase {
    * Renders a list of two articles, reverse sorted by title.
    */
   public function articlesList() {
+    $amount = \Drupal::config('my_site')->get('articles_to_display');
+
     $articlesIds = \Drupal::entityQuery('node')
       ->condition('status', 1)
       ->condition('type', 'article')
-      ->sort('title', 'DESC')
-      ->range(0, 2)
+      ->sort('created', 'DESC')
+      ->range(0, $amount)
       ->execute();
 
     $articles = \Drupal::entityTypeManager()
@@ -26,7 +28,7 @@ class TestHelpersExampleController extends ControllerBase {
 
     $articlesList = [];
     foreach ($articles as $article) {
-      $linkText = $article->label() . ' (' . $article->id() . ')';
+      $linkText = $article->label() . ' (' . \Drupal::service('date.formatter')->format($article->created->value) . ')';
       $articlesList[] = $article->toLink($linkText);
     }
 

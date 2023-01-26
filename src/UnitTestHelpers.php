@@ -7,6 +7,7 @@ use Drupal\Component\Transliteration\PhpTransliteration;
 use Drupal\Component\Uuid\Php;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Cache\MemoryBackendFactory;
+use Drupal\Core\Cache\MemoryCache\MemoryCache;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -18,6 +19,7 @@ use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\test_helpers\lib\TestHelpersStaticStorageService;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
+use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LanguageManagerStub;
@@ -33,8 +35,15 @@ use Symfony\Component\Yaml\Yaml;
 
 // This trick is to prevent 'Undefined constant' warnings in code sniffers.
 defined('DRUPAL_ROOT') || define('DRUPAL_ROOT', '');
-// This constant is used in some entity definitions from core.
+
+// These constants are used in some entity definitions from core.
+// They're defined in system.module, so just re-define them here.
+defined('DRUPAL_DISABLED') || define('DRUPAL_DISABLED', 0);
 defined('DRUPAL_OPTIONAL') || define('DRUPAL_OPTIONAL', 1);
+defined('DRUPAL_REQUIRED') || define('DRUPAL_REQUIRED', 2);
+defined('REGIONS_VISIBLE') || define('REGIONS_VISIBLE', 'visible');
+defined('REGIONS_ALL') || define('REGIONS_ALL', 'all');
+
 /**
  * Helper functions to simplify writing of Unit Tests.
  */
@@ -53,8 +62,10 @@ class UnitTestHelpers {
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'config.factory' => ConfigFactoryStub::class,
     'database' => DatabaseStub::class,
+    'date.formatter' => DateFormatterStub::class,
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
+    'entity.memory_cache' => MemoryCache::class,
     'language_manager' => LanguageManagerStub::class,
     'logger.factory' => LoggerChannelFactory::class,
     'module_handler' => ModuleHandlerStub::class,
@@ -455,6 +466,9 @@ class UnitTestHelpers {
   public static function createEntityStub(string $entityTypeClassName, array $values = [], array $options = []) {
     switch ($options['entity_base_type'] ?? NULL) {
       default:
+        $annotation = NULL;
+        break;
+
       case 'ContentEntityType':
         $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
         break;
