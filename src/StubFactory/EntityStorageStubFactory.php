@@ -31,6 +31,9 @@ class EntityStorageStubFactory {
 
     $entityTypeStorage = $entityTypeDefinition->getStorageClass();
     $staticStorage = &UnitTestHelpers::addService('test_helpers.static_storage')->get('test_helpers.entity_storage_stub.' . $entityTypeDefinition->id());
+    if ($staticStorage === NULL) {
+      $staticStorage = [];
+    }
 
     UnitTestHelpers::addService('entity_type.manager')->stubSetDefinition($entityTypeDefinition->id(), $entityTypeDefinition);
 
@@ -164,7 +167,7 @@ class EntityStorageStubFactory {
 
     UnitTestHelpers::setClassMethod($entityStorage, 'stubGetNewEntityId', function () use (&$staticStorage) {
       // @todo Make detection of id field type, and calculate only for integers.
-      $id = max(array_keys($staticStorage ?? [0])) + 1;
+      $id = (empty($staticStorage) ? 0 : max(array_keys($staticStorage))) + 1;
       // The `id` value for even integer autoincrement is stored as string in
       // Drupal, so we should follow this behaviour too.
       return (string) $id;

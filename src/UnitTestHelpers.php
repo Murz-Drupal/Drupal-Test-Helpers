@@ -474,6 +474,30 @@ class UnitTestHelpers {
   }
 
   /**
+   * Creates a stub entity for an entity type from a given class and saves it.
+   *
+   * @param string $entityTypeClassName
+   *   The entity type class.
+   * @param array $values
+   *   An array with entity values:
+   *   - keys: field/property names.
+   *   - values: the field/property values.
+   * @param array $options
+   *   The array of options:
+   *   - entity_base_type: base type of the entity:
+   *     ContentEntityType or ConfigEntityType, default is ContentEntityType.
+   *   - @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
+   *
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
+   *   The stub object for the entity.
+   */
+  public static function saveEntityStub(string $entityTypeClassName, array $values = [], array $options = []) {
+    $entity = self::createEntityStub($entityTypeClassName, $values, $options);
+    $entity->save();
+    return $entity;
+  }
+
+  /**
    * Gets or initializes an Entity Storage for a given Entity Type class name.
    *
    * @param string $entityTypeClassName

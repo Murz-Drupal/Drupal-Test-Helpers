@@ -18,7 +18,7 @@ class CreateEntityStubTest extends UnitTestCase {
   /**
    * Tests creating Entity Stubs.
    */
-  public function testEntityStorageStub() {
+  public function testCreateEntityStub() {
     // Creating mocked entities to test the results.
     $node1Values = [
       'type' => 'article',
@@ -115,6 +115,16 @@ class CreateEntityStubTest extends UnitTestCase {
     $nodeLoadedMultuple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
     $this->assertCount(2, $nodeLoadedMultuple);
 
+  }
+
+  /**
+   * Tests creating and saving entitites.
+   */
+  public function testSaveEntityStub() {
+    $node = UnitTestHelpers::saveEntityStub(Node::class);
+    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadByProperties(['nid' => '1']);
+    $this->assertEquals('1', $node->id());
+    $this->assertEquals(current($nodeLoaded)->id(), $node->id());
   }
 
   /**

@@ -33,6 +33,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
         $result = [];
         $storage = UnitTestHelpers::service('entity_type.manager')->getStorage($this->entityTypeId);
         $allEntities = $storage->loadMultiple();
+        $resultEntities = [];
         foreach ($allEntities as $entity) {
           foreach ($this->condition->conditions() as $condition) {
             if (!UnitTestHelpers::matchEntityCondition($entity, $condition)) {
