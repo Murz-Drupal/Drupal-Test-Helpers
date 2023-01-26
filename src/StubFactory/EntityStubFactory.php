@@ -60,8 +60,7 @@ class EntityStubFactory {
     }
 
     // Filling values to the entity array.
-    UnitTestHelpers::bindClosureToClassMethod(
-      function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition) {
+    UnitTestHelpers::setClassMethod($entity, 'stubInitValues', function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition) {
         // Pre-filling entity keys.
         /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
         $this->entityTypeId = $entityTypeId;
@@ -112,9 +111,7 @@ class EntityStubFactory {
          * @todo Register field definitions to the EntityFieldManager via
          * \Drupal::service('entity_field.manager')->stubSetBaseFieldDefinitons($this->fieldDefinitions);
          */
-      },
-      $entity,
-      'stubInitValues'
+      }
     );
     $entity->stubInitValues($values);
 

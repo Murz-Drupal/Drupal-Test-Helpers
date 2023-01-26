@@ -83,7 +83,7 @@ class EntityStorageStubFactory {
           'stubInit',
         ],
       );
-      UnitTestHelpers::bindClosureToClassMethod(function () use ($entityTypeDefinition, $entityTypeClass, $entityTypeStorage) {
+      UnitTestHelpers::setClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition, $entityTypeClass, $entityTypeStorage) {
         $this->entityType = $entityTypeDefinition;
         $this->entityTypeId = $this->entityType->id();
 
@@ -96,12 +96,12 @@ class EntityStorageStubFactory {
         $this->memoryCache = UnitTestHelpers::addService('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
         $this->cacheBackend = UnitTestHelpers::addService('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
 
-      }, $entityStorage, 'stubInit');
+      });
 
       $entityStorage->stubInit();
     }
 
-    UnitTestHelpers::bindClosureToClassMethod(function (EntityInterface $entity) use (&$staticStorage) {
+    UnitTestHelpers::setClassMethod($entityStorage, 'save', function (EntityInterface $entity) use (&$staticStorage) {
       require_once DRUPAL_ROOT . '/core/includes/common.inc';
       if ($entity->isNew()) {
         $return = SAVED_NEW;
@@ -138,18 +138,18 @@ class EntityStorageStubFactory {
       $staticStorage[$entity->id()] = $entity;
 
       return $return;
-    }, $entityStorage, 'save');
+    });
 
-    UnitTestHelpers::bindClosureToClassMethod(function (array $entities) use (&$staticStorage) {
+    UnitTestHelpers::setClassMethod($entityStorage, 'delete', function (array $entities) use (&$staticStorage) {
       foreach ($entities as $entity) {
         $id = $entity->id();
         if (isset($staticStorage[$id])) {
           unset($staticStorage[$id]);
         }
       }
-    }, $entityStorage, 'delete');
+    });
 
-    UnitTestHelpers::bindClosureToClassMethod(function (array $ids = NULL) use (&$staticStorage) {
+    UnitTestHelpers::setClassMethod($entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$staticStorage) {
       if ($ids === NULL) {
         return $staticStorage;
       }
@@ -160,15 +160,15 @@ class EntityStorageStubFactory {
         }
       }
       return $entities;
-    }, $entityStorage, 'loadMultiple');
+    });
 
-    UnitTestHelpers::bindClosureToClassMethod(function () use (&$staticStorage) {
+    UnitTestHelpers::setClassMethod($entityStorage, 'stubGetNewEntityId', function () use (&$staticStorage) {
       // @todo Make detection of id field type, and calculate only for integers.
       $id = max(array_keys($staticStorage ?? [0])) + 1;
       // The `id` value for even integer autoincrement is stored as string in
       // Drupal, so we should follow this behaviour too.
       return (string) $id;
-    }, $entityStorage, 'stubGetNewEntityId');
+    });
 
     return $entityStorage;
   }

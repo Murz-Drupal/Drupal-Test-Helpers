@@ -56,10 +56,10 @@ class EntityQueryStubFactory {
       'stubCheckConditionsMatch',
     ]);
 
-    UnitTestHelpers::bindClosureToClassMethod($executeFunction, $queryStub, 'execute');
-    UnitTestHelpers::bindClosureToClassMethod(function (Condition $conditionsExpected, $onlyListed = FALSE) {
+    UnitTestHelpers::setClassMethod($queryStub, 'execute', $executeFunction);
+    UnitTestHelpers::setClassMethod($queryStub, 'stubCheckConditionsMatch', function (Condition $conditionsExpected, $onlyListed = FALSE) {
       return UnitTestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
-    }, $queryStub, 'stubCheckConditionsMatch');
+    });
 
     return $queryStub;
   }

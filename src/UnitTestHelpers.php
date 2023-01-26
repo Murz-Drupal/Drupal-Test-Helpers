@@ -226,9 +226,9 @@ class UnitTestHelpers {
   }
 
   /**
-   * Binds a closure function to a mocked class method.
+   * Sets a closure function to a class method.
    *
-   * This makes accessible the class methods inside the function via $this.
+   * This makes private class methods  accessible inside the function via $this.
    *
    * @param \Closure $closure
    *   The closure function to bind.
@@ -237,7 +237,7 @@ class UnitTestHelpers {
    * @param string $method
    *   The method name.
    */
-  public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
+  public static function setClassMethod(MockObject $class, string $method, \Closure $closure): void {
     $doClosure = $closure->bindTo($class, get_class($class));
     $class->method($method)->willReturnCallback($doClosure);
   }
@@ -1075,5 +1075,27 @@ class UnitTestHelpers {
     @trigger_error('Function addServices() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to setServices(). See https://www.drupal.org/project/test_helpers/issues/3336364', E_USER_DEPRECATED);
     self::setServices($services, $clearContainer);
   }
+
+  /**
+   * Binds a closure function to a mocked class method.
+   *
+   * This makes accessible the class methods inside the function via $this.
+   *
+   * @param \Closure $closure
+   *   The closure function to bind.
+   * @param \PHPUnit\Framework\MockObject\MockObject $class
+   *   The mocked class.
+   * @param string $method
+   *   The method name.
+   *
+   * @deprecated in test_helpers:1.0.0-beta4 and is removed from
+   *   test_helpers:1.0.0-rc1. Use UnitTestHelpers::service().
+   * @see https://www.drupal.org/project/test_helpers/issues/3336364
+   */
+  public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
+    @trigger_error('Function bindClosureToClassMethod() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to setClassMethod() with changing the order of the arguments. See https://www.drupal.org/project/test_helpers/issues/3336364', E_USER_DEPRECATED);
+    self::setClassMethod($class, $method, $closure);
+  }
+
 
 }

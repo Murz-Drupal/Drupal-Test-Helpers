@@ -85,12 +85,9 @@ class FieldItemListStubFactory {
 
     // We have no information about default values because of missing configs,
     // so just return the same object.
-    UnitTestHelpers::bindClosureToClassMethod(
-      function ($notify = TRUE) {
+    UnitTestHelpers::setClassMethod($field, 'applyDefaultValue', function ($notify = TRUE) {
         return $this;
-      },
-      $field,
-      'applyDefaultValue'
+      }
     );
 
     $field->setValue($values);
