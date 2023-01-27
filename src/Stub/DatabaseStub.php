@@ -35,7 +35,18 @@ class DatabaseStub extends Connection {
     parent::__construct($this->pdoMock, $this->connectionOptions);
   }
 
-  private function mockExecuteForMethod($method, $methodArguments) {
+  /**
+   * Mocks the execute function for a method.
+   *
+   * @param string $method
+   *   The method name.
+   * @param array $methodArguments
+   *   The list of arguments of the method.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject
+   *   The mocked method.
+   */
+  private function mockExecuteForMethod(string $method, array $methodArguments) {
     $originalMethod = parent::$method(...$methodArguments);
     $class = \get_class($originalMethod);
     $mockedMethod = UnitTestHelpers::createPartialMockWithConstructor($class, [
@@ -63,12 +74,23 @@ class DatabaseStub extends Connection {
     return $mockedMethod;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function select($table, $alias = NULL, array $options = []) {
     $methodArguments = \func_get_args();
     $select = $this->mockExecuteForMethod('select', $methodArguments);
     return $select;
   }
 
+  /**
+   * Sets the function to handle execute calls.
+   *
+   * @param \Closure $executeFunction
+   *   The execute function.
+   * @param string $method
+   *   The method to use, all methods by default.
+   */
   public function stubSetExecuteHandler(\Closure $executeFunction, string $method = 'all') {
     $this->stubExecuteHandlers[$method] = $executeFunction;
   }

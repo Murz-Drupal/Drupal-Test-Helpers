@@ -163,12 +163,12 @@ class UnitTestHelpers {
    *
    * This makes private class methods  accessible inside the function via $this.
    *
-   * @param \Closure $closure
-   *   The closure function to bind.
    * @param \PHPUnit\Framework\MockObject\MockObject $class
    *   The mocked class.
    * @param string $method
    *   The method name.
+   * @param \Closure $closure
+   *   The closure function to bind.
    */
   public static function setClassMethod(MockObject $class, string $method, \Closure $closure): void {
     $doClosure = $closure->bindTo($class, get_class($class));
@@ -1154,7 +1154,7 @@ class UnitTestHelpers {
    * @see https://www.drupal.org/project/test_helpers/issues/3336364
    */
   public static function createService($class, array $createArguments = NULL, array $services = NULL): object {
-    @trigger_error('Function createService() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to createClass(). See XXX', E_USER_DEPRECATED);
+    @trigger_error('Function createService() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to createClass(). See https://www.drupal.org/project/test_helpers/issues/3336801', E_USER_DEPRECATED);
     return self::createClass($class, $createArguments, $services);
   }
 

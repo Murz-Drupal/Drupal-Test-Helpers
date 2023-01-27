@@ -16,7 +16,7 @@ use Drupal\test_helpers\UnitTestHelpers;
 class TokenStub extends Token {
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function __construct(
     ModuleHandlerInterface $module_handler = NULL,

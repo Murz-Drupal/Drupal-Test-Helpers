@@ -35,18 +35,30 @@ class FieldTypeManagerStub extends FieldTypePluginManager {
     $this->typedDataManager = \Drupal::service('typed_data_manager');
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function getCachedDefinitions() {
     return $this->definitions;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function getDefaultStorageSettings($type) {
     return $this->definitions[$type]['storage_settings'] ?? [];
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function getDefaultFieldSettings($type) {
     return $this->definitions[$type]['field_settings'] ?? [];
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function createFieldItem(FieldItemListInterface $items, $index, $values = NULL) {
     if ($items->getFieldDefinition()->getItemDefinition()) {
       $itemClass = $items->getFieldDefinition()->getItemDefinition()->getClass();
@@ -96,11 +108,27 @@ class FieldTypeManagerStub extends FieldTypePluginManager {
     return $fieldItem;
   }
 
-  public function stubDefineFieldItemClassByListClass(string $listClass, string $itemClass) {
+  /**
+   * Defines a field item class by lists class.
+   *
+   * @param string $listClass
+   *   The list class.
+   * @param string $itemClass
+   *   The item class.
+   */
+  public function stubDefineFieldItemClassByListClass(string $listClass, string $itemClass): void {
     $this->fieldItemClassByListClassMap[$listClass] = $itemClass;
   }
 
-  public function stubSetDefinition(string $fieldType, $definition = []) {
+  /**
+   * Sets the definition for field type.
+   *
+   * @param string $fieldType
+   *   The field type.
+   * @param mixed $definition
+   *   The definition, empty array by default.
+   */
+  public function stubSetDefinition(string $fieldType, $definition = []): void {
     if (!isset($definition['id'])) {
       $definition['id'] = $fieldType;
     }

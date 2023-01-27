@@ -2,7 +2,6 @@
 
 namespace Drupal\test_helpers\StubFactory;
 
-use Drupal\Core\Cache\MemoryCache\MemoryCache;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\test_helpers\UnitTestHelpers;
 
@@ -11,21 +10,36 @@ use Drupal\test_helpers\UnitTestHelpers;
  */
 class EntityStorageStubFactory {
 
-  protected $stubEntities;
-
-  protected $entityStubFactory;
-
-  /**
-   * A workaround to fix access to the private method of the parent class.
-   */
-  protected $baseEntityClass;
-
   /**
    * Disables the constructor to use only static methods.
    */
   private function __construct() {
   }
 
+  /**
+   * Creates a new Entity Storage Stub object.
+   *
+   * @param string $entityTypeClass
+   *   The original class to use for stub.
+   * @param mixed $annotation
+   *   The annotation to use. If missing - tries ContentEntityType and
+   *   ConfigEntityType.
+   *   Examples:
+   *   - \Drupal\Core\Entity\Annotation\ContentEntityType
+   *   - \Drupal\Core\Entity\Annotation\ConfigEntityType
+   *   or other annotations.
+   * @param array $options
+   *   The array of options:
+   *   - constructorArguments: additional arguments to the constructor.
+   *   - methods: list of methods to make mockable.
+   *   - addMethods: list of additional methods.
+   *
+   * @throws \Exception
+   *   When the annotation cannot be parsed.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject
+   *   The mocked Entity Storage Stub.
+   */
   public static function create(string $entityTypeClass, $annotation = NULL, array $options = []) {
     switch ($annotation) {
       case 'ContentEntityType':
@@ -64,7 +78,6 @@ class EntityStorageStubFactory {
     }
     switch ($annotation) {
       case '\Drupal\Core\Entity\Annotation\ContentEntityType':
-        $configEntityType = FALSE;
         $constructArguments ??= [
           $entityTypeDefinition,
           UnitTestHelpers::addService('database'),
@@ -78,7 +91,8 @@ class EntityStorageStubFactory {
         break;
 
       case '\Drupal\Core\Entity\Annotation\ConfigEntityType':
-        $configEntityType = TRUE;
+        // Does nothing for now.
+        // @todo Maybe we need to pass some services.
         break;
     }
 
@@ -112,13 +126,11 @@ class EntityStorageStubFactory {
           'stubInit',
         ],
       );
-      UnitTestHelpers::setClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition, $entityTypeClass, $entityTypeStorage) {
+      UnitTestHelpers::setClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
         $this->entityType = $entityTypeDefinition;
         $this->entityTypeId = $this->entityType->id();
 
         $this->baseEntityClass = $this->entityType->getClass();
-        // UnitTestHelpers::setProtectedProperty($this, 'baseEntityClass', $this->entityType->getClass());
-
         $this->entityTypeBundleInfo = UnitTestHelpers::addService('entity_type.bundle.info');
 
         $this->database = UnitTestHelpers::addService('database');

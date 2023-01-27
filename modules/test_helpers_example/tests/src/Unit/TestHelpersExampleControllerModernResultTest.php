@@ -19,17 +19,17 @@ class TestHelpersExampleControllerModernResultTest extends UnitTestCase {
    * @covers ::articlesList
    */
   public function testArticlesList() {
-    UnitTestHelpers::service('config.factory')->stubSetConfig('my_site', ['articles_to_display' => 1]);
+    UnitTestHelpers::service('config.factory')->stubSetConfig('test_helpers_example', ['articles_to_display' => 1]);
     UnitTestHelpers::service('date.formatter')->stubSetFormat('medium', 'Medium', 'd.m.Y');
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'Article 1', 'status' => '1', 'created' => '1672574400']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'Article 2', 'status' => '1', 'created' => '1672660800']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'page', 'title' => 'Page 1', 'status' => '0', 'created' => '1672747200']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'Article 3', 'status' => '0', 'created' => '1672833600']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A1', 'status' => '1', 'created' => '1672574400']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A2', 'status' => '1', 'created' => '1672660800']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'page', 'title' => 'P1', 'status' => '0', 'created' => '1672747200']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A3', 'status' => '0', 'created' => '1672833600']);
 
-    $result = (new TestHelpersExampleController())->articlesList();
+    $result = UnitTestHelpers::createService(TestHelpersExampleController::class)->articlesList();
 
     $this->assertCount(1, $result['#items']);
-    $this->assertEquals('Article 2 (02.01.2023)', $result['#items'][0]->getText());
+    $this->assertEquals('A2 (02.01.2023)', $result['#items'][0]->getText());
   }
 
 }

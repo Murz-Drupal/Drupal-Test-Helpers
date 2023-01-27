@@ -46,6 +46,9 @@ class CallEventSubscriberTest extends UnitTestCase {
     $this->assertEquals('value2', $event->value);
   }
 
+  /**
+   * @covers ::callEventSubscriber
+   */
   public function testCallEventSubscriberWithNoTag() {
     $event = new EventStub();
     try {
@@ -62,12 +65,22 @@ class CallEventSubscriberTest extends UnitTestCase {
   }
 
 }
-
+/**
+ * A helper class for testing.
+ */
 class EventStub {
+
+  /**
+   * A variable.
+   *
+   * @var mixed
+   */
   public $value;
 
 }
-
+/**
+ * A helper class with interface for testing.
+ */
 class EventSubscriberStub implements EventSubscriberInterface {
 
   use StringTranslationTrait;
@@ -88,14 +101,23 @@ class EventSubscriberStub implements EventSubscriberInterface {
     ];
   }
 
+  /**
+   * Method test function 1.
+   */
   public function method1($event) {
     $event->value = 'value1';
   }
 
+  /**
+   * Method test function 2.
+   */
   public function method2($event) {
     $event->value = 'value2';
   }
 
+  /**
+   * Method test function 3.
+   */
   public function method3($event) {
     $event->value = $this->t('value3');
   }

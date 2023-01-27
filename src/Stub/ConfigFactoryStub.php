@@ -32,7 +32,17 @@ class ConfigFactoryStub extends ConfigFactory {
     $this->typedConfigManager = $typed_config ?? UnitTestHelpers::createMock(TypedConfigManager::class);
   }
 
-  public function stubSetConfig($name, $data, $immutable = NULL) {
+  /**
+   * Sets a config value.
+   *
+   * @param string $name
+   *   The name of the config.
+   * @param mixed $data
+   *   The data to store.
+   * @param bool $immutable
+   *   Store as immutable.
+   */
+  public function stubSetConfig(string $name, $data, bool $immutable = FALSE): void {
     $config = $this->getEditable($name);
     $config->setData($data);
     $key = $this->getConfigCacheKey($name, FALSE);

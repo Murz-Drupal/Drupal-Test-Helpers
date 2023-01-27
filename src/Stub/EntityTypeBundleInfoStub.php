@@ -10,15 +10,33 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  */
 class EntityTypeBundleInfoStub extends EntityTypeBundleInfo {
 
+  /**
+   * The EntityTypeBundleInfoStub constructor.
+   */
   public function __construct() {
     $this->bundleInfo = [];
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getAllBundleInfo() {
     return $this->bundleInfo;
   }
 
-  public function stubSetBundleInfo(string $entityTypeId, string $bundleName, array $bundleInfo = NULL, $force = FALSE) {
+  /**
+   * Sets the bundle info.
+   *
+   * @param string $entityTypeId
+   *   The entity type id.
+   * @param string $bundleName
+   *   The bundle name.
+   * @param array|null $bundleInfo
+   *   The bundle info.
+   * @param mixed $force
+   *   Override already setted info.
+   */
+  public function stubSetBundleInfo(string $entityTypeId, string $bundleName, array $bundleInfo = NULL, $force = FALSE): void {
     if ($bundleInfo === NULL) {
       $bundleInfo = [
         'label' => new TranslatableMarkup('@bundleName bundle', ['@bundleName' => $bundleName]),

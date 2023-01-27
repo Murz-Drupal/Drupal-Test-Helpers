@@ -8,8 +8,6 @@ use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeRepository;
-use Drupal\Core\Language\LanguageDefault;
-use Drupal\Core\Language\LanguageManager;
 use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\test_helpers\UnitTestHelpers;
@@ -22,7 +20,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   /**
    * Static storage for initialized entity storages.
    *
-   * @var array;
+   * @var array
    */
   protected $stubEntityStoragesByClass;
 
@@ -92,10 +90,16 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     $this->stringTranslation = UnitTestHelpers::addService('string_translation');
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function findDefinitions() {
     return [];
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function stubSetDefinition(string $pluginId, object $definition = NULL, $forceOverride = FALSE) {
     if ($forceOverride || !isset($this->definitions[$pluginId])) {
       $this->definitions[$pluginId] = $definition;
@@ -103,6 +107,9 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     return $this->definitions[$pluginId];
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function stubGetOrCreateHandler(string $handlerType, string $entityTypeId, object $handler = NULL, $forceOverride = FALSE) {
     if ($forceOverride || !isset($this->handlers[$handlerType][$entityTypeId])) {
       $this->handlers[$handlerType][$entityTypeId] = $handler;
@@ -110,6 +117,9 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     return $this->handlers[$handlerType][$entityTypeId];
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, $forceOverride = FALSE, array $methods = [], array $addMethods = []) {
     $options = [
       'methods' => $methods,
@@ -136,12 +146,10 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     return $storage;
   }
 
-  public function stubInit() {
-    $this->container = \Drupal::getContainer();
-    $this->entityLastInstalledSchemaRepository = UnitTestHelpers::createMock(EntityLastInstalledSchemaRepositoryInterface::class);
-  }
-
-  public function stubReset() {
+  /**
+   * {@inheritDoc}
+   */
+  public function stubReset(): void {
     $this->handlers = [];
     $this->definitions = [];
   }

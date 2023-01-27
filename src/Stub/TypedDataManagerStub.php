@@ -92,7 +92,17 @@ class TypedDataManagerStub extends TypedDataManager {
     return FALSE;
   }
 
-  public function stubInitPlugin($class, $plugin = 'TypedData', $namespace = NULL) {
+  /**
+   * Initiates a plugin in stub.
+   *
+   * @param string $class
+   *   The class.
+   * @param string $plugin
+   *   The plugin name.
+   * @param string|null $namespace
+   *   The namespace to use.
+   */
+  public function stubInitPlugin(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
     $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
     $id = self::getIdWithNamespace($definition['id'], $namespace);
 
@@ -106,7 +116,17 @@ class TypedDataManagerStub extends TypedDataManager {
     $this->stubPluginsDefinition[$id]->setTypedDataManager($this);
   }
 
-  public function stubSetPlugin($class, $plugin = 'TypedData', $namespace = NULL) {
+  /**
+   * Sets a plugin to stub.
+   *
+   * @param string $class
+   *   The class name.
+   * @param string $plugin
+   *   The plugin name.
+   * @param string|null $namespace
+   *   The namespace to use.
+   */
+  public function stubSetPlugin(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
     $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
     if (!isset($definition['list_class'])) {
       $definition['list_class'] = 'Drupal\Core\Field\FieldItemList';
@@ -114,15 +134,46 @@ class TypedDataManagerStub extends TypedDataManager {
     $this->stubPluginsDefinition[self::getIdWithNamespace($definition['id'], $namespace)] = $definition;
   }
 
-  public function stubSetDefinition($definition, $namespace = NULL, $customId = NULL) {
+  /**
+   * Sets a definition to stub.
+   *
+   * @param mixed $definition
+   *   The definition.
+   * @param string|null $namespace
+   *   The namespace to use.
+   * @param string|null $customId
+   *   Sets the custom id, if needed.
+   */
+  public function stubSetDefinition($definition, string $namespace = NULL, string $customId = NULL): void {
     $this->stubPluginsDefinition[self::getIdWithNamespace($customId ?? $definition['id'], $namespace)] = $definition;
   }
 
-  public function stubSetDefinitionFromClass(string $class, $plugin = 'TypedData', $namespace = NULL) {
+  /**
+   * Sets a definition from class.
+   *
+   * @param string $class
+   *   The class name.
+   * @param string $plugin
+   *   The plugin name.
+   * @param string|null $namespace
+   *   The namespace to use.
+   */
+  public function stubSetDefinitionFromClass(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
     $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
     self::stubSetDefinition($definition, $plugin, $namespace);
   }
 
+  /**
+   * Combined the id with namespace.
+   *
+   * @param string $id
+   *   The id string.
+   * @param string|null $namespace
+   *   The namespace.
+   *
+   * @return string
+   *   The combined string.
+   */
   protected function getIdWithNamespace(string $id, string $namespace = NULL) {
     return $namespace
       ? $namespace . ':' . $id

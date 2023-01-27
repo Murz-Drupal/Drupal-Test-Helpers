@@ -113,10 +113,11 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $container->set('date.formatter', $dateFormatter);
     $container->set('config.factory', $configFactory);
     \Drupal::setContainer($container);
+    $controller = TestHelpersExampleController::create($container);
 
-    $controller = new TestHelpersExampleController();
     $result = $controller->articlesList();
 
+    $this->assertCount(2, $result['#items']);
     $this->assertEquals('Article 1 (1672574400)', $result['#items'][0]->getText());
     $this->assertEquals('Article 2 (1672660800)', $result['#items'][1]->getText());
   }

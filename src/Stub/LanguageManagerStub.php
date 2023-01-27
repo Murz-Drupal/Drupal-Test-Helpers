@@ -15,7 +15,10 @@ class LanguageManagerStub extends LanguageManager {
    */
   public function __construct(LanguageDefault $default_language = NULL) {
     if (!$default_language) {
-      $default_language = new LanguageDefault(['id' => 'en', 'name' => 'English']);
+      $default_language = new LanguageDefault([
+        'id' => 'en',
+        'name' => 'English',
+      ]);
     }
     $this->defaultLanguage = $default_language;
   }

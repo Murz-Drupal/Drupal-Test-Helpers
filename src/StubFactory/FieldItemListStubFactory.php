@@ -16,19 +16,9 @@ use Drupal\test_helpers\UnitTestHelpers;
 class FieldItemListStubFactory {
 
   /**
-   * The Field Type Manager stub.
-   *
-   * @var \Drupal\test_helpers\FieldTypeManagerStub
-   */
-  protected $fieldTypeManagerStub;
-
-  /**
    * Constructs a new EntityStubFactory.
    */
   public function __construct() {
-    // Reusing a string field type definition as default one.
-    // $stringItemDefinition = UnitTestHelpers::getPluginDefinition(StringItem::class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
-    // $this->fieldTypeManagerStub->addDefinition('string', $stringItemDefinition);.
   }
 
   /**
@@ -86,9 +76,8 @@ class FieldItemListStubFactory {
     // We have no information about default values because of missing configs,
     // so just return the same object.
     UnitTestHelpers::setClassMethod($field, 'applyDefaultValue', function ($notify = TRUE) {
-        return $this;
-      }
-    );
+      return $this;
+    });
 
     $field->setValue($values);
 

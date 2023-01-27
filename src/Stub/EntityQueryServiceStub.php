@@ -97,6 +97,17 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
     $this->executeFunctions[$entityTypeId] = $function;
   }
 
+  /**
+   * Checks if the passed conditions matches to configured.
+   *
+   * @param \Drupal\Core\Database\Query\ConditionInterface $conditionsExpected
+   *   The expected conditions.
+   * @param mixed $onlyListed
+   *   Return FALSE if class contains more conditions than expected.
+   *
+   * @return bool
+   *   TRUE if matchs, FALSE if not matchs.
+   */
   public function stubCheckConditionsMatch(ConditionInterface $conditionsExpected, $onlyListed = FALSE) {
     return UnitTestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
   }
