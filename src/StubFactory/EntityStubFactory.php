@@ -60,7 +60,7 @@ class EntityStubFactory {
     }
 
     // Filling values to the entity array.
-    UnitTestHelpers::setClassMethod($entity, 'stubInitValues',
+    UnitTestHelpers::setMockedClassMethod($entity, 'stubInitValues',
       function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition) {
         // Pre-filling entity keys.
         /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */

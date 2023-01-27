@@ -66,10 +66,10 @@ class DatabaseStub extends Connection {
           return [];
         };
 
-      UnitTestHelpers::setClassMethod($this, 'stubExecute', $function);
+      UnitTestHelpers::setMockedClassMethod($this, 'stubExecute', $function);
       return $this->stubExecute();
     };
-    UnitTestHelpers::setClassMethod($mockedMethod, 'execute', $executeFunction);
+    UnitTestHelpers::setMockedClassMethod($mockedMethod, 'execute', $executeFunction);
 
     return $mockedMethod;
   }

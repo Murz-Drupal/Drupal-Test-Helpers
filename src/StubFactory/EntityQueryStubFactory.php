@@ -56,8 +56,8 @@ class EntityQueryStubFactory {
       'stubCheckConditionsMatch',
     ]);
 
-    UnitTestHelpers::setClassMethod($queryStub, 'execute', $executeFunction);
-    UnitTestHelpers::setClassMethod($queryStub, 'stubCheckConditionsMatch', function (Condition $conditionsExpected, $onlyListed = FALSE) {
+    UnitTestHelpers::setMockedClassMethod($queryStub, 'execute', $executeFunction);
+    UnitTestHelpers::setMockedClassMethod($queryStub, 'stubCheckConditionsMatch', function (Condition $conditionsExpected, $onlyListed = FALSE) {
       return UnitTestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
     });
 

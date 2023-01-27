@@ -161,7 +161,7 @@ class UnitTestHelpers {
   /**
    * Sets a closure function to a class method.
    *
-   * This makes private class methods  accessible inside the function via $this.
+   * This makes private class methods accessible inside the function via $this.
    *
    * @param \PHPUnit\Framework\MockObject\MockObject $class
    *   The mocked class.
@@ -170,7 +170,7 @@ class UnitTestHelpers {
    * @param \Closure $closure
    *   The closure function to bind.
    */
-  public static function setClassMethod(MockObject $class, string $method, \Closure $closure): void {
+  public static function setMockedClassMethod(MockObject $class, string $method, \Closure $closure): void {
     $doClosure = $closure->bindTo($class, get_class($class));
     $class->method($method)->willReturnCallback($doClosure);
   }
@@ -1129,7 +1129,7 @@ class UnitTestHelpers {
    */
   public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
     @trigger_error('Function bindClosureToClassMethod() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to setClassMethod() with changing the order of the arguments. See https://www.drupal.org/project/test_helpers/issues/3336574', E_USER_DEPRECATED);
-    self::setClassMethod($class, $method, $closure);
+    self::setMockedClassMethod($class, $method, $closure);
   }
 
   /**

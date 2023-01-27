@@ -75,7 +75,7 @@ class FieldItemListStubFactory {
 
     // We have no information about default values because of missing configs,
     // so just return the same object.
-    UnitTestHelpers::setClassMethod($field, 'applyDefaultValue', function ($notify = TRUE) {
+    UnitTestHelpers::setMockedClassMethod($field, 'applyDefaultValue', function ($notify = TRUE) {
       return $this;
     });
 

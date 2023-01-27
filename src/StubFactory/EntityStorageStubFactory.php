@@ -126,7 +126,7 @@ class EntityStorageStubFactory {
           'stubInit',
         ],
       );
-      UnitTestHelpers::setClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
+      UnitTestHelpers::setMockedClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
         $this->entityType = $entityTypeDefinition;
         $this->entityTypeId = $this->entityType->id();
 
@@ -142,7 +142,7 @@ class EntityStorageStubFactory {
       $entityStorage->stubInit();
     }
 
-    UnitTestHelpers::setClassMethod($entityStorage, 'save', function (EntityInterface $entity) use (&$staticStorage) {
+    UnitTestHelpers::setMockedClassMethod($entityStorage, 'save', function (EntityInterface $entity) use (&$staticStorage) {
       require_once DRUPAL_ROOT . '/core/includes/common.inc';
       if ($entity->isNew()) {
         $return = SAVED_NEW;
@@ -181,7 +181,7 @@ class EntityStorageStubFactory {
       return $return;
     });
 
-    UnitTestHelpers::setClassMethod($entityStorage, 'delete', function (array $entities) use (&$staticStorage) {
+    UnitTestHelpers::setMockedClassMethod($entityStorage, 'delete', function (array $entities) use (&$staticStorage) {
       foreach ($entities as $entity) {
         $id = $entity->id();
         if (isset($staticStorage[$id])) {
@@ -190,7 +190,7 @@ class EntityStorageStubFactory {
       }
     });
 
-    UnitTestHelpers::setClassMethod($entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$staticStorage) {
+    UnitTestHelpers::setMockedClassMethod($entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$staticStorage) {
       if ($ids === NULL) {
         return $staticStorage;
       }
@@ -203,7 +203,7 @@ class EntityStorageStubFactory {
       return $entities;
     });
 
-    UnitTestHelpers::setClassMethod($entityStorage, 'stubGetNewEntityId', function () use (&$staticStorage) {
+    UnitTestHelpers::setMockedClassMethod($entityStorage, 'stubGetNewEntityId', function () use (&$staticStorage) {
       // @todo Make detection of id field type, and calculate only for integers.
       $id = (empty($staticStorage) ? 0 : max(array_keys($staticStorage))) + 1;
       // The `id` value for even integer autoincrement is stored as string in
