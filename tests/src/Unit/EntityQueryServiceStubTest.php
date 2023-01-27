@@ -260,7 +260,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * Tests general execute() API.
    */
   public function testEntityQueryExecute() {
-    // Putting coding standarts ignore flag to suppress warnings,
+    // Putting coding standards ignore flag to suppress warnings,
     // because here one-line arrays are more convenient.
     // @codingStandardsIgnoreStart
     UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A1', 'status' => '1', 'created' => '1672574400']);
