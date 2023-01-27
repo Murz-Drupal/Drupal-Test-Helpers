@@ -159,6 +159,23 @@ class UnitTestHelpers {
   }
 
   /**
+   * Sets a closure function to a class method.
+   *
+   * This makes private class methods  accessible inside the function via $this.
+   *
+   * @param \Closure $closure
+   *   The closure function to bind.
+   * @param \PHPUnit\Framework\MockObject\MockObject $class
+   *   The mocked class.
+   * @param string $method
+   *   The method name.
+   */
+  public static function setClassMethod(MockObject $class, string $method, \Closure $closure): void {
+    $doClosure = $closure->bindTo($class, get_class($class));
+    $class->method($method)->willReturnCallback($doClosure);
+  }
+
+  /**
    * Gets a mocked method from the Mock object to replace return value.
    *
    * This allows to replace the return value of the already defined method via
@@ -172,7 +189,7 @@ class UnitTestHelpers {
    * @param string $method
    *   A method to get.
    *
-   * @return PHPUnit\Framework\MockObject\Builder\InvocationMocker
+   * @return \PHPUnit\Framework\MockObject\Builder\InvocationMocker
    *   An InvocationMocker object with the method.
    */
   public static function getMockedMethod(MockObject $mock, string $method) {
@@ -237,27 +254,7 @@ class UnitTestHelpers {
   }
 
   /**
-   * Sets a closure function to a class method.
-   *
-   * This makes private class methods  accessible inside the function via $this.
-   *
-   * @param \Closure $closure
-   *   The closure function to bind.
-   * @param \PHPUnit\Framework\MockObject\MockObject $class
-   *   The mocked class.
-   * @param string $method
-   *   The method name.
-   */
-  public static function setClassMethod(MockObject $class, string $method, \Closure $closure): void {
-    $doClosure = $closure->bindTo($class, get_class($class));
-    $class->method($method)->willReturnCallback($doClosure);
-  }
-
-  /**
-   * Creates a service via calling function create() with container.
-   *
-   * Tests the correct work of create() and __construct() functions
-   * and does the assertion of class match.
+   * Creates a class via calling function create() with container.
    *
    * @param string|object $class
    *   The class to test, can be a string with path or initialized class.
@@ -270,7 +267,7 @@ class UnitTestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function createService($class, array $createArguments = NULL, array $services = NULL): object {
+  public static function createClass($class, array $createArguments = NULL, array $services = NULL): object {
     if ($services !== NULL) {
       self::setServices($services);
     }
@@ -304,7 +301,7 @@ class UnitTestHelpers {
     $classArguments = [];
     foreach (($serviceInfo['arguments'] ?? []) as $argument) {
       if (substr($argument, 0, 1) == '@') {
-        $classArguments[] = \Drupal::service(substr($argument, 1));
+        $classArguments[] = self::service(substr($argument, 1));
       }
       else {
         $classArguments[] = $argument;
@@ -1131,9 +1128,34 @@ class UnitTestHelpers {
    * @see https://www.drupal.org/project/test_helpers/issues/3336364
    */
   public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
-    @trigger_error('Function bindClosureToClassMethod() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to setClassMethod() with changing the order of the arguments. See https://www.drupal.org/project/test_helpers/issues/3336364', E_USER_DEPRECATED);
+    @trigger_error('Function bindClosureToClassMethod() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to setClassMethod() with changing the order of the arguments. See https://www.drupal.org/project/test_helpers/issues/3336574', E_USER_DEPRECATED);
     self::setClassMethod($class, $method, $closure);
   }
 
+  /**
+   * Creates a service via calling function create() with container.
+   *
+   * Tests the correct work of create() and __construct() functions
+   * and does the assertion of class match.
+   *
+   * @param string|object $class
+   *   The class to test, can be a string with path or initialized class.
+   * @param array $createArguments
+   *   The list of arguments for passing to function create().
+   * @param array $services
+   *   The array of services to add to the container.
+   *   Format is same as in function setServices().
+   *
+   * @return object
+   *   The initialized class instance.
+   *
+   * @deprecated in test_helpers:1.0.0-beta4 and is removed from
+   *   test_helpers:1.0.0-rc1. Use UnitTestHelpers::service().
+   * @see https://www.drupal.org/project/test_helpers/issues/3336364
+   */
+  public static function createService($class, array $createArguments = NULL, array $services = NULL): object {
+    @trigger_error('Function createService() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to createClass(). See XXX', E_USER_DEPRECATED);
+    return self::createClass($class, $createArguments, $services);
+  }
 
 }
