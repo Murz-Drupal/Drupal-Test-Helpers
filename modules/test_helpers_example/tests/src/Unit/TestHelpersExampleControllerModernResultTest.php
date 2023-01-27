@@ -21,10 +21,14 @@ class TestHelpersExampleControllerModernResultTest extends UnitTestCase {
   public function testArticlesList() {
     UnitTestHelpers::service('config.factory')->stubSetConfig('test_helpers_example', ['articles_to_display' => 1]);
     UnitTestHelpers::service('date.formatter')->stubSetFormat('medium', 'Medium', 'd.m.Y');
+    // Putting coding standarts ignore flag to suppress warnings,
+    // because here one-line arrays are more convenient.
+    // @codingStandardsIgnoreStart
     UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A1', 'status' => '1', 'created' => '1672574400']);
     UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A2', 'status' => '1', 'created' => '1672660800']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'page', 'title' => 'P1', 'status' => '0', 'created' => '1672747200']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'page',    'title' => 'P1', 'status' => '0', 'created' => '1672747200']);
     UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A3', 'status' => '0', 'created' => '1672833600']);
+    // @codingStandardsIgnoreEnd
 
     $result = UnitTestHelpers::createService(TestHelpersExampleController::class)->articlesList();
 

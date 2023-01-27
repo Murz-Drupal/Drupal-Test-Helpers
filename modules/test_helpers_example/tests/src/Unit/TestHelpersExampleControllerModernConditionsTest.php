@@ -22,8 +22,12 @@ class TestHelpersExampleControllerModernConditionsTest extends UnitTestCase {
   public function testArticlesList() {
     UnitTestHelpers::service('config.factory')->stubSetConfig('test_helpers_example', ['articles_to_display' => 2]);
     UnitTestHelpers::service('date.formatter')->stubSetFormat('medium', 'Medium', 'd.m.Y');
+    // Putting coding standarts ignore flag to suppress warnings,
+    // because here one-line arrays are more convenient.
+    // @codingStandardsIgnoreStart
     UnitTestHelpers::saveEntityStub(Node::class, ['title' => 'Article 1', 'created' => '1672574400']);
     UnitTestHelpers::saveEntityStub(Node::class, ['title' => 'Article 2', 'created' => '1672660800']);
+    // @codingStandardsIgnoreEnd
 
     UnitTestHelpers::getServiceStub('entity.query.sql')->stubSetExecuteHandler(function () {
       UnitTestCaseWrapper::assertTrue(UnitTestHelpers::queryIsSubsetOf($this, \Drupal::entityQuery('node')

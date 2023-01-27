@@ -257,6 +257,33 @@ class EntityQueryServiceStubTest extends UnitTestCase {
   }
 
   /**
+   * Tests general execute() API.
+   */
+  public function testEntityQueryExecute() {
+    // Putting coding standarts ignore flag to suppress warnings,
+    // because here one-line arrays are more convenient.
+    // @codingStandardsIgnoreStart
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A1', 'status' => '1', 'created' => '1672574400']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A2', 'status' => '1', 'created' => '1672660800']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'page', 'title' => 'P1', 'status' => '0', 'created' => '1672747200']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A3', 'status' => '0', 'created' => '1672833600']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A4', 'status' => '1', 'created' => '1672833600']);
+    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A5', 'status' => '1', 'created' => '1672833600']);
+    // @codingStandardsIgnoreEnd
+
+    $query = \Drupal::service('entity_type.manager')->getStorage('node')
+      ->getQuery()
+      ->condition('status', 1)
+      ->condition('type', 'article')
+      ->sort('created', 'DESC')
+      ->range(0, 3);
+
+    $result = $query->execute();
+
+    $this->assertEquals(['5' => '5', '6' => '6', '2' => '2'], $result);
+  }
+
+  /**
    * Generates a keyed array with strings from numeric array.
    *
    * @param int[] $ids
@@ -265,7 +292,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * @return string[]
    *   The keyed array with strings.
    */
-  private function genId(array $ids) {
+  protected function genId(array $ids) {
     foreach ($ids as $id) {
       $idString = (string) $id;
       $result[$idString] = $idString;

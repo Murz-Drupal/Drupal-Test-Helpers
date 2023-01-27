@@ -29,37 +29,52 @@ class UnitTestCaseWrapper extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  public function getRandomGenerator() {
+  // To suppress "Possible useless method overriding detected" warning.
+  // @codingStandardsIgnoreStart
+    public function getRandomGenerator() {
     return parent::getRandomGenerator();
   }
+  // @codingStandardsIgnoreEnd
 
   /**
    * {@inheritdoc}
    */
+  // To suppress "Possible useless method overriding detected" warning.
+  // @codingStandardsIgnoreStart
   public function getContainerWithCacheTagsInvalidator(CacheTagsInvalidatorInterface $cache_tags_validator) {
     return parent::getContainerWithCacheTagsInvalidator($cache_tags_validator);
   }
+  // @codingStandardsIgnoreEnd
 
   /**
    * {@inheritdoc}
    */
+  // To suppress "Possible useless method overriding detected" warning.
+  // @codingStandardsIgnoreStart
   public function getClassResolverStub() {
     return parent::getClassResolverStub();
   }
+  // @codingStandardsIgnoreEnd
 
   /**
    * {@inheritdoc}
    */
+  // To suppress "Possible useless method overriding detected" warning.
+  // @codingStandardsIgnoreStart
   public function createMock(string $originalClassName): MockObject {
     return parent::createMock($originalClassName);
   }
+  // @codingStandardsIgnoreEnd
 
   /**
    * {@inheritdoc}
    */
+  // To suppress "Possible useless method overriding detected" warning.
+  // @codingStandardsIgnoreStart
   public function createPartialMock(string $originalClassName, array $methods): MockObject {
     return parent::createPartialMock($originalClassName, $methods);
   }
+  // @codingStandardsIgnoreEnd
 
   /**
    * Creates a partial mock for the class and call constructor with arguments.
