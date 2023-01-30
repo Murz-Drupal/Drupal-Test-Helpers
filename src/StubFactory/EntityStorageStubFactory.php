@@ -3,7 +3,7 @@
 namespace Drupal\test_helpers\StubFactory;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default SqlContentEntityStorage class.
@@ -48,14 +48,14 @@ class EntityStorageStubFactory {
     }
 
     if ($annotation) {
-      $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+      $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
     }
     else {
       $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
-      $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+      $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
       if ($entityTypeDefinition == NULL) {
         $annotation = '\Drupal\Core\Entity\Annotation\ConfigEntityType';
-        $entityTypeDefinition = UnitTestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+        $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
       }
     }
 
@@ -64,12 +64,12 @@ class EntityStorageStubFactory {
     }
 
     $entityTypeStorage = $entityTypeDefinition->getStorageClass();
-    $staticStorage = &UnitTestHelpers::addService('test_helpers.static_storage')->get('test_helpers.entity_storage_stub.' . $entityTypeDefinition->id());
+    $staticStorage = &TestHelpers::service('test_helpers.static_storage')->get('test_helpers.entity_storage_stub.' . $entityTypeDefinition->id());
     if ($staticStorage === NULL) {
       $staticStorage = [];
     }
 
-    UnitTestHelpers::addService('entity_type.manager')->stubSetDefinition($entityTypeDefinition->id(), $entityTypeDefinition);
+    TestHelpers::service('entity_type.manager')->stubSetDefinition($entityTypeDefinition->id(), $entityTypeDefinition);
 
     $constructArguments = NULL;
 
@@ -80,13 +80,13 @@ class EntityStorageStubFactory {
       case '\Drupal\Core\Entity\Annotation\ContentEntityType':
         $constructArguments ??= [
           $entityTypeDefinition,
-          UnitTestHelpers::addService('database'),
-          UnitTestHelpers::addService('entity_field.manager'),
-          UnitTestHelpers::addService('cache.entity'),
-          UnitTestHelpers::addService('language_manager'),
-          UnitTestHelpers::addService('entity.memory_cache'),
-          UnitTestHelpers::addService('entity_type.bundle.info'),
-          UnitTestHelpers::addService('entity_type.manager'),
+          TestHelpers::service('database'),
+          TestHelpers::service('entity_field.manager'),
+          TestHelpers::service('cache.entity'),
+          TestHelpers::service('language_manager'),
+          TestHelpers::service('entity.memory_cache'),
+          TestHelpers::service('entity_type.bundle.info'),
+          TestHelpers::service('entity_type.manager'),
         ];
         break;
 
@@ -109,7 +109,7 @@ class EntityStorageStubFactory {
     ];
 
     if ($constructArguments) {
-      $entityStorage = UnitTestHelpers::createPartialMockWithConstructor(
+      $entityStorage = TestHelpers::createPartialMockWithConstructor(
         $entityTypeStorage,
         $overridedMethods,
         $constructArguments,
@@ -118,7 +118,7 @@ class EntityStorageStubFactory {
     }
     else {
       // Custom constructor.
-      $entityStorage = UnitTestHelpers::createPartialMock(
+      $entityStorage = TestHelpers::createPartialMock(
         $entityTypeStorage,
         [
           ...$overridedMethods,
@@ -126,23 +126,23 @@ class EntityStorageStubFactory {
           'stubInit',
         ],
       );
-      UnitTestHelpers::setMockedClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
+      TestHelpers::setMockedClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
         $this->entityType = $entityTypeDefinition;
         $this->entityTypeId = $this->entityType->id();
 
         $this->baseEntityClass = $this->entityType->getClass();
-        $this->entityTypeBundleInfo = UnitTestHelpers::addService('entity_type.bundle.info');
+        $this->entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
 
-        $this->database = UnitTestHelpers::addService('database');
-        $this->memoryCache = UnitTestHelpers::addService('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
-        $this->cacheBackend = UnitTestHelpers::addService('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
+        $this->database = TestHelpers::service('database');
+        $this->memoryCache = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
+        $this->cacheBackend = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
 
       }, $entityStorage, 'stubInit');
 
       $entityStorage->stubInit();
     }
 
-    UnitTestHelpers::setMockedClassMethod($entityStorage, 'save', function (EntityInterface $entity) use (&$staticStorage) {
+    TestHelpers::setMockedClassMethod($entityStorage, 'save', function (EntityInterface $entity) use (&$staticStorage) {
       require_once DRUPAL_ROOT . '/core/includes/common.inc';
       if ($entity->isNew()) {
         $return = SAVED_NEW;
@@ -160,19 +160,19 @@ class EntityStorageStubFactory {
         }
         else {
           // For ConfigEntityType the uuid is protected.
-          UnitTestHelpers::setProtectedProperty($entity, $idProperty, $id);
+          TestHelpers::setProtectedProperty($entity, $idProperty, $id);
         }
       }
 
       $uuidProperty = $this->entityType->getKey('uuid') ?? NULL;
       if ($uuidProperty && empty($entity->uuid())) {
-        $uuid = UnitTestHelpers::addService('uuid')->generate();
+        $uuid = TestHelpers::service('uuid')->generate();
         if (isset($entity->$uuidProperty)) {
           $entity->$uuidProperty = $uuid;
         }
         else {
           // For ConfigEntityType the uuid is protected.
-          UnitTestHelpers::setProtectedProperty($entity, $uuidProperty, $uuid);
+          TestHelpers::setProtectedProperty($entity, $uuidProperty, $uuid);
         }
       }
 
@@ -181,7 +181,7 @@ class EntityStorageStubFactory {
       return $return;
     });
 
-    UnitTestHelpers::setMockedClassMethod($entityStorage, 'delete', function (array $entities) use (&$staticStorage) {
+    TestHelpers::setMockedClassMethod($entityStorage, 'delete', function (array $entities) use (&$staticStorage) {
       foreach ($entities as $entity) {
         $id = $entity->id();
         if (isset($staticStorage[$id])) {
@@ -190,7 +190,7 @@ class EntityStorageStubFactory {
       }
     });
 
-    UnitTestHelpers::setMockedClassMethod($entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$staticStorage) {
+    TestHelpers::setMockedClassMethod($entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$staticStorage) {
       if ($ids === NULL) {
         return $staticStorage;
       }
@@ -203,7 +203,7 @@ class EntityStorageStubFactory {
       return $entities;
     });
 
-    UnitTestHelpers::setMockedClassMethod($entityStorage, 'stubGetNewEntityId', function () use (&$staticStorage) {
+    TestHelpers::setMockedClassMethod($entityStorage, 'stubGetNewEntityId', function () use (&$staticStorage) {
       // @todo Make detection of id field type, and calculate only for integers.
       $id = (empty($staticStorage) ? 0 : max(array_keys($staticStorage))) + 1;
       // The `id` value for even integer autoincrement is stored as string in

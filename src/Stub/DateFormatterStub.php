@@ -8,7 +8,7 @@ use Drupal\Core\Datetime\Entity\DateFormat;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -26,11 +26,11 @@ class DateFormatterStub extends DateFormatter {
     ConfigFactoryInterface $config_factory = NULL,
     RequestStack $request_stack = NULL
   ) {
-    $entity_type_manager ??= UnitTestHelpers::service('entity_type.manager');
-    $language_manager ??= UnitTestHelpers::service('language_manager');
-    $translation ??= UnitTestHelpers::service('string_translation');
-    $config_factory ??= UnitTestHelpers::service('config.factory');
-    $request_stack ??= UnitTestHelpers::service('request_stack');
+    $entity_type_manager ??= TestHelpers::service('entity_type.manager');
+    $language_manager ??= TestHelpers::service('language_manager');
+    $translation ??= TestHelpers::service('string_translation');
+    $config_factory ??= TestHelpers::service('config.factory');
+    $request_stack ??= TestHelpers::service('request_stack');
 
     // Creating default fallback format.
     $entity_type_manager->stubGetOrCreateStorage(DateFormat::class);
@@ -43,7 +43,7 @@ class DateFormatterStub extends DateFormatter {
    * Sets the date format.
    */
   public function stubSetFormat($name, $label, $pattern, $locked = 0) {
-    UnitTestHelpers::saveEntityStub(DateFormat::class, [
+    TestHelpers::saveEntity(DateFormat::class, [
       'id' => $name,
       'label' => $label,
       'pattern' => $pattern,

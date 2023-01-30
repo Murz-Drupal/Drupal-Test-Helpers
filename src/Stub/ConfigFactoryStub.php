@@ -8,7 +8,7 @@ use Drupal\Core\Config\MemoryStorage;
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Config\TypedConfigManager;
 use Drupal\Core\Config\TypedConfigManagerInterface;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -29,7 +29,7 @@ class ConfigFactoryStub extends ConfigFactory {
     // https://www.drupal.org/project/drupal/issues/3325571.
     $this->storage->write('__config_factory_stub_placeholder', []);
     $this->eventDispatcher = $event_dispatcher ?? new ContainerAwareEventDispatcher(\Drupal::getContainer());
-    $this->typedConfigManager = $typed_config ?? UnitTestHelpers::createMock(TypedConfigManager::class);
+    $this->typedConfigManager = $typed_config ?? TestHelpers::createMock(TypedConfigManager::class);
   }
 
   /**

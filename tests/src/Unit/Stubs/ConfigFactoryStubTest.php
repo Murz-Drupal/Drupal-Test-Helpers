@@ -3,7 +3,7 @@
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -19,7 +19,7 @@ class ConfigFactoryStubTest extends UnitTestCase {
    * @covers ::stubSetConfig
    */
   public function testSelect() {
-    UnitTestHelpers::getContainer();
+    TestHelpers::getContainer();
     $configFactory = new ConfigFactoryStub();
     $config1 = [
       'foo' => 1,

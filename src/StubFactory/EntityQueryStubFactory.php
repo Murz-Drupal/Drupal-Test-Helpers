@@ -6,7 +6,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\Query\Sql\Query;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 
@@ -22,7 +22,7 @@ class EntityQueryStubFactory {
     $this->namespaces = QueryBase::getNamespaces($this);
     $this->namespaces[] = 'Drupal\Core\Entity\Query\Sql';
     /** @var \Drupal\Tests\Core\Database\Stub\StubPDO|\PHPUnit\Framework\MockObject\MockObject $pdoMock */
-    $pdoMock = UnitTestHelpers::createMock(StubPDO::class);
+    $pdoMock = TestHelpers::createMock(StubPDO::class);
     $this->dbConnection = new StubConnection($pdoMock, []);
   }
 
@@ -47,18 +47,18 @@ class EntityQueryStubFactory {
     }
 
     if ($entityType === NULL) {
-      $entityType = UnitTestHelpers::createMock(EntityTypeInterface::class);
+      $entityType = TestHelpers::createMock(EntityTypeInterface::class);
     }
 
-    $queryStub = UnitTestHelpers::createPartialMockWithConstructor(Query::class, [
+    $queryStub = TestHelpers::createPartialMockWithConstructor(Query::class, [
       'execute',
     ], [$entityType, $conjunction, $this->dbConnection, $this->namespaces], [
       'stubCheckConditionsMatch',
     ]);
 
-    UnitTestHelpers::setMockedClassMethod($queryStub, 'execute', $executeFunction);
-    UnitTestHelpers::setMockedClassMethod($queryStub, 'stubCheckConditionsMatch', function (Condition $conditionsExpected, $onlyListed = FALSE) {
-      return UnitTestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
+    TestHelpers::setMockedClassMethod($queryStub, 'execute', $executeFunction);
+    TestHelpers::setMockedClassMethod($queryStub, 'stubCheckConditionsMatch', function (Condition $conditionsExpected, $onlyListed = FALSE) {
+      return TestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
     });
 
     return $queryStub;

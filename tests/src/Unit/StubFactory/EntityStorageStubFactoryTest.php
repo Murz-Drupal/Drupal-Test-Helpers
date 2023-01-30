@@ -5,21 +5,21 @@ namespace Drupal\Tests\test_helpers\Unit\Stubs;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests LanguageManagerStub class.
  *
- * @coversDefaultClass \Drupal\test_helpers\Stub\LanguageManagerStub
+ * @coversDefaultClass \Drupal\test_helpers\StubFactory\EntityStorageStubFactory
  * @group test_helpers
  */
 class EntityStorageStubFactoryTest extends UnitTestCase {
 
   /**
-   * @covers ::__create
+   * @covers ::create
    */
   public function testCreate() {
-    $entity1 = UnitTestHelpers::createEntityStub(Term::class, [
+    $entity1 = TestHelpers::createEntity(Term::class, [
       'name' => 'Entity 1',
       'parent' => NULL,
     ]);
@@ -28,13 +28,13 @@ class EntityStorageStubFactoryTest extends UnitTestCase {
     );
     $storage->save($entity1);
 
-    $entity2 = UnitTestHelpers::createEntityStub(Term::class, [
+    $entity2 = TestHelpers::createEntity(Term::class, [
       'name' => 'Entity 2',
       'parent' => ['target_id' => 1],
     ]);
     $entity2->save();
 
-    $entity3 = UnitTestHelpers::createEntityStub(Term::class, [
+    $entity3 = TestHelpers::createEntity(Term::class, [
       'name' => 'Entity 3',
       'parent' => ['target_id' => 1],
     ]);

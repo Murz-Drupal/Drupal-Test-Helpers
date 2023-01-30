@@ -4,7 +4,7 @@ namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default EntityFieldManager class.
@@ -18,7 +18,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
     $this->languageManager = \Drupal::service('language_manager');
     $this->entityTypeManager = \Drupal::service('entity_type.manager');
     $this->moduleHandler = \Drupal::service('module_handler');
-    $this->entityLastInstalledSchemaRepository = UnitTestHelpers::createMock(EntityLastInstalledSchemaRepository::class);
+    $this->entityLastInstalledSchemaRepository = TestHelpers::createMock(EntityLastInstalledSchemaRepository::class);
   }
 
   /**

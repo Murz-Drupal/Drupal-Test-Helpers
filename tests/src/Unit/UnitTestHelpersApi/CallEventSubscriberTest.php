@@ -4,13 +4,13 @@ namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Tests\UnitTestCase;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Tests CreateEntityStub API function.
  *
- * @coversDefaultClass \Drupal\test_helpers\UnitTestHelpersTest
+ * @coversDefaultClass \Drupal\test_helpers\TestHelpers
  * @group test_helpers
  */
 class CallEventSubscriberTest extends UnitTestCase {
@@ -20,7 +20,7 @@ class CallEventSubscriberTest extends UnitTestCase {
    */
   public function testCallEventSubscriber() {
     $event = new EventStub();
-    UnitTestHelpers::callEventSubscriber(
+    TestHelpers::callEventSubscriber(
       dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
       'test_helpers.event_subscriber_stub',
       'event1',
@@ -28,7 +28,7 @@ class CallEventSubscriberTest extends UnitTestCase {
     );
     $this->assertEquals('value1', $event->value);
 
-    UnitTestHelpers::callEventSubscriber(
+    TestHelpers::callEventSubscriber(
       dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
       'test_helpers.event_subscriber_stub',
       'event2',
@@ -36,8 +36,8 @@ class CallEventSubscriberTest extends UnitTestCase {
     );
     $this->assertEquals('value2', $event->value);
 
-    UnitTestHelpers::service('string_translation');
-    UnitTestHelpers::callEventSubscriber(
+    TestHelpers::service('string_translation');
+    TestHelpers::callEventSubscriber(
       dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
       'test_helpers.event_subscriber_stub',
       'event3',
@@ -52,7 +52,7 @@ class CallEventSubscriberTest extends UnitTestCase {
   public function testCallEventSubscriberWithNoTag() {
     $event = new EventStub();
     try {
-      UnitTestHelpers::callEventSubscriber(
+      TestHelpers::callEventSubscriber(
         dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
         'test_helpers.event_subscriber_stub_no_tag',
         'event3',

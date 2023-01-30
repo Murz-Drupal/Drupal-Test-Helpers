@@ -4,7 +4,7 @@ namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\node\Entity\Node;
 use Drupal\Tests\UnitTestCase;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests EntityQueryServiceStubTest class.
@@ -20,7 +20,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    */
   public function testMatchingConditions() {
     /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface $entityTypeManager */
-    $entityTypeManager = UnitTestHelpers::getServiceStub('entity_type.manager');
+    $entityTypeManager = TestHelpers::getServiceStub('entity_type.manager');
     $entityTypeManager->stubGetOrCreateStorage(Node::class);
 
     // Creating a custom function to generate the query result.
@@ -101,23 +101,23 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * Tests conditions API.
    */
   public function testConditions() {
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 1.
       'title' => 'Node 1',
       'bundle' => '400',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 2.
       'title' => 'Node 2',
       'bundle' => '300',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 100.
       'title' => 'Node 3',
       'bundle' => '100',
       'nid' => '100',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 101.
       'title' => NULL,
       'bundle' => '200',
@@ -172,24 +172,24 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * Tests range API.
    */
   public function testRange() {
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 1.
       'title' => 'Node 1',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 2.
       'title' => 'Node 2',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 100.
       'title' => 'Node 3',
       'nid' => '100',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 101.
       'title' => NULL,
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       // The id should be: 102.
       'title' => 'Node 5',
     ])->save();
@@ -208,31 +208,31 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * Tests sort API.
    */
   public function testSort() {
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       'field_integer1' => 100,
       'field_integer2' => 100,
       'field_string1' => '100',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       'field_integer1' => 101,
       'field_integer2' => 100,
       'field_string1' => '0',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       'field_integer1' => 10,
       'field_integer2' => 10,
       'field_string1' => '10',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       'field_integer1' => 0,
       'field_integer2' => 0,
       'field_string1' => '11',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       'field_integer1' => -1,
       'field_string1' => '111',
     ])->save();
-    UnitTestHelpers::createEntityStub(Node::class, [
+    TestHelpers::createEntity(Node::class, [
       'field_integer1' => -10,
       'field_integer2' => -10,
       'field_string1' => '-111',
@@ -263,12 +263,12 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     // Putting coding standards ignore flag to suppress warnings,
     // because here one-line arrays are more convenient.
     // @codingStandardsIgnoreStart
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A1', 'status' => '1', 'created' => '1672574400']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A2', 'status' => '1', 'created' => '1672660800']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'page', 'title' => 'P1', 'status' => '0', 'created' => '1672747200']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A3', 'status' => '0', 'created' => '1672833600']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A4', 'status' => '1', 'created' => '1672833600']);
-    UnitTestHelpers::saveEntityStub(Node::class, ['type' => 'article', 'title' => 'A5', 'status' => '1', 'created' => '1672833600']);
+    TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A1', 'status' => '1', 'created' => '1672574400']);
+    TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A2', 'status' => '1', 'created' => '1672660800']);
+    TestHelpers::saveEntity(Node::class, ['type' => 'page', 'title' => 'P1', 'status' => '0', 'created' => '1672747200']);
+    TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A3', 'status' => '0', 'created' => '1672833600']);
+    TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A4', 'status' => '1', 'created' => '1672833600']);
+    TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A5', 'status' => '1', 'created' => '1672833600']);
     // @codingStandardsIgnoreEnd
 
     $query = \Drupal::service('entity_type.manager')->getStorage('node')

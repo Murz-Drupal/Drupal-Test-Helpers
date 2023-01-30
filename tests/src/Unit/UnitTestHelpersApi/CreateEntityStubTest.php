@@ -5,7 +5,7 @@ namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\UnitTestCase;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests CreateEntityStub API function.
@@ -31,7 +31,7 @@ class CreateEntityStubTest extends UnitTestCase {
         ['target_id' => 3],
       ],
     ];
-    $node1Entity = UnitTestHelpers::createEntityStub(Node::class, $node1Values);
+    $node1Entity = TestHelpers::createEntity(Node::class, $node1Values);
 
     // The `id` and `uuid` values should be NULL before saving, if not passed in
     // the `$values` array.
@@ -66,7 +66,7 @@ class CreateEntityStubTest extends UnitTestCase {
       'field_sign' => 'Alice',
       'body' => 'Pretty boring page text.',
     ];
-    $node2Entity = UnitTestHelpers::createEntityStub(Node::class, $node2Values);
+    $node2Entity = TestHelpers::createEntity(Node::class, $node2Values);
 
     $this->assertEquals($node2Values['title'], $node2Entity->title->value);
 
@@ -81,7 +81,7 @@ class CreateEntityStubTest extends UnitTestCase {
       'field_sign' => 'Bob',
       'body' => 'Very boring page text.',
     ];
-    $node3Entity = UnitTestHelpers::createEntityStub(Node::class, $node3Values);
+    $node3Entity = TestHelpers::createEntity(Node::class, $node3Values);
     $node3Entity->save();
 
     // The entity id should be auto-incremented over the max value.
@@ -121,7 +121,7 @@ class CreateEntityStubTest extends UnitTestCase {
    * Tests creating and saving entitites.
    */
   public function testSaveEntityStub() {
-    $node = UnitTestHelpers::saveEntityStub(Node::class);
+    $node = TestHelpers::saveEntity(Node::class);
     $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadByProperties(['nid' => '1']);
     $this->assertEquals('1', $node->id());
     $this->assertEquals(current($nodeLoaded)->id(), $node->id());
@@ -137,7 +137,7 @@ class CreateEntityStubTest extends UnitTestCase {
       'new_revision' => FALSE,
       'display_submitted' => FALSE,
     ];
-    $entity = UnitTestHelpers::createEntityStub(NodeType::class, $values, [
+    $entity = TestHelpers::createEntity(NodeType::class, $values, [
       'entity_base_type' => 'ConfigEntityType',
     ]);
     $entity->save();

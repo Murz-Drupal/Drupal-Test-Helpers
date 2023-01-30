@@ -10,7 +10,7 @@ use Drupal\Core\Routing\UrlGenerator;
 use Drupal\Core\Site\Settings;
 use Drupal\language\ConfigurableLanguageManagerInterface;
 use Drupal\language\LanguageNegotiationMethodManager;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
@@ -39,15 +39,15 @@ class UnitTestHelpersTest extends UnitTestCase {
       $this->assertEquals(0, $e->getCode());
     }
 
-    $this->assertSame($class->getProperty1(), UnitTestHelpers::getProtectedProperty($class, 'property1'));
-    $this->assertNull(UnitTestHelpers::getProtectedProperty($class, 'property2'));
+    $this->assertSame($class->getProperty1(), TestHelpers::getProtectedProperty($class, 'property1'));
+    $this->assertNull(TestHelpers::getProtectedProperty($class, 'property2'));
 
-    UnitTestHelpers::setProtectedProperty($class, 'property2', 'bar');
-    $this->assertSame('bar', UnitTestHelpers::getProtectedProperty($class, 'property2'));
+    TestHelpers::setProtectedProperty($class, 'property2', 'bar');
+    $this->assertSame('bar', TestHelpers::getProtectedProperty($class, 'property2'));
 
-    $this->assertSame('bar', UnitTestHelpers::callProtectedMethod($class, 'getProperty2'));
-    $this->assertSame('bar', UnitTestHelpers::callProtectedMethod($class, 'getPropertyByName', ['property2']));
-    $method = UnitTestHelpers::getProtectedMethod($class, 'getPropertyByName');
+    $this->assertSame('bar', TestHelpers::callProtectedMethod($class, 'getProperty2'));
+    $this->assertSame('bar', TestHelpers::callProtectedMethod($class, 'getPropertyByName', ['property2']));
+    $method = TestHelpers::getProtectedMethod($class, 'getPropertyByName');
     $this->assertSame('foo', $method->invoke($class, 'property1'));
   }
 
@@ -71,7 +71,7 @@ class UnitTestHelpersTest extends UnitTestCase {
     $this->assertNotEquals('bar', $mock->label());
 
     // Testing custom overriding of the method return value.
-    $labelMethod = UnitTestHelpers::getMockedMethod($mock, 'label');
+    $labelMethod = TestHelpers::getMockedMethod($mock, 'label');
     $labelMethod->willReturn('baz');
     $mock->method('uuid')->willReturn('myUUID');
     $this->assertEquals('baz', $mock->label());
@@ -84,12 +84,12 @@ class UnitTestHelpersTest extends UnitTestCase {
     $this->assertEquals('qux', $mock->label());
 
     // Testing a next getter and overriding of the method return value.
-    $labelMethod2 = UnitTestHelpers::getMockedMethod($mock, 'label');
+    $labelMethod2 = TestHelpers::getMockedMethod($mock, 'label');
     $labelMethod2->willReturnArgument(1);
     $this->assertEquals('arg1', $mock->label('arg0', 'arg1'));
 
     // Testing a getter with callback function.
-    $idMethod = UnitTestHelpers::getMockedMethod($mock, 'id');
+    $idMethod = TestHelpers::getMockedMethod($mock, 'id');
     $idMethod->willReturnCallback(function () {
       return 777;
     });
@@ -97,8 +97,8 @@ class UnitTestHelpersTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::addServices
-   * @covers ::addService
+   * @covers ::services
+   * @covers ::service
    * @covers ::createService
    */
   public function testAddServices() {
@@ -110,7 +110,7 @@ class UnitTestHelpersTest extends UnitTestCase {
     $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $entityTypeManager->method('getDefinition')->willReturn($entityType);
 
-    UnitTestHelpers::setServices([
+    TestHelpers::setServices([
       'entity_type.bundle.info' => NULL,
       'renderer' => NULL,
       'string_translation' => NULL,
@@ -120,24 +120,24 @@ class UnitTestHelpersTest extends UnitTestCase {
 
     // Checking initialized services.
     try {
-      $service = UnitTestHelpers::createService(EntityController::class);
+      $service = TestHelpers::createClass(EntityController::class);
       $this->fail("Expected ServiceNotFoundException is not thrown.");
     }
     catch (ServiceNotFoundException $e) {
       $this->assertEquals('You have requested a non-existent service "entity.repository".', $e->getMessage());
     }
 
-    UnitTestHelpers::setServices(['entity.repository']);
+    TestHelpers::setServices(['entity.repository']);
 
     // Testing the behavior on a real service with the 'create' function.
-    $service = UnitTestHelpers::createService(EntityController::class);
+    $service = TestHelpers::createClass(EntityController::class);
     $result = $service->addTitle('my_entity');
     $this->assertSame('Add my entity', $result->__toString());
 
     // Checking resetting of the container.
-    UnitTestHelpers::setServices(['entity.repository'], TRUE);
+    TestHelpers::setServices(['entity.repository'], TRUE);
     try {
-      $service = UnitTestHelpers::createService(EntityController::class);
+      $service = TestHelpers::createClass(EntityController::class);
       $this->fail('Previous line should throw an exception.');
     }
     catch (ServiceNotFoundException $e) {
@@ -150,12 +150,12 @@ class UnitTestHelpersTest extends UnitTestCase {
    * @covers ::createServiceFromYaml
    */
   public function testCreateServiceFromYaml() {
-    UnitTestHelpers::service('plugin.manager.language_negotiation_method', $this->createMock(LanguageNegotiationMethodManager::class));
+    TestHelpers::service('plugin.manager.language_negotiation_method', $this->createMock(LanguageNegotiationMethodManager::class));
     \Drupal::service('plugin.manager.language_negotiation_method')
       ->method('getDefinitions')
       ->willReturn(['method1', 'method2']);
 
-    $service = UnitTestHelpers::createServiceFromYaml(
+    $service = TestHelpers::createServiceFromYaml(
       'core/modules/language/language.services.yml',
       'language_negotiator',
       [],

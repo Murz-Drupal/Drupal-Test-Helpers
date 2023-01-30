@@ -8,7 +8,7 @@ use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\Stub\ItemStub;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * The FieldItemListStubFactory class.
@@ -35,7 +35,7 @@ class FieldItemListStubFactory {
       // $class = StringItem::class;
       $class = ItemStub::class;
     }
-    $definition = UnitTestHelpers::getPluginDefinition($class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
+    $definition = TestHelpers::getPluginDefinition($class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
     // @todo Now it's a quick initialization of BaseFieldDefinition,
     // will be good to add support for other field types.
     $field_definition = BaseFieldDefinition::create($definition['id']);
@@ -66,7 +66,7 @@ class FieldItemListStubFactory {
       $definition->setName($name);
     }
     $field = new FieldItemList($definition, $name, $parent);
-    $field = UnitTestHelpers::createPartialMockWithConstructor(FieldItemList::class,
+    $field = TestHelpers::createPartialMockWithConstructor(FieldItemList::class,
       [
         'applyDefaultValue',
       ],
@@ -75,7 +75,7 @@ class FieldItemListStubFactory {
 
     // We have no information about default values because of missing configs,
     // so just return the same object.
-    UnitTestHelpers::setMockedClassMethod($field, 'applyDefaultValue', function ($notify = TRUE) {
+    TestHelpers::setMockedClassMethod($field, 'applyDefaultValue', function ($notify = TRUE) {
       return $this;
     });
 

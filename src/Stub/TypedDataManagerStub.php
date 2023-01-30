@@ -8,7 +8,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\TypedData\Plugin\DataType\ItemList;
 use Drupal\Core\TypedData\Plugin\DataType\StringData;
 use Drupal\Core\TypedData\TypedDataManager;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
@@ -27,9 +27,9 @@ class TypedDataManagerStub extends TypedDataManager {
     ClassResolverInterface $class_resolver = NULL
   ) {
     $namespaces ??= new \ArrayObject([]);
-    $cache_backend ??= UnitTestHelpers::service('cache.backend.memory')->get('cache_discovery');
-    $module_handler ??= UnitTestHelpers::service('module_handler');
-    $class_resolver ??= UnitTestHelpers::service('class_resolver');
+    $cache_backend ??= TestHelpers::service('cache.backend.memory')->get('cache_discovery');
+    $module_handler ??= TestHelpers::service('module_handler');
+    $class_resolver ??= TestHelpers::service('class_resolver');
     parent::__construct($namespaces, $cache_backend, $module_handler, $class_resolver);
   }
 
@@ -103,7 +103,7 @@ class TypedDataManagerStub extends TypedDataManager {
    *   The namespace to use.
    */
   public function stubInitPlugin(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
-    $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
+    $definition = TestHelpers::getPluginDefinition($class, $plugin);
     $id = self::getIdWithNamespace($definition['id'], $namespace);
 
     if (!isset($definition['list_class'])) {
@@ -127,7 +127,7 @@ class TypedDataManagerStub extends TypedDataManager {
    *   The namespace to use.
    */
   public function stubSetPlugin(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
-    $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
+    $definition = TestHelpers::getPluginDefinition($class, $plugin);
     if (!isset($definition['list_class'])) {
       $definition['list_class'] = 'Drupal\Core\Field\FieldItemList';
     }
@@ -159,7 +159,7 @@ class TypedDataManagerStub extends TypedDataManager {
    *   The namespace to use.
    */
   public function stubSetDefinitionFromClass(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
-    $definition = UnitTestHelpers::getPluginDefinition($class, $plugin);
+    $definition = TestHelpers::getPluginDefinition($class, $plugin);
     self::stubSetDefinition($definition, $plugin, $namespace);
   }
 

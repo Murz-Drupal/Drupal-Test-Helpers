@@ -3,7 +3,7 @@
 namespace Drupal\test_helpers\StubFactory;
 
 use Drupal\Core\Language\LanguageInterface;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * A factory for creating stubs of entities.
@@ -47,7 +47,7 @@ class EntityStubFactory {
     // Creating a stub of the entity.
     // @todo Try to init with a real constructor.
     /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $entity */
-    $entity = UnitTestHelpers::createPartialMock($entityClass, [
+    $entity = TestHelpers::createPartialMock($entityClass, [
       'stubInitValues',
       ...($options['methods'] ?? []),
     ]);
@@ -60,7 +60,7 @@ class EntityStubFactory {
     }
 
     // Filling values to the entity array.
-    UnitTestHelpers::setMockedClassMethod($entity, 'stubInitValues',
+    TestHelpers::setMockedClassMethod($entity, 'stubInitValues',
       function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition) {
         // Pre-filling entity keys.
         /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */

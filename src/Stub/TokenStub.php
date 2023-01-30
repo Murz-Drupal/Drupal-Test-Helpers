@@ -8,7 +8,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Utility\Token;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default Token class.
@@ -27,9 +27,9 @@ class TokenStub extends Token {
   ) {
     $this->cache = $cache;
     $this->languageManager = $language_manager;
-    $this->moduleHandler = $module_handler ?? UnitTestHelpers::service('module_handler');
+    $this->moduleHandler = $module_handler ?? TestHelpers::service('module_handler');
     $this->cacheTagsInvalidator = $cache_tags_invalidator;
-    $this->renderer = $renderer ?? UnitTestHelpers::createMock(RendererInterface::class);
+    $this->renderer = $renderer ?? TestHelpers::createMock(RendererInterface::class);
   }
 
 }

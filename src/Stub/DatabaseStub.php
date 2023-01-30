@@ -3,7 +3,7 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\sqlite\Driver\Database\sqlite\Connection;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 
 /**
@@ -28,7 +28,7 @@ class DatabaseStub extends Connection {
    * Constructs a new object.
    */
   public function __construct() {
-    $this->pdoMock = UnitTestHelpers::createMock(StubPDO::class);
+    $this->pdoMock = TestHelpers::createMock(StubPDO::class);
     $this->connectionOptions = [
       'namespace' => 'Drupal\sqlite\Driver\Database\sqlite',
     ];
@@ -49,7 +49,7 @@ class DatabaseStub extends Connection {
   private function mockExecuteForMethod(string $method, array $methodArguments) {
     $originalMethod = parent::$method(...$methodArguments);
     $class = \get_class($originalMethod);
-    $mockedMethod = UnitTestHelpers::createPartialMockWithConstructor($class, [
+    $mockedMethod = TestHelpers::createPartialMockWithConstructor($class, [
       'execute',
     ],
     [$this, ...$methodArguments],
@@ -66,10 +66,10 @@ class DatabaseStub extends Connection {
           return [];
         };
 
-      UnitTestHelpers::setMockedClassMethod($this, 'stubExecute', $function);
+      TestHelpers::setMockedClassMethod($this, 'stubExecute', $function);
       return $this->stubExecute();
     };
-    UnitTestHelpers::setMockedClassMethod($mockedMethod, 'execute', $executeFunction);
+    TestHelpers::setMockedClassMethod($mockedMethod, 'execute', $executeFunction);
 
     return $mockedMethod;
   }

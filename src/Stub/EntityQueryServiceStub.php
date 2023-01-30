@@ -6,7 +6,7 @@ use Drupal\Core\Database\Query\ConditionInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryFactoryInterface;
 use Drupal\test_helpers\StubFactory\EntityQueryStubFactory;
-use Drupal\test_helpers\UnitTestHelpers;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default QueryFactoryInterface class.
@@ -31,12 +31,12 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
       ?? $this->executeFunctions['all']
       ?? function () {
         $result = [];
-        $storage = UnitTestHelpers::service('entity_type.manager')->getStorage($this->entityTypeId);
+        $storage = TestHelpers::service('entity_type.manager')->getStorage($this->entityTypeId);
         $allEntities = $storage->loadMultiple();
         $resultEntities = [];
         foreach ($allEntities as $entity) {
           foreach ($this->condition->conditions() as $condition) {
-            if (!UnitTestHelpers::matchEntityCondition($entity, $condition)) {
+            if (!TestHelpers::matchEntityCondition($entity, $condition)) {
               continue 2;
             }
           }
@@ -109,7 +109,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
    *   TRUE if matchs, FALSE if not matchs.
    */
   public function stubCheckConditionsMatch(ConditionInterface $conditionsExpected, $onlyListed = FALSE) {
-    return UnitTestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
+    return TestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
   }
 
 }
