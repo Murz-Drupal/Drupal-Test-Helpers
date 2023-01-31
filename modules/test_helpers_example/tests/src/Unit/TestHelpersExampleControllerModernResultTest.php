@@ -26,7 +26,7 @@ class TestHelpersExampleControllerModernResultTest extends UnitTestCase {
     // @codingStandardsIgnoreStart
     TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A1', 'status' => '1', 'created' => '1672574400']);
     TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A2', 'status' => '1', 'created' => '1672660800']);
-    TestHelpers::saveEntity(Node::class, ['type' => 'page',    'title' => 'P1', 'status' => '0', 'created' => '1672747200']);
+    TestHelpers::saveEntity(Node::class, ['type' => 'page',    'title' => 'P1', 'status' => '1', 'created' => '1672747200']);
     TestHelpers::saveEntity(Node::class, ['type' => 'article', 'title' => 'A3', 'status' => '0', 'created' => '1672833600']);
     // @codingStandardsIgnoreEnd
 
