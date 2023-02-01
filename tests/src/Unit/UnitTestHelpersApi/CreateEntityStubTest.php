@@ -10,7 +10,7 @@ use Drupal\test_helpers\TestHelpers;
 /**
  * Tests CreateEntityStub API function.
  *
- * @coversDefaultClass \Drupal\test_helpers\UnitTestHelpersTest
+ * @coversDefaultClass Drupal\test_helpers\TestHelpers
  * @group test_helpers
  */
 class CreateEntityStubTest extends UnitTestCase {

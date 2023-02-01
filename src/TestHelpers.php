@@ -15,7 +15,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
-use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\test_helpers\lib\TestHelpersStaticStorageService;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
@@ -23,6 +22,7 @@ use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LanguageManagerStub;
+use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
@@ -67,7 +67,7 @@ class TestHelpers {
     'entity_type.manager' => EntityTypeManagerStub::class,
     'entity.memory_cache' => MemoryCache::class,
     'language_manager' => LanguageManagerStub::class,
-    'logger.factory' => LoggerChannelFactory::class,
+    'logger.factory' => LoggerChannelFactoryStub::class,
     'module_handler' => ModuleHandlerStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'token' => TokenStub::class,
@@ -645,8 +645,15 @@ class TestHelpers {
           }
           return self::matchConditions($condition['field'], $conditionExpected['field'], $onlyListed);
         }
-        if (self::isNestedArraySubsetOf($condition, $conditionExpected)) {
-          $conditionsFound[$conditionsExpectedDelta] = TRUE;
+        if ($condition == $conditionExpected) {
+          if (is_array($condition['value'])) {
+            if ($condition['value'] == $conditionExpected['value']) {
+              $conditionsFound[$conditionsExpectedDelta] = TRUE;
+            }
+          }
+          else {
+            $conditionsFound[$conditionsExpectedDelta] = TRUE;
+          }
         }
       }
     }
@@ -753,7 +760,7 @@ class TestHelpers {
    *   True if the array is the subset, false if not.
    */
   public static function isNestedArraySubsetOf($array, $subset): bool {
-    if ($subset == NULL) {
+    if ($subset === NULL) {
       return TRUE;
     }
     if (!is_array($array) || !is_array($subset)) {
@@ -930,7 +937,7 @@ class TestHelpers {
   /**
    * Internal callback helper function for array_uintersect.
    */
-  private static function isValueSubsetOfCallback($value, $expected): int {
+  private static function isValueSubsetOfCallback($expected, $value): int {
     // The callback function for array_uintersect should return
     // integer instead of bool (-1, 0, 1).
     if (is_array($expected)) {
