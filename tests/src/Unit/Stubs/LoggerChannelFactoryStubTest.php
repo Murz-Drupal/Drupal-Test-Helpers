@@ -21,6 +21,8 @@ class LoggerChannelFactoryStubTest extends UnitTestCase {
   public function testApi() {
     $factory = new LoggerChannelFactoryStub();
 
+    $this->assertEquals([], $factory->stubGetLogs());
+
     $context1 = [
       'uid' => '42',
     ];

@@ -16,7 +16,7 @@ class StaticLogger implements LoggerInterface {
    *
    * @var array
    */
-  public array $logs;
+  public array $logs = [];
 
   /**
    * {@inheritdoc}
