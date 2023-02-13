@@ -31,6 +31,7 @@ use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use PHPUnit\Framework\MockObject\MethodNameNotConfiguredException;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Yaml\Yaml;
 
 // This trick is to prevent 'Undefined constant' warnings in code sniffers.
@@ -69,6 +70,7 @@ class TestHelpers {
     'language_manager' => LanguageManagerStub::class,
     'logger.factory' => LoggerChannelFactoryStub::class,
     'module_handler' => ModuleHandlerStub::class,
+    'request_stack' => RequestStack::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'token' => TokenStub::class,
     'transliteration' => PhpTransliteration::class,
