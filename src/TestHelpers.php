@@ -705,19 +705,11 @@ class TestHelpers {
       // NULL is treated as `=` condition for EntityQery queries.
       case NULL:
       case '=':
-        foreach ($value as $valueItem) {
-          if (($valueItem['value'] ?? NULL) == $condition['value']) {
-            return TRUE;
-          }
-        }
-        return FALSE;
-
-      // NULL is treated as `=` condition for EntityQery queries.
-      case NULL:
-      case '=':
-        foreach ($value as $valueItem) {
-          if (($valueItem['value'] ?? NULL) == $condition['value']) {
-            return TRUE;
+        if (is_array($value)) {
+          foreach ($value as $valueItem) {
+            if (($valueItem['value'] ?? NULL) == $condition['value']) {
+              return TRUE;
+            }
           }
         }
         return FALSE;
