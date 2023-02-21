@@ -19,7 +19,7 @@ class ClassWithProtectedItemsStub {
    *
    * @var string
    */
-  protected $property2;
+  private $property2;
 
   /**
    * Protected const.

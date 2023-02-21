@@ -24,9 +24,9 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 class UnitTestHelpersTest extends UnitTestCase {
 
   /**
-   * @covers ::getProtectedProperty
-   * @covers ::getProtectedMethod
-   * @covers ::callProtectedMethod
+   * @covers ::getPrivateProperty
+   * @covers ::getPrivateMethod
+   * @covers ::callPrivateMethod
    */
   public function testProtectedUtilities() {
     $class = new ClassWithProtectedItemsStub();
@@ -39,15 +39,15 @@ class UnitTestHelpersTest extends UnitTestCase {
       $this->assertEquals(0, $e->getCode());
     }
 
-    $this->assertSame($class->getProperty1(), TestHelpers::getProtectedProperty($class, 'property1'));
-    $this->assertNull(TestHelpers::getProtectedProperty($class, 'property2'));
+    $this->assertSame($class->getProperty1(), TestHelpers::getPrivateProperty($class, 'property1'));
+    $this->assertNull(TestHelpers::getPrivateProperty($class, 'property2'));
 
-    TestHelpers::setProtectedProperty($class, 'property2', 'bar');
-    $this->assertSame('bar', TestHelpers::getProtectedProperty($class, 'property2'));
+    TestHelpers::setPrivateProperty($class, 'property2', 'bar');
+    $this->assertSame('bar', TestHelpers::getPrivateProperty($class, 'property2'));
 
-    $this->assertSame('bar', TestHelpers::callProtectedMethod($class, 'getProperty2'));
-    $this->assertSame('bar', TestHelpers::callProtectedMethod($class, 'getPropertyByName', ['property2']));
-    $method = TestHelpers::getProtectedMethod($class, 'getPropertyByName');
+    $this->assertSame('bar', TestHelpers::callPrivateMethod($class, 'getProperty2'));
+    $this->assertSame('bar', TestHelpers::callPrivateMethod($class, 'getPropertyByName', ['property2']));
+    $method = TestHelpers::getPrivateMethod($class, 'getPropertyByName');
     $this->assertSame('foo', $method->invoke($class, 'property1'));
   }
 

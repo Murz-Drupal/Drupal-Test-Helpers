@@ -79,17 +79,17 @@ class TestHelpers {
   ];
 
   /**
-   * Gets a protected method from a class using reflection.
+   * Gets a private or protected method from a class using reflection.
    *
    * @param object $class
    *   The class instance.
    * @param string $methodName
    *   The name of the method to get.
    *
-   * @return ReflectionMethod
+   * @return \ReflectionMethod
    *   The method instance.
    */
-  public static function getProtectedMethod(object $class, string $methodName): \ReflectionMethod {
+  public static function getPrivateMethod(object $class, string $methodName): \ReflectionMethod {
     $reflection = new \ReflectionClass($class);
     $method = $reflection
       ->getMethod($methodName);
@@ -99,7 +99,7 @@ class TestHelpers {
   }
 
   /**
-   * Calls a protected method from a class using reflection.
+   * Calls a private or protected method from a class using reflection.
    *
    * @param object $class
    *   The class instance.
@@ -111,13 +111,13 @@ class TestHelpers {
    * @return mixed
    *   The return value of the executed function.
    */
-  public static function callProtectedMethod(object $class, string $methodName, array $arguments = []) {
-    $method = self::getProtectedMethod($class, $methodName);
+  public static function callPrivateMethod(object $class, string $methodName, array $arguments = []) {
+    $method = self::getPrivateMethod($class, $methodName);
     return $method->invokeArgs($class, $arguments);
   }
 
   /**
-   * Gets a protected property from a class using reflection.
+   * Gets a private or protected property from a class using reflection.
    *
    * @param object $class
    *   The class instance.
@@ -129,7 +129,7 @@ class TestHelpers {
    * @return mixed
    *   The property value.
    */
-  public static function getProtectedProperty(object $class, string $propertyName, $returnReflectionProperty = FALSE) {
+  public static function getPrivateProperty(object $class, string $propertyName, $returnReflectionProperty = FALSE) {
     $reflection = new \ReflectionClass($class);
     $property = $reflection
       ->getProperty($propertyName);
@@ -142,7 +142,7 @@ class TestHelpers {
   }
 
   /**
-   * Sets a protected property value in a class using reflection.
+   * Sets a private or protected property value in a class using reflection.
    *
    * @param object $class
    *   The class instance.
@@ -151,7 +151,7 @@ class TestHelpers {
    * @param mixed $value
    *   The value to set.
    */
-  public static function setProtectedProperty(object $class, string $propertyName, $value): void {
+  public static function setPrivateProperty(object $class, string $propertyName, $value): void {
     $reflection = new \ReflectionClass($class);
     $property = $reflection
       ->getProperty($propertyName);
@@ -196,10 +196,10 @@ class TestHelpers {
    */
   public static function getMockedMethod(MockObject $mock, string $method) {
     $invocationHandler = $mock->__phpunit_getInvocationHandler();
-    $configurableMethods = self::getProtectedProperty($invocationHandler, 'configurableMethods');
-    $matchers = self::getProtectedProperty($invocationHandler, 'matchers');
+    $configurableMethods = self::getPrivateProperty($invocationHandler, 'configurableMethods');
+    $matchers = self::getPrivateProperty($invocationHandler, 'matchers');
     foreach ($matchers as $matcher) {
-      $methodNameRuleObject = self::getProtectedProperty($matcher, 'methodNameRule');
+      $methodNameRuleObject = self::getPrivateProperty($matcher, 'methodNameRule');
       if ($methodNameRuleObject->matchesName($method)) {
         return new InvocationMocker(
             $invocationHandler,
@@ -563,8 +563,8 @@ class TestHelpers {
    */
   public static function queryIsSubsetOf(object $query, object $queryExpected, $onlyListed = FALSE): bool {
     if ($query instanceof DatabaseSelectInterface && $queryExpected instanceof DatabaseSelectInterface) {
-      $order = self::getProtectedProperty($query, 'order');
-      $orderExpected = self::getProtectedProperty($queryExpected, 'order');
+      $order = self::getPrivateProperty($query, 'order');
+      $orderExpected = self::getPrivateProperty($queryExpected, 'order');
       if (!self::isNestedArraySubsetOf($order, $orderExpected)) {
         return FALSE;
       }
@@ -574,8 +574,8 @@ class TestHelpers {
       if ($query->getEntityTypeId() != $queryExpected->getEntityTypeId()) {
         return FALSE;
       }
-      $sort = self::getProtectedProperty($query, 'sort');
-      $sortExpected = self::getProtectedProperty($queryExpected, 'sort');
+      $sort = self::getPrivateProperty($query, 'sort');
+      $sortExpected = self::getPrivateProperty($queryExpected, 'sort');
       if (!self::isNestedArraySubsetOf($sort, $sortExpected)) {
         return FALSE;
       }
@@ -583,14 +583,14 @@ class TestHelpers {
     else {
       throw new \Exception('Unsupportable query types.');
     }
-    $range = self::getProtectedProperty($query, 'range');
-    $rangeExpected = self::getProtectedProperty($queryExpected, 'range');
+    $range = self::getPrivateProperty($query, 'range');
+    $rangeExpected = self::getPrivateProperty($queryExpected, 'range');
     if (!self::isNestedArraySubsetOf($range, $rangeExpected)) {
       return FALSE;
     }
 
-    $condition = self::getProtectedProperty($query, 'condition');
-    $conditionExpected = self::getProtectedProperty($queryExpected, 'condition');
+    $condition = self::getPrivateProperty($query, 'condition');
+    $conditionExpected = self::getPrivateProperty($queryExpected, 'condition');
     if (!self::matchConditions($condition, $conditionExpected, $onlyListed)) {
       return FALSE;
     }
@@ -632,8 +632,8 @@ class TestHelpers {
       if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
         return FALSE;
       }
-      $conditions = self::conditionsSearchApiObjectsToArray(self::getProtectedProperty($conditionsObject, 'conditions'));
-      $conditionsExpected = self::conditionsSearchApiObjectsToArray(self::getProtectedProperty($conditionsExpectedObject, 'conditions'));
+      $conditions = self::conditionsSearchApiObjectsToArray(self::getPrivateProperty($conditionsObject, 'conditions'));
+      $conditionsExpected = self::conditionsSearchApiObjectsToArray(self::getPrivateProperty($conditionsExpectedObject, 'conditions'));
     }
     else {
       throw new \Exception("Conditions should implement Drupal\Core\Entity\Query\ConditionInterface or Drupal\Core\Database\Query\ConditionInterface.");
@@ -1231,6 +1231,85 @@ class TestHelpers {
   public static function getEntityStorageStub(string $entityTypeClassName, string $annotation = NULL): EntityStorageInterface {
     @trigger_error('Function getEntityStorageStub() is deprecated in test_helpers:1.0.0-beta5 and is removed from test_helpers:1.0.0-rc1. Renamed to getEntityStorage(). See https://www.drupal.org/project/test_helpers/issues/3337449', E_USER_DEPRECATED);
     return self::getEntityStorage($entityTypeClassName, $annotation);
+  }
+
+  /**
+   * Gets a protected method from a class using reflection.
+   *
+   * @param object $class
+   *   The class instance.
+   * @param string $methodName
+   *   The name of the method to get.
+   *
+   * @return \ReflectionMethod
+   *   The method instance.
+   *
+   * @deprecated in test_helpers:1.0.0-beta8 and is removed from
+   *   test_helpers:1.0.0-rc1. Renamed to getPrivateMethod().
+   * @see https://www.drupal.org/project/test_helpers/issues/3341353
+   */
+  public static function getProtectedMethod(object $class, string $methodName): \ReflectionMethod {
+    return self::getPrivateMethod($class, $methodName);
+  }
+
+  /**
+   * Calls a protected method from a class using reflection.
+   *
+   * @param object $class
+   *   The class instance.
+   * @param string $methodName
+   *   The name of the method to get.
+   * @param array $arguments
+   *   The list of aruments for the calling method.
+   *
+   * @return mixed
+   *   The return value of the executed function.
+   *
+   * @deprecated in test_helpers:1.0.0-beta8 and is removed from
+   *   test_helpers:1.0.0-rc1. Renamed to callPrivateMethod().
+   * @see https://www.drupal.org/project/test_helpers/issues/3341353
+   */
+  public static function callProtectedMethod(object $class, string $methodName, array $arguments = []) {
+    return self::callPrivateMethod($class, $methodName, $arguments);
+  }
+
+  /**
+   * Gets a protected property from a class using reflection.
+   *
+   * @param object $class
+   *   The class instance.
+   * @param string $propertyName
+   *   The name of the property to get.
+   * @param bool $returnReflectionProperty
+   *   Flag to return a ReflectionProperty object instead of value.
+   *
+   * @return mixed
+   *   The property value.
+   *
+   * @deprecated in test_helpers:1.0.0-beta8 and is removed from
+   *   test_helpers:1.0.0-rc1. Renamed to getPrivateProperty().
+   * @see https://www.drupal.org/project/test_helpers/issues/3341353
+   */
+  public static function getProtectedProperty(object $class, string $propertyName, $returnReflectionProperty = FALSE) {
+    return self::getPrivateProperty($class, $propertyName, $returnReflectionProperty);
+  }
+
+  /**
+   * Sets a protected property value in a class using reflection.
+   *
+   * @param object $class
+   *   The class instance.
+   * @param string $propertyName
+   *   The name of the property to get.
+   * @param mixed $value
+   *   The value to set.
+   *
+   * @deprecated in test_helpers:1.0.0-beta8 and is removed from
+   *   test_helpers:1.0.0-rc1. Renamed to setPrivateProperty().
+   * @see https://www.drupal.org/project/test_helpers/issues/3341353
+   */
+  public static function setProtectedProperty(object $class, string $propertyName, $value): void {
+    self::setPrivateProperty($class, $propertyName, $value);
   }
 
 }

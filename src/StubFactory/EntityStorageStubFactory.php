@@ -160,7 +160,7 @@ class EntityStorageStubFactory {
         }
         else {
           // For ConfigEntityType the uuid is protected.
-          TestHelpers::setProtectedProperty($entity, $idProperty, $id);
+          TestHelpers::setPrivateProperty($entity, $idProperty, $id);
         }
       }
 
@@ -172,7 +172,7 @@ class EntityStorageStubFactory {
         }
         else {
           // For ConfigEntityType the uuid is protected.
-          TestHelpers::setProtectedProperty($entity, $uuidProperty, $uuid);
+          TestHelpers::setPrivateProperty($entity, $uuidProperty, $uuid);
         }
       }
 
