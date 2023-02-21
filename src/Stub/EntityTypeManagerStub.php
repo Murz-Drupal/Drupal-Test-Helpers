@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityTypeRepository;
 use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\test_helpers\TestHelpers;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
  * A stub of the Drupal's default EntityTypeManager class.
@@ -143,6 +144,17 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     $this->stubEntityStoragesByClass[$entityClass] = $storage;
     $this->handlers['storage'][$entityTypeId] = $storage;
     $this->definitions[$entityTypeId] = $storage->getEntityType();
+
+    if ($bundleEntityType = $this->definitions[$entityTypeId]->getBundleEntityType()) {
+      // @todo Invent a better way to load the bundle entity type.
+      $bundleEntityClassName = (new CamelCaseToSnakeCaseNameConverter(NULL, FALSE))->denormalize($bundleEntityType);
+      $entityNamespace = substr($entityClass, 0, strrpos($entityClass, '\\'));
+      $bundleEntityClass = $entityNamespace . '\\' . $bundleEntityClassName;
+      if (class_exists($bundleEntityClass)) {
+        self::stubGetOrCreateStorage($bundleEntityClass);
+      }
+    }
+
     return $storage;
   }
 

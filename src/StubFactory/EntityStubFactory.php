@@ -2,7 +2,9 @@
 
 namespace Drupal\test_helpers\StubFactory;
 
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\test_helpers\Stub\ItemStub;
 use Drupal\test_helpers\TestHelpers;
 
 /**
@@ -36,6 +38,8 @@ class EntityStubFactory {
     // Creating a new entity storage stub instance, if not exists.
     /** @var \Drupal\test_helpers\Stub\EntityTypeManagerStub $entityTypeManager */
     $entityTypeManager = \Drupal::service('entity_type.manager');
+    /** @var \Drupal\test_helpers\Stub\EntityFieldManagerStub $entityFieldManager */
+    $entityFieldManager = \Drupal::service('entity_field.manager');
     $entityTypeBundleInfo = \Drupal::service('entity_type.bundle.info');
     $storage = $entityTypeManager->stubGetOrCreateStorage($entityClass);
     $entityTypeDefinition = $storage->getEntityType();
@@ -54,14 +58,14 @@ class EntityStubFactory {
 
     // Adding empty values for obligatory fields, if not passed.
     foreach ($entityTypeDefinition->get('entity_keys') as $property) {
-      if (!isset($values[$property])) {
+      if (!empty($property) && !isset($values[$property])) {
         $values[$property] = NULL;
       }
     }
 
     // Filling values to the entity array.
     TestHelpers::setMockedClassMethod($entity, 'stubInitValues',
-      function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition) {
+      function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition, $entityFieldManager) {
         // Pre-filling entity keys.
         /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
         $this->entityTypeId = $entityTypeId;
@@ -75,6 +79,10 @@ class EntityStubFactory {
         $this->defaultLangcodeKey = $this->getEntityType()->getKey('default_langcode');
         $this->revisionTranslationAffectedKey = $this->getEntityType()->getKey('revision_translation_affected');
 
+        if ($entityTypeDefinition->entityClassImplements(FieldableEntityInterface::class)) {
+          $this->fieldDefinitions = $entityFieldManager->getFieldDefinitions($entityTypeId, $bundle);
+        }
+
         // Filling common values.
         $this->translations[LanguageInterface::LANGCODE_DEFAULT] = [
           'status' => TRUE,
@@ -87,14 +95,22 @@ class EntityStubFactory {
         // Filling values to the entity array.
         foreach ($values as $name => $value) {
           if (isset($options['definitions'][$name])) {
-            $definition = $options['definitions'][$name];
+            $this->fieldDefinitions[$name] = $options['definitions'][$name];
           }
+          elseif (!isset($this->fieldDefinitions[$name])) {
+            /*
+             * @todo Register field definitions to the EntityFieldManager via
+             * \Drupal::service('entity_field.manager')->stubSetBaseFieldDefinitons($this->fieldDefinitions);
+             */
+            // Using our ItemStub as a fallback item type.
+            $this->fieldDefinitions[$name] = FieldItemListStubFactory::createFieldItemDefinitionStub(ItemStub::class);
+          }
+
           // @todo Convert entity to TypedDataInterface and pass to the
           // item list initialization as a third argument $parent.
           // $parent = EntityAdapter::createFromEntity($this);
           $parent = NULL;
-          $field = FieldItemListStubFactory::create($name, $value, $definition ?? NULL, $parent);
-          $this->fieldDefinitions[$name] = $field->getFieldDefinition();
+          $field = FieldItemListStubFactory::create($name, $value, $this->fieldDefinitions[$name], $parent);
           if ($entityTypeDefinition->getGroup() == 'configuration') {
             $this->$name = $value;
           }
@@ -107,11 +123,6 @@ class EntityStubFactory {
             }
           }
         }
-
-        /*
-         * @todo Register field definitions to the EntityFieldManager via
-         * \Drupal::service('entity_field.manager')->stubSetBaseFieldDefinitons($this->fieldDefinitions);
-         */
       });
     $entity->stubInitValues($values);
 

@@ -2,10 +2,13 @@
 
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
+use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
+use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\user\Entity\User;
 
 /**
  * Tests LanguageManagerStub class.
@@ -55,6 +58,44 @@ class EntityStorageStubFactoryTest extends UnitTestCase {
     $this->assertEquals($entity3->id(), current($storageSpecificFuncResult)->id());
     $this->assertArrayNotHasKey(2, $storageSpecificFuncResult);
 
+  }
+
+  /**
+   * Tests entity reference base field type.
+   */
+  public function testEntityReferenceField() {
+    TestHelpers::saveEntity(User::class, [
+      'name' => 'Foo',
+    ]);
+    TestHelpers::saveEntity(User::class, [
+      'name' => 'Bar',
+    ]);
+
+    $node1 = TestHelpers::saveEntity(Node::class, [
+      'title' => 'Entity reference test 1',
+      'uid' => 2,
+    ]);
+    $this->assertEquals('Bar', $node1->uid->entity->name->value);
+
+    $entityReferenceUserFieldDefinition = FieldItemListStubFactory::createFieldItemDefinitionStub('Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem', ['target_type' => 'user']);
+    $entityReferenceNodeFieldDefinition = FieldItemListStubFactory::createFieldItemDefinitionStub('Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem', ['target_type' => 'node']);
+
+    $node2 = TestHelpers::saveEntity(Node::class, [
+      'title' => 'Entity reference test 2',
+      'uid' => 1,
+      'field_user_reference' => 2,
+      'field_node_reference' => 1,
+    ],
+    [
+      'definitions' => [
+        'field_user_reference' => $entityReferenceUserFieldDefinition,
+        'field_node_reference' => $entityReferenceNodeFieldDefinition,
+      ],
+    ]);
+
+    $this->assertEquals('Foo', $node2->uid->entity->label());
+    $this->assertEquals('Bar', $node2->field_user_reference->entity->label());
+    $this->assertEquals('Entity reference test 1', $node2->field_node_reference->entity->label());
   }
 
 }

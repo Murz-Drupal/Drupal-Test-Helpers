@@ -90,8 +90,11 @@ class TestHelpersExampleController extends ControllerBase {
 
     $articlesList = [];
     foreach ($articles as $article) {
-      $linkText = $article->label()
-        . ' (' . $this->dateFormatter->format($article->created->value) . ')';
+      $linkText = $this->t('@label (at @date by @username)', [
+        '@label' => $article->label(),
+        '@date' => $this->dateFormatter->format($article->created->value),
+        '@username' => $article->uid->entity->label(),
+      ]);
       $articlesList[] = $article->toLink($linkText);
     }
 

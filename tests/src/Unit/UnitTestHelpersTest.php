@@ -97,8 +97,8 @@ class UnitTestHelpersTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::services
    * @covers ::service
+   * @covers ::setServices
    * @covers ::createService
    */
   public function testAddServices() {

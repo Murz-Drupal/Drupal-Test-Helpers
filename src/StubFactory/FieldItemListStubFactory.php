@@ -26,11 +26,13 @@ class FieldItemListStubFactory {
    *
    * @param string $class
    *   Field class.
+   * @param array $settings
+   *   Field settings.
    *
    * @return \Drupal\Core\Field\FieldDefinitionInterface
    *   A field field definition stub.
    */
-  public static function createFieldItemDefinitionStub(string $class = NULL): FieldDefinitionInterface {
+  public static function createFieldItemDefinitionStub(string $class = NULL, array $settings = NULL): FieldDefinitionInterface {
     if (!$class) {
       // $class = StringItem::class;
       $class = ItemStub::class;
@@ -40,6 +42,9 @@ class FieldItemListStubFactory {
     // will be good to add support for other field types.
     $field_definition = BaseFieldDefinition::create($definition['id']);
     $field_definition->getItemDefinition()->setClass($class);
+    if ($settings) {
+      $field_definition->setSettings($settings);
+    }
     return $field_definition;
   }
 

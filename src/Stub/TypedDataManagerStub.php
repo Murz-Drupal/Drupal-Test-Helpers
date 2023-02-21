@@ -6,7 +6,6 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\TypedData\Plugin\DataType\ItemList;
-use Drupal\Core\TypedData\Plugin\DataType\StringData;
 use Drupal\Core\TypedData\TypedDataManager;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Core\DependencyInjection\ClassResolverInterface;
@@ -74,8 +73,8 @@ class TypedDataManagerStub extends TypedDataManager {
         }
 
       case NULL:
-        // Load pre-defined plugins for some known plugin_id.
         switch ($plugin_id) {
+          // Hardcoding some known plugin classes.
           case 'entity':
             $this->stubSetPlugin(EntityAdapter::class);
             return TRUE;
@@ -84,9 +83,32 @@ class TypedDataManagerStub extends TypedDataManager {
             $this->stubSetPlugin(ItemList::class);
             return TRUE;
 
-          case 'string':
-            $this->stubSetPlugin(StringData::class);
-            return TRUE;
+          default:
+            /*
+             * For null category there is probably a DataType plugin, trying
+             * match them by name.
+             * Match examples:
+             * string => Drupal\Core\TypedData\Plugin\DataType\StringData
+             * integer => Drupal\Core\TypedData\Plugin\DataType\IntegerData
+             * language => Drupal\Core\TypedData\Plugin\DataType\Language
+             * entity_reference =>
+             *   Drupal\Core\Entity\Plugin\DataType\EntityReference
+             */
+            $namespacesToCheck = [
+              'Drupal\Core\TypedData\Plugin\DataType',
+              'Drupal\Core\Entity\Plugin\DataType',
+            ];
+
+            $suffixesToCheck = ['', 'Data'];
+            $className = (new CamelCaseToSnakeCaseNameConverter(NULL, FALSE))->denormalize($plugin_id);
+            foreach ($namespacesToCheck as $namespace) {
+              foreach ($suffixesToCheck as $suffix) {
+                if (class_exists($classNameFull = $namespace . '\\' . $className . $suffix)) {
+                  $this->stubSetPlugin($classNameFull);
+                  return TRUE;
+                }
+              }
+            }
         }
     }
     return FALSE;

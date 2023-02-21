@@ -4,6 +4,7 @@ namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
+use Drupal\Core\Field\Entity\BaseFieldOverride;
 use Drupal\test_helpers\TestHelpers;
 
 /**
@@ -19,6 +20,9 @@ class EntityFieldManagerStub extends EntityFieldManager {
     $this->entityTypeManager = \Drupal::service('entity_type.manager');
     $this->moduleHandler = \Drupal::service('module_handler');
     $this->entityLastInstalledSchemaRepository = TestHelpers::createMock(EntityLastInstalledSchemaRepository::class);
+
+    // This storage is required for function ::buildBundleFieldDefinitions().
+    TestHelpers::getEntityStorage(BaseFieldOverride::class);
   }
 
   /**

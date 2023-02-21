@@ -16,7 +16,7 @@ class LoggerChannelFactoryStubTest extends UnitTestCase {
 
   /**
    * @covers ::__construct
-   * @covers ::stubSetConfig
+   * @covers ::stubGetLogs
    */
   public function testApi() {
     $factory = new LoggerChannelFactoryStub();

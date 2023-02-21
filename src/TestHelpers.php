@@ -680,14 +680,17 @@ class TestHelpers {
    *   True if matches, false if not.
    */
   public static function matchEntityCondition(EntityInterface $entity, array $condition): bool {
-    $value = $entity->{$condition['field']} ? $entity->{$condition['field']}->getValue() : NULL;
+    $field = $entity->{$condition['field']};
+    $fieldItem = $field[0] ?? NULL;
+    $mainPropertyName = (is_object($fieldItem) && method_exists($fieldItem, 'mainPropertyName')) ? $fieldItem->mainPropertyName() : 'value';
+    $value = method_exists($field, 'getValue') ? $field->getValue() : NULL;
     switch ($condition['operator']) {
       case 'IN':
         if ($value == NULL && !empty($condition['value'])) {
           return FALSE;
         }
         foreach ($value as $valueItem) {
-          if (!in_array($valueItem['value'] ?? NULL, $condition['value'])) {
+          if (!in_array($valueItem[$mainPropertyName] ?? NULL, $condition['value'])) {
             return FALSE;
           }
         }
@@ -698,7 +701,7 @@ class TestHelpers {
           return TRUE;
         }
         foreach ($value as $valueItem) {
-          if (in_array($valueItem['value'], $condition['value'])) {
+          if (in_array($valueItem[$mainPropertyName], $condition['value'])) {
             return FALSE;
           }
         }
@@ -709,9 +712,19 @@ class TestHelpers {
       case '=':
         if (is_array($value)) {
           foreach ($value as $valueItem) {
-            if (($valueItem['value'] ?? NULL) == $condition['value']) {
+            if (($valueItem[$mainPropertyName] ?? NULL) == $condition['value']) {
               return TRUE;
             }
+          }
+        }
+        return FALSE;
+
+      // NULL is treated as `=` condition for EntityQery queries.
+      case NULL:
+      case '=':
+        foreach ($value as $valueItem) {
+          if (($valueItem[$mainPropertyName] ?? NULL) == $condition['value']) {
+            return TRUE;
           }
         }
         return FALSE;
@@ -730,7 +743,7 @@ class TestHelpers {
         foreach ($value as $valueItem) {
           // To suppress `The use of function eval() is discouraged` warning.
           // @codingStandardsIgnoreStart
-          if (eval("return '" . addslashes($valueItem['value'] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
+          if (eval("return '" . addslashes($valueItem[$mainPropertyName] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
             // @codingStandardsIgnoreEnd
             return TRUE;
           }

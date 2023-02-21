@@ -14,6 +14,7 @@ use Drupal\Core\Link;
 use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
+use Drupal\user\UserInterface;
 
 /**
  * Class tests TestHelpersExampleController using a classic approach.
@@ -79,12 +80,17 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
       return $link;
     };
 
+    $user = $this->createMock(UserInterface::class);
+    $user->method('label')->willReturn('Bob');
+
     $node1 = $this->createMock(NodeInterface::class);
     $node1->method('id')->willReturn('1');
     $node1->method('label')->willReturn('Article 1');
     $node1->created = $this->createPartialMock(FieldItemList::class, ['__get']);
     $node1->created->method('__get')->with('value')->willReturn('1672574400');
     $node1->method('toLink')->willReturnCallback($toLinkMock);
+    $node1->uid = $this->createPartialMock(FieldItemList::class, ['__get']);
+    $node1->uid->method('__get')->with('entity')->willReturn($user);
 
     $node2 = $this->createMock(NodeInterface::class);
     $node2->method('id')->willReturn('2');
@@ -92,6 +98,8 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $node2->created = $this->createPartialMock(FieldItemList::class, ['__get']);
     $node2->created->method('__get')->with('value')->willReturn('1672660800');
     $node2->method('toLink')->willReturnCallback($toLinkMock);
+    $node2->uid = $this->createPartialMock(FieldItemList::class, ['__get']);
+    $node2->uid->method('__get')->with('entity')->willReturn($user);
 
     $entityStorage = $this->createMock(EntityStorageInterface::class);
     $entityStorage->method('getQuery')->willReturn($entityQuery);
@@ -101,7 +109,9 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $entityTypeManager->method('getStorage')->willReturn($entityStorage);
 
     $dateFormatter = $this->createMock(DateFormatterInterface::class);
-    $dateFormatter->method('format')->willReturn($this->returnArgument(0));
+    $dateFormatter->method('format')->willReturnCallback(function ($timestamp) {
+      return date('d.m.Y', $timestamp);
+    });
 
     $configFactory = $this->createMock(ConfigFactoryInterface::class);
     $config = $this->createMock(ImmutableConfig::class);
@@ -112,14 +122,14 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $container->set('entity_type.manager', $entityTypeManager);
     $container->set('date.formatter', $dateFormatter);
     $container->set('config.factory', $configFactory);
+    $container->set('string_translation', $this->getStringTranslationStub());
     \Drupal::setContainer($container);
-    $controller = TestHelpersExampleController::create($container);
 
+    $controller = TestHelpersExampleController::create($container);
     $result = $controller->articlesList();
 
     $this->assertCount(2, $result['#items']);
-    $this->assertEquals('Article 1 (1672574400)', $result['#items'][0]->getText());
-    $this->assertEquals('Article 2 (1672660800)', $result['#items'][1]->getText());
+    $this->assertEquals('Article 2 (at 02.01.2023 by Bob)', $result['#items'][1]->getText());
   }
 
 }
