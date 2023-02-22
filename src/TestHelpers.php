@@ -18,11 +18,11 @@ use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\test_helpers\lib\TestHelpersStaticStorageService;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
+use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
-use Drupal\test_helpers\Stub\LanguageManagerStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
@@ -66,10 +66,10 @@ class TestHelpers {
     'config.factory' => ConfigFactoryStub::class,
     'database' => DatabaseStub::class,
     'date.formatter' => DateFormatterStub::class,
+    'language_manager' => ConfigurableLanguageManagerStub::class,
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
     'entity.memory_cache' => MemoryCache::class,
-    'language_manager' => LanguageManagerStub::class,
     'logger.factory' => LoggerChannelFactoryStub::class,
     'module_handler' => ModuleHandlerStub::class,
     'request_stack' => RequestStack::class,

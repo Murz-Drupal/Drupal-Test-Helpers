@@ -47,6 +47,7 @@ class ConfigFactoryStub extends ConfigFactory {
     $config->setData($data);
     $key = $this->getConfigCacheKey($name, FALSE);
     $keyImmutable = $this->getConfigCacheKey($name, TRUE);
+    $this->storage->write($key, ['data' => $config]);
     // @todo Split to separate immutable and non-immutable sets.
     $this->cache[$key] = $config;
     $this->cache[$keyImmutable] = $config;
