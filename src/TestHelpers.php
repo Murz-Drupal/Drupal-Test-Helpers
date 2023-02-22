@@ -16,6 +16,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\test_helpers\lib\TestHelpersStaticStorageService;
+use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\DateFormatterStub;
@@ -60,6 +61,7 @@ class TestHelpers {
   public const SERVICES_CUSTOM_STUBS = [
     'test_helpers.static_storage' => TestHelpersStaticStorageService::class,
     'cache.backend.memory' => MemoryBackendFactory::class,
+    'cache_contexts_manager' => CacheContextsManagerStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'config.factory' => ConfigFactoryStub::class,
     'database' => DatabaseStub::class,
@@ -202,9 +204,9 @@ class TestHelpers {
       $methodNameRuleObject = self::getPrivateProperty($matcher, 'methodNameRule');
       if ($methodNameRuleObject->matchesName($method)) {
         return new InvocationMocker(
-            $invocationHandler,
-            $matcher,
-            ...$configurableMethods
+          $invocationHandler,
+          $matcher,
+          ...$configurableMethods
         );
       }
     }
