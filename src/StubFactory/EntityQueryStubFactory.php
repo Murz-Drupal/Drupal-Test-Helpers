@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\Query\Sql\Query;
+use Drupal\test_helpers\Stub\EntityQueryServiceStub;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
@@ -53,9 +54,11 @@ class EntityQueryStubFactory {
     $queryStub = TestHelpers::createPartialMockWithConstructor(Query::class, [
       'execute',
     ], [$entityType, $conjunction, $this->dbConnection, $this->namespaces], [
+      'stubExecuteBase',
       'stubCheckConditionsMatch',
     ]);
 
+    TestHelpers::setMockedClassMethod($queryStub, 'stubExecuteBase', EntityQueryServiceStub::stubGetExecuteBaseFunction());
     TestHelpers::setMockedClassMethod($queryStub, 'execute', $executeFunction);
     TestHelpers::setMockedClassMethod($queryStub, 'stubCheckConditionsMatch', function (Condition $conditionsExpected, $onlyListed = FALSE) {
       return TestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);

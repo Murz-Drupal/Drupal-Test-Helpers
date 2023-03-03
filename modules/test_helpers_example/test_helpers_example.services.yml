@@ -1,0 +1,11 @@
+services:
+  test_helpers_example.articles_manager:
+    class: Drupal\test_helpers_example\ArticlesManagerService
+    arguments:
+      - '@entity_type.manager'
+  test_helpers_example.config_events_subscriber:
+    class: Drupal\test_helpers_example\EventSubscriber\ConfigEventsSubscriber
+    arguments:
+      - '@messenger'
+    tags:
+      - { name: 'event_subscriber' }

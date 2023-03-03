@@ -18,11 +18,11 @@ class EntityStorageStubFunctionsTest extends UnitTestCase {
    * @covers ::__construct
    */
   public function testGenerateNewEntityId() {
-    TestHelpers::createEntity(Node::class, ['nid' => 42])->save();
-    TestHelpers::createEntity(Node::class, ['nid' => 12])->save();
-    TestHelpers::createEntity(Node::class)->save();
-    $entityStorageStub = \Drupal::service('entity_type.manager')->getStorage('node');
-    $this->assertSame('44', $entityStorageStub->stubGetNewEntityId());
+    TestHelpers::saveEntity(Node::class, ['nid' => 42]);
+    TestHelpers::saveEntity(Node::class, ['nid' => 12]);
+    TestHelpers::saveEntity(Node::class);
+    $entity = TestHelpers::saveEntity(Node::class);
+    $this->assertSame('44', $entity->id());
   }
 
 }

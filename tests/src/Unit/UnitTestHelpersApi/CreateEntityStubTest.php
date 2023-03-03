@@ -46,7 +46,6 @@ class CreateEntityStubTest extends UnitTestCase {
     $this->assertFalse($node1Entity->title->isEmpty());
     $this->assertTrue($node1Entity->empty_field->isEmpty());
 
-    require_once DRUPAL_ROOT . '/core/includes/common.inc';
     $this->assertEquals(SAVED_NEW, $node1Entity->save());
     $this->assertEquals(SAVED_UPDATED, $node1Entity->save());
 
@@ -122,8 +121,8 @@ class CreateEntityStubTest extends UnitTestCase {
    */
   public function testSaveEntityStub() {
     $node = TestHelpers::saveEntity(Node::class);
-    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadByProperties(['nid' => '1']);
     $this->assertEquals('1', $node->id());
+    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadByProperties(['nid' => '1']);
     $this->assertEquals(current($nodeLoaded)->id(), $node->id());
   }
 
@@ -137,9 +136,7 @@ class CreateEntityStubTest extends UnitTestCase {
       'new_revision' => FALSE,
       'display_submitted' => FALSE,
     ];
-    $entity = TestHelpers::createEntity(NodeType::class, $values, [
-      'entity_base_type' => 'ConfigEntityType',
-    ]);
+    $entity = TestHelpers::createEntity(NodeType::class, $values);
     $entity->save();
     $this->assertEquals($values['type'], $entity->id());
     $this->assertEquals($values['description'], $entity->getDescription());

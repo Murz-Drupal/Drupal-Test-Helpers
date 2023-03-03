@@ -46,15 +46,24 @@ interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
    *
    * @param string $entityClass
    *   The entity class.
-   * @param object|null $storage
+   * @param object|null $storageInstanceOrAnnotation
    *   The storage object.
-   * @param mixed $forceOverride
+   * @param bool $forceOverride
    *   Forces overriding of already existed one.
+   * @param array $storageOptions
+   *   A list of options to pass to the storage initialization. Acts only once
+   *   if the storage is not initialized yet.
+   *   - skipPrePostSave: a flag to use direct save on the storage without
+   *     calling preSave and postSave functions. Can be useful if that functions
+   *     have dependencies which hard to mock.
+   *   - fields: a list of custom field types to use, like 'integer',
+   *     'string', 'entity_reference'. Only core field types are supported.
+   *   - constructorArguments: additional arguments to the constructor.
    *
    * @return \PHPUnit\Framework\MockObject\MockObject
    *   The mocked Entity Storage Stub.
    */
-  public function stubGetOrCreateStorage(string $entityClass, object $storage = NULL, $forceOverride = FALSE);
+  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL);
 
   /**
    * Resets the stub and clears all storages.

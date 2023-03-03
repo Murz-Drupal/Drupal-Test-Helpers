@@ -62,15 +62,15 @@ class TypedDataManagerStub extends TypedDataManager {
       // @todo Add other plugin categories here.
       case 'field_item':
         $plugin = 'Field';
-        $className = (new CamelCaseToSnakeCaseNameConverter(NULL, FALSE))->denormalize($name) . 'Item';
-        $namespace = 'Drupal\Core\Field\Plugin\Field\FieldType';
-        if (class_exists($classNameFull = $namespace . '\\' . $className)) {
-          $this->stubSetPlugin($classNameFull, $plugin, $category);
-          return TRUE;
-        }
-        else {
-          return FALSE;
-        }
+        $suffixes = ['Item'];
+        // @todo Add ability to add namespaces manually from a test.
+        $namespaces = [
+          'Drupal\Core\Field\Plugin\Field\FieldType',
+          'Drupal\text\Plugin\Field\FieldType',
+          'Drupal\image\Plugin\Field\FieldType',
+          'Drupal\test_helpers\Plugin\Field\FieldType',
+        ];
+        break;
 
       case NULL:
         switch ($plugin_id) {
@@ -94,22 +94,33 @@ class TypedDataManagerStub extends TypedDataManager {
              * entity_reference =>
              *   Drupal\Core\Entity\Plugin\DataType\EntityReference
              */
-            $namespacesToCheck = [
+            $name = $plugin_id;
+            $plugin = 'TypedData';
+            $suffixes = ['', 'Data'];
+            // @todo Add ability to add namespaces manually from a test.
+            $namespaces = [
               'Drupal\Core\TypedData\Plugin\DataType',
               'Drupal\Core\Entity\Plugin\DataType',
+              'Drupal\test_helpers\DataType',
             ];
-
-            $suffixesToCheck = ['', 'Data'];
-            $className = (new CamelCaseToSnakeCaseNameConverter(NULL, FALSE))->denormalize($plugin_id);
-            foreach ($namespacesToCheck as $namespace) {
-              foreach ($suffixesToCheck as $suffix) {
-                if (class_exists($classNameFull = $namespace . '\\' . $className . $suffix)) {
-                  $this->stubSetPlugin($classNameFull);
-                  return TRUE;
-                }
-              }
-            }
+            break;
         }
+        break;
+
+      default:
+        // @todo Add check for other plugin ids.
+        return FALSE;
+
+    }
+
+    $className = (new CamelCaseToSnakeCaseNameConverter(NULL, FALSE))->denormalize($name);
+    foreach ($namespaces as $namespace) {
+      foreach ($suffixes as $suffix) {
+        if (class_exists($classNameFull = $namespace . '\\' . $className . $suffix)) {
+          $this->stubSetPlugin($classNameFull, $plugin, $category);
+          return TRUE;
+        }
+      }
     }
     return FALSE;
   }

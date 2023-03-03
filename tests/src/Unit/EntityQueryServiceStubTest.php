@@ -208,11 +208,18 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * Tests sort API.
    */
   public function testSort() {
+    $options = [
+      'fields' => [
+        'field_integer1' => 'integer',
+        'field_integer2' => 'integer',
+        'field_string1' => 'string',
+      ],
+    ];
     TestHelpers::createEntity(Node::class, [
       'field_integer1' => 100,
       'field_integer2' => 100,
       'field_string1' => '100',
-    ])->save();
+    ], NULL, $options)->save();
     TestHelpers::createEntity(Node::class, [
       'field_integer1' => 101,
       'field_integer2' => 100,

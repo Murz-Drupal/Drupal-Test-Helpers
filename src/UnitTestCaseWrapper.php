@@ -31,7 +31,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
    */
   // To suppress "Possible useless method overriding detected" warning.
   // @codingStandardsIgnoreStart
-    public function getRandomGenerator() {
+  public function getRandomGenerator() {
     return parent::getRandomGenerator();
   }
   // @codingStandardsIgnoreEnd
@@ -96,12 +96,14 @@ class UnitTestCaseWrapper extends UnitTestCase {
       ->setConstructorArgs($constructorArgs)
       ->disableOriginalClone()
       ->disableArgumentCloning()
-      ->disallowMockingUnknownTypes()
-      // ->enableProxyingToOriginalMethods()
-      ->onlyMethods($methods);
+      ->disallowMockingUnknownTypes();
+    if (!empty($methods)) {
+      $mockBuilder->onlyMethods($methods);
+    }
     if (!empty($addMethods)) {
       $mockBuilder->addMethods($addMethods);
     }
+    // @todo Try to add enableProxyingToOriginalMethods() function.
     return $mockBuilder->getMock();
   }
 
@@ -125,7 +127,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
       ->disableArgumentCloning()
       ->disallowMockingUnknownTypes()
       ->allowMockingUnknownTypes()
-      // ->enableProxyingToOriginalMethods()
+        // ->enableProxyingToOriginalMethods()
       ->onlyMethods($methods);
     if (!empty($addMethods)) {
       $mockBuilder->addMethods($addMethods);

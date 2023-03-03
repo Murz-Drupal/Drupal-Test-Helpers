@@ -61,4 +61,17 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
     $this->languages = [];
   }
 
+  /**
+   * Adds languages to the stub.
+   *
+   * @param array $languages
+   *   A list of languages codes.
+   */
+  public function stubAddLanguages(array $languages) {
+    foreach ($languages as $language) {
+      // @todo Add support for arrays with language code and name.
+      $this->stubAddLanguage($language);
+    }
+  }
+
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers\Stub;
+namespace Drupal\test_helpers\Plugin\Field\FieldType;
 
 use Drupal\Component\Utility\Random;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -13,15 +13,15 @@ use Drupal\Core\TypedData\DataDefinition;
  * A stub for Drupal's default FieldItemBase class.
  *
  * @FieldType(
- *   id = "stub",
- *   label = "Stub",
+ *   id = "item_stub",
+ *   label = "Item stub",
  *   description = "Stub item",
  *   category = "Stubs",
  *   default_widget = "string_textfield",
  *   default_formatter = "string"
  * )
  */
-class ItemStub extends FieldItemBase {
+class ItemStubItem extends FieldItemBase {
 
   /**
    * {@inheritdoc}
@@ -63,7 +63,7 @@ class ItemStub extends FieldItemBase {
    * {@inheritdoc}
    */
   public function isEmpty() {
-    foreach ($this->values as $value) {
+    foreach ($this->values ?? [] as $value) {
       if (!empty($value)) {
         return FALSE;
       }

@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Unit;
+namespace Drupal\Tests\test_helpers_example\Unit;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
@@ -17,62 +17,61 @@ use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\user\UserInterface;
 
 /**
- * Class tests TestHelpersExampleController using a classic approach.
+ * Tests TestHelpersExampleController using a classic approach.
  *
- * @coversDefaultClass Drupal\test_helpers_example\Controller\TestHelpersExampleController
+ * @coversDefaultClass \Drupal\test_helpers_example\Controller\TestHelpersExampleController
  * @group test_helpers_example
  */
 class TestHelpersExampleControllerClassicTest extends UnitTestCase {
 
   /**
+   * @covers ::__construct
+   * @covers ::create
    * @covers ::articlesList
    */
   public function testArticlesList() {
     $entityQuery = $this->createMock(QueryInterface::class);
-    $entityQuery->method('sort')
-      ->willReturnCallback(
-        function ($field, $direction = 'ASC', $langcode = NULL) use ($entityQuery) {
-          $this->assertEquals('created', $field);
-          $this->assertEquals('DESC', $direction);
-          return $entityQuery;
-        }
-      );
-    $entityQuery->method('range')
-      ->willReturnCallback(
-        function ($start = NULL, $length = NULL) use ($entityQuery) {
-          $this->assertEquals(0, $start);
-          $this->assertEquals(2, $length);
-          return $entityQuery;
-        }
-      );
-    $entityQuery->method('condition')
-      ->willReturnCallback(
-        function ($field, $value = NULL, $operator = NULL, $langcode = NULL) use ($entityQuery) {
-          static $callsCount;
-          if (!$callsCount) {
-            $callsCount = 1;
-          }
-          else {
-            $callsCount++;
-          }
-          switch ($callsCount) {
-            case 1:
-              $this->assertEquals('status', $field);
-              $this->assertEquals(1, $value);
-              $this->assertEquals(NULL, $operator);
-              break;
+    $entityQuery->method('sort')->willReturnCallback(
+      function ($field, $direction = 'ASC', $langcode = NULL) use ($entityQuery) {
+        $this->assertEquals('created', $field);
+        $this->assertEquals('DESC', $direction);
+        return $entityQuery;
+      }
+    );
+    $entityQuery->method('range')->willReturnCallback(
+      function ($start = NULL, $length = NULL) use ($entityQuery) {
+        $this->assertEquals(0, $start);
+        $this->assertEquals(2, $length);
+        return $entityQuery;
+      }
+    );
+    $entityQuery->method('condition')->willReturnCallback(
+      function ($field, $value = NULL, $operator = NULL, $langcode = NULL) use ($entityQuery) {
+        static $callsCount;
 
-            case 2:
-              $this->assertEquals('type', $field);
-              $this->assertEquals('article', $value);
-              $this->assertEquals(NULL, $operator);
-              break;
-          }
-          return $entityQuery;
+        if (!$callsCount) {
+          $callsCount = 1;
         }
-      );
+        else {
+          $callsCount++;
+        }
+        switch ($callsCount) {
+          case 1:
+            $this->assertEquals('status', $field);
+            $this->assertEquals(1, $value);
+            $this->assertEquals(NULL, $operator);
+            break;
 
-    $entityQuery->method('execute')->willReturn(['1', '2']);
+          case 2:
+            $this->assertEquals('type', $field);
+            $this->assertEquals('article', $value);
+            $this->assertEquals(NULL, $operator);
+            break;
+        }
+        return $entityQuery;
+      }
+    );
+    $entityQuery->method('execute')->willReturn(['2', '1']);
 
     $toLinkMock = function ($text) {
       $link = $this->createMock(Link::class);
@@ -81,11 +80,11 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     };
 
     $user = $this->createMock(UserInterface::class);
-    $user->method('label')->willReturn('Bob');
+    $user->method('label')->willReturn('Alice');
 
     $node1 = $this->createMock(NodeInterface::class);
     $node1->method('id')->willReturn('1');
-    $node1->method('label')->willReturn('Article 1');
+    $node1->method('label')->willReturn('A1');
     $node1->created = $this->createPartialMock(FieldItemList::class, ['__get']);
     $node1->created->method('__get')->with('value')->willReturn('1672574400');
     $node1->method('toLink')->willReturnCallback($toLinkMock);
@@ -94,7 +93,7 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
 
     $node2 = $this->createMock(NodeInterface::class);
     $node2->method('id')->willReturn('2');
-    $node2->method('label')->willReturn('Article 2');
+    $node2->method('label')->willReturn('A2');
     $node2->created = $this->createPartialMock(FieldItemList::class, ['__get']);
     $node2->created->method('__get')->with('value')->willReturn('1672660800');
     $node2->method('toLink')->willReturnCallback($toLinkMock);
@@ -103,7 +102,8 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
 
     $entityStorage = $this->createMock(EntityStorageInterface::class);
     $entityStorage->method('getQuery')->willReturn($entityQuery);
-    $entityStorage->method('loadMultiple')->willReturn([$node1, $node2]);
+    $entityStorage->method('loadMultiple')->with(['2', '1'])
+      ->willReturn([$node2, $node1]);
 
     $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $entityTypeManager->method('getStorage')->willReturn($entityStorage);
@@ -127,9 +127,9 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
 
     $controller = TestHelpersExampleController::create($container);
     $result = $controller->articlesList();
-
     $this->assertCount(2, $result['#items']);
-    $this->assertEquals('Article 2 (at 02.01.2023 by Bob)', $result['#items'][1]->getText());
+    $this->assertEquals('A2 (02.01.2023 by Alice)', $result['#items'][0]->getText());
+    $this->assertContains('node:type:article', $result['#cache']['tags']);
   }
 
 }

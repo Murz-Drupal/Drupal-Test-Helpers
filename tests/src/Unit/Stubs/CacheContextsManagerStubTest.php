@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
 

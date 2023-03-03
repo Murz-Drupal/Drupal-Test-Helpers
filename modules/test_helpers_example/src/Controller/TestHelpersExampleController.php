@@ -38,11 +38,11 @@ class TestHelpersExampleController extends ControllerBase {
    * TestHelpersExampleController constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
-   *   The form builder.
+   *   The config factory.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The form builder.
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
-   *   The form builder.
+   *   The date formatter.
    */
   public function __construct(
     ConfigFactoryInterface $configFactory,
@@ -74,11 +74,10 @@ class TestHelpersExampleController extends ControllerBase {
    * Renders a list of two articles, reverse sorted by title.
    */
   public function articlesList() {
-    $amount = $this->configFactory->get('test_helpers_example')
+    $amount = $this->configFactory->get('test_helpers_example.settings')
       ->get('articles_to_display') ?? 3;
 
-    $articlesIds = $this->entityTypeManager->getStorage('node')
-      ->getQuery()
+    $articlesIds = $this->entityTypeManager->getStorage('node')->getQuery()
       ->condition('status', 1)
       ->condition('type', 'article')
       ->sort('created', 'DESC')
@@ -90,7 +89,7 @@ class TestHelpersExampleController extends ControllerBase {
 
     $articlesList = [];
     foreach ($articles as $article) {
-      $linkText = $this->t('@label (at @date by @username)', [
+      $linkText = $this->t('@label (@date by @username)', [
         '@label' => $article->label(),
         '@date' => $this->dateFormatter->format($article->created->value),
         '@username' => $article->uid->entity->label(),
@@ -101,6 +100,7 @@ class TestHelpersExampleController extends ControllerBase {
     return [
       '#theme' => 'item_list',
       '#items' => $articlesList,
+      '#cache' => ['tags' => ['node:type:article']],
     ];
   }
 

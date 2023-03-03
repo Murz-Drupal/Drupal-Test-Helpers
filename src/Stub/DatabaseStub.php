@@ -49,13 +49,19 @@ class DatabaseStub extends Connection {
   private function mockExecuteForMethod(string $method, array $methodArguments) {
     $originalMethod = parent::$method(...$methodArguments);
     $class = \get_class($originalMethod);
-    $mockedMethod = TestHelpers::createPartialMockWithConstructor($class, [
-      'execute',
-    ],
-    [$this, ...$methodArguments],
-    [
-      'stubExecute',
-    ]);
+    $mockedMethod = TestHelpers::createPartialMockWithConstructor(
+      $class,
+      [
+        'execute',
+      ],
+      [
+        $this,
+        ...$methodArguments,
+      ],
+      [
+        'stubExecute',
+      ]
+    );
 
     $stubExecuteHandlers = &$this->stubExecuteHandlers;
     $executeFunction = function () use (&$stubExecuteHandlers, $method) {
@@ -93,6 +99,22 @@ class DatabaseStub extends Connection {
    */
   public function stubSetExecuteHandler(\Closure $executeFunction, string $method = 'all') {
     $this->stubExecuteHandlers[$method] = $executeFunction;
+  }
+
+  /**
+   * A stub of original function to do nothing.
+   *
+   * {@inheritDoc}
+   */
+  public function startTransaction($name = '') {
+  }
+
+  /**
+   * A stub of original function to do nothing.
+   *
+   * {@inheritDoc}
+   */
+  public function popTransaction($name) {
   }
 
 }

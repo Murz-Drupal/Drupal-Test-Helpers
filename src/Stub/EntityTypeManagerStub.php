@@ -2,14 +2,19 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\Component\FileCache\FileCacheFactory;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
+use Drupal\Core\Database\ReplicaKillSwitch;
+use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
-use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeRepository;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\node\NodeGrantDatabaseStorage;
 use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
-use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
@@ -37,8 +42,10 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     EntityLastInstalledSchemaRepositoryInterface $entity_last_installed_schema_repository = NULL
   ) {
     // Replacing missing arguments to mocks and stubs.
-    $namespaces ??= new \ArrayObject([]);
     $module_handler ??= TestHelpers::service('module_handler');
+    // @todo Fill some right value!
+    FileCacheFactory::setPrefix('test_helpers');
+    $namespaces ??= new \ArrayObject([]);
     $cache ??= TestHelpers::service('cache.static');
     $string_translation ??= TestHelpers::service('string_translation');
     $class_resolver ??= TestHelpers::service('class_resolver');
@@ -58,31 +65,26 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
 
     TestHelpers::service('typed_data_manager', new TypedDataManagerStub());
     TestHelpers::setServices([
+      'uuid' => NULL,
+      'current_user' => NULL,
       'entity_type.manager' => $this,
+      'entity_bundle.listener' => EntityBundleListenerStub::class,
+      'entity.repository' => NULL,
       'entity_type.repository' => new EntityTypeRepository($this),
       'entity_type.bundle.info' => NULL,
       'entity.memory_cache' => NULL,
-      'entity_field.manager' => NULL,
       'language_manager' => NULL,
-      'uuid' => NULL,
       'entity.query.sql' => new EntityQueryServiceStub(),
       'plugin.manager.field.field_type' => new FieldTypeManagerStub(),
+      'entity_field.manager' => NULL,
+      'logger.factory' => NULL,
+      // @todo Make a stub for it!
+      'cache_tags.invalidator' => TestHelpers::createMock(CacheTagsInvalidatorInterface::class),
+      // @todo Make a stub for it!
+      'node.grant_storage' => TestHelpers::createMock(NodeGrantDatabaseStorage::class),
+      // @todo Make a stub for it!
+      'database.replica_kill_switch' => TestHelpers::createMock(ReplicaKillSwitch::class),
     ]);
-    TestHelpers::service('entity_field.manager', new EntityFieldManagerStub());
-
-    /** @var \Drupal\Core\Entity\EntityRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $entityRepository */
-    $entityRepository = TestHelpers::service('entity.repository', TestHelpers::createMock(EntityRepositoryInterface::class));
-    $entityRepository
-      ->method('loadEntityByUuid')
-      ->willReturnCallback(function ($entityTypeId, $uuid) {
-        $entityTypeStorage = \Drupal::service('entity_type.manager')->getStorage($entityTypeId);
-        $uuidProperty = $entityTypeStorage->getEntityType()->getKey('uuid');
-        return current($entityTypeStorage->loadByProperties([$uuidProperty => $uuid]) ?? []);
-      });
-
-    $entityRepository
-      ->method('getTranslationFromContext')
-      ->will(UnitTestCaseWrapper::getInstance()->returnArgument(0));
 
     // @todo Make a proper call of parent::__construct() instead of manual
     // assinging all here.
@@ -121,11 +123,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   /**
    * {@inheritDoc}
    */
-  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, $forceOverride = FALSE, array $methods = [], array $addMethods = []) {
-    $options = [
-      'methods' => $methods,
-      'addMethods' => $addMethods,
-    ];
+  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, bool $forceOverride = FALSE, $storageOptions = NULL) {
     if (!$forceOverride && isset($this->stubEntityStoragesByClass[$entityClass])) {
       return $this->stubEntityStoragesByClass[$entityClass];
     }
@@ -135,10 +133,10 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     // In this case the annotation is passed, so we should manually initiate
     // the storage instance.
     elseif (is_string($storageInstanceOrAnnotation)) {
-      $storage = EntityStorageStubFactory::create($entityClass, $storageInstanceOrAnnotation, $options);
+      $storage = EntityStorageStubFactory::create($entityClass, $storageInstanceOrAnnotation, $storageOptions);
     }
     else {
-      $storage = EntityStorageStubFactory::create($entityClass, NULL, $options);
+      $storage = EntityStorageStubFactory::create($entityClass, NULL, $storageOptions);
     }
     $entityTypeId = $storage->getEntityTypeId();
     $this->stubEntityStoragesByClass[$entityClass] = $storage;

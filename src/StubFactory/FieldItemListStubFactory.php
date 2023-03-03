@@ -7,7 +7,7 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
-use Drupal\test_helpers\Stub\ItemStub;
+use Drupal\test_helpers\Plugin\Field\FieldType\ItemStubItem;
 use Drupal\test_helpers\TestHelpers;
 
 /**
@@ -34,10 +34,9 @@ class FieldItemListStubFactory {
    */
   public static function createFieldItemDefinitionStub(string $class = NULL, array $settings = NULL): FieldDefinitionInterface {
     if (!$class) {
-      // $class = StringItem::class;
-      $class = ItemStub::class;
+      $class = ItemStubItem::class;
     }
-    $definition = TestHelpers::getPluginDefinition($class, 'Field', '\Drupal\Core\Field\Annotation\FieldType');
+    $definition = TestHelpers::getPluginDefinition($class, 'Field');
     // @todo Now it's a quick initialization of BaseFieldDefinition,
     // will be good to add support for other field types.
     $field_definition = BaseFieldDefinition::create($definition['id']);
@@ -67,25 +66,15 @@ class FieldItemListStubFactory {
     if (!$definition) {
       // @todo Now it's a hard-coded type, will be good to add support for
       // custom types.
-      $definition = self::createFieldItemDefinitionStub(ItemStub::class);
+      $definition = self::createFieldItemDefinitionStub(ItemStubItem::class);
       $definition->setName($name);
     }
     $field = new FieldItemList($definition, $name, $parent);
-    $field = TestHelpers::createPartialMockWithConstructor(FieldItemList::class,
-      [
-        'applyDefaultValue',
-      ],
-      [$definition, $name, $parent]
-    );
-
-    // We have no information about default values because of missing configs,
-    // so just return the same object.
-    TestHelpers::setMockedClassMethod($field, 'applyDefaultValue', function ($notify = TRUE) {
-      return $this;
-    });
 
     $field->setValue($values);
-
+    foreach ($field as $fieldItem) {
+      $fieldItem->setContext($name, $parent);
+    }
     return $field;
   }
 

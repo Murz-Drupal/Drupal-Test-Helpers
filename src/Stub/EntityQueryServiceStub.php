@@ -23,30 +23,41 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
   }
 
   /**
-   * Gets the query for entity type.
+   * Returns the base execute function closure.
    */
-  public function get($entityType, $conjunction) {
-    $executeFunction =
-      $this->executeFunctions[$entityType->id()]
-      ?? $this->executeFunctions['all']
-      ?? function () {
-        $result = [];
-        $storage = TestHelpers::service('entity_type.manager')->getStorage($this->entityTypeId);
+  public static function stubGetExecuteBaseFunction() {
+    $executeBaseFunction = function () {
+      $result = [];
+      $storage = TestHelpers::service('entity_type.manager')->getStorage($this->entityTypeId);
+      if ($this->latestRevision ?? NULL) {
+        $allEntities = $storage->stubGetAllLatestRevision();
+      }
+      else {
         $allEntities = $storage->loadMultiple();
-        $resultEntities = [];
-        foreach ($allEntities as $entity) {
-          foreach ($this->condition->conditions() as $condition) {
-            if (!TestHelpers::matchEntityCondition($entity, $condition)) {
-              continue 2;
-            }
+      }
+
+      $resultEntities = [];
+      foreach ($allEntities as $entity) {
+        foreach ($this->condition->conditions() as $condition) {
+          // SqlContentEntityStorage::buildPropertyQuery() adds a strange
+          // condition to check that default_langcode = 1, here we just skip it.
+          // @todo Investiage it deeper.
+          if ($condition['field'] == 'default_langcode' && $condition['value'] === [1]) {
+            continue 1;
           }
-          $resultEntities[] = $entity;
-          // $result[] = $entity->id();
+          if (!TestHelpers::matchEntityCondition($entity, $condition)) {
+            continue 2;
+          }
         }
-        if ($this->sort) {
-          $sortList = array_reverse($this->sort);
-          foreach ($sortList as $rule) {
-            usort($resultEntities, function ($a, $b) use ($rule) {
+        $resultEntities[] = $entity;
+      }
+
+      if ($this->sort) {
+        $sortList = array_reverse($this->sort);
+        foreach ($sortList as $rule) {
+          usort(
+            $resultEntities,
+            function ($a, $b) use ($rule) {
               if ($rule['direction'] == 'DESC') {
                 $val2 = $a->{$rule['field']}->value ?? NULL;
                 $val1 = $b->{$rule['field']}->value ?? NULL;
@@ -66,18 +77,37 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
               else {
                 return $val1 <=> $val2;
               }
-            });
-          }
+            }
+          );
         }
-        if ($this->range) {
-          $resultEntities = array_slice($resultEntities, $this->range['start'], $this->range['length']);
+      }
+      if ($this->range) {
+        $resultEntities = array_slice($resultEntities, $this->range['start'], $this->range['length']);
+      }
+      $result = [];
+      foreach ($resultEntities as $entity) {
+        if ($this->latestRevision ?? NULL) {
+          $key = $entity->getRevisionId();
         }
-        $result = [];
-        foreach ($resultEntities as $entity) {
-          $result[$entity->id()] = $entity->id();
+        else {
+          $key = $entity->id();
         }
-        return $result;
-      };
+        $result[$key] = $entity->id();
+
+      }
+      return $result;
+    };
+    return $executeBaseFunction;
+  }
+
+  /**
+   * Gets the query for entity type.
+   */
+  public function get($entityType, $conjunction) {
+    $executeFunction =
+      $this->executeFunctions[$entityType->id()]
+      ?? $this->executeFunctions['all']
+      ?? $this->stubGetExecuteBaseFunction();
     $query = $this->queryStubFactory->get($entityType, $conjunction, $executeFunction);
     return $query;
   }

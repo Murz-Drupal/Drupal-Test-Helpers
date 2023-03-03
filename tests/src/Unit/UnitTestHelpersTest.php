@@ -110,11 +110,8 @@ class UnitTestHelpersTest extends UnitTestCase {
     $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $entityTypeManager->method('getDefinition')->willReturn($entityType);
 
+    TestHelpers::service('string_translation');
     TestHelpers::setServices([
-      'entity_type.bundle.info' => NULL,
-      'renderer' => NULL,
-      'string_translation' => NULL,
-      'entity_type.manager' => $entityTypeManager,
       'url_generator' => UrlGenerator::class,
     ]);
 
@@ -124,10 +121,15 @@ class UnitTestHelpersTest extends UnitTestCase {
       $this->fail("Expected ServiceNotFoundException is not thrown.");
     }
     catch (ServiceNotFoundException $e) {
-      $this->assertEquals('You have requested a non-existent service "entity.repository".', $e->getMessage());
+      $this->assertEquals('You have requested a non-existent service "entity_type.manager".', $e->getMessage());
     }
 
-    TestHelpers::setServices(['entity.repository']);
+    TestHelpers::setServices([
+      'entity_type.bundle.info' => NULL,
+      'renderer' => NULL,
+      'entity_type.manager' => $entityTypeManager,
+      'entity.repository' => NULL,
+    ]);
 
     // Testing the behavior on a real service with the 'create' function.
     $service = TestHelpers::createClass(EntityController::class);

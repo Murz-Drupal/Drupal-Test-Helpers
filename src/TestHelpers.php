@@ -11,19 +11,24 @@ use Drupal\Core\Cache\MemoryCache\MemoryCache;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Entity\EntityBundleListenerStub;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
+use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
 use Drupal\test_helpers\lib\TestHelpersStaticStorageService;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\DateFormatterStub;
+use Drupal\test_helpers\Stub\EntityFieldManagerStub;
+use Drupal\test_helpers\Stub\EntityRepositoryStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
+use Drupal\test_helpers\Stub\MessengerStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
@@ -38,13 +43,26 @@ use Symfony\Component\Yaml\Yaml;
 // This trick is to prevent 'Undefined constant' warnings in code sniffers.
 defined('DRUPAL_ROOT') || define('DRUPAL_ROOT', '');
 
-// These constants are used in some entity definitions from core.
-// They're defined in system.module, so just re-define them here.
+// Some constants are required to be defined for calling Drupal API functions
+// from 'core/modules/system/system.module' file.
+// - DRUPAL_DISABLED
+// - DRUPAL_OPTIONAL
+// - DRUPAL_REQUIRED
+// - REGIONS_VISIBLE
+// - REGIONS_ALL
+// Redefining them here to not include the whole file.
 defined('DRUPAL_DISABLED') || define('DRUPAL_DISABLED', 0);
 defined('DRUPAL_OPTIONAL') || define('DRUPAL_OPTIONAL', 1);
 defined('DRUPAL_REQUIRED') || define('DRUPAL_REQUIRED', 2);
 defined('REGIONS_VISIBLE') || define('REGIONS_VISIBLE', 'visible');
 defined('REGIONS_ALL') || define('REGIONS_ALL', 'all');
+
+// And some more constants from '/core/includes/common.inc' file.
+// - SAVED_NEW
+// - SAVED_UPDATED
+// Redefining them here to not include the whole file.
+defined('SAVED_NEW') || define('SAVED_NEW', 1);
+defined('SAVED_UPDATED') || define('SAVED_UPDATED', 2);
 
 /**
  * Helper functions to simplify writing of Unit Tests.
@@ -60,6 +78,7 @@ class TestHelpers {
    */
   public const SERVICES_CUSTOM_STUBS = [
     'test_helpers.static_storage' => TestHelpersStaticStorageService::class,
+    'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
     'cache.backend.memory' => MemoryBackendFactory::class,
     'cache_contexts_manager' => CacheContextsManagerStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
@@ -67,11 +86,15 @@ class TestHelpers {
     'database' => DatabaseStub::class,
     'date.formatter' => DateFormatterStub::class,
     'language_manager' => ConfigurableLanguageManagerStub::class,
+    'entity_bundle.listener' => EntityBundleListenerStub::class,
+    'entity_field.manager' => EntityFieldManagerStub::class,
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
     'entity.memory_cache' => MemoryCache::class,
+    'entity.repository' => EntityRepositoryStub::class,
     'logger.factory' => LoggerChannelFactoryStub::class,
     'module_handler' => ModuleHandlerStub::class,
+    'messenger' => MessengerStub::class,
     'request_stack' => RequestStack::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'token' => TokenStub::class,
@@ -214,6 +237,20 @@ class TestHelpers {
   }
 
   /**
+   * Gets a path to file for the class.
+   *
+   * @param mixed $class
+   *   Class name or path.
+   *
+   * @return string
+   *   The path to the file.
+   */
+  public static function getClassFile($class) {
+    $reflection = new \ReflectionClass($class);
+    return $reflection->getFileName() ?? NULL;
+  }
+
+  /**
    * Parses the annotation for a class and gets the definition.
    *
    * @param string $class
@@ -325,11 +362,10 @@ class TestHelpers {
    *   The initialized container.
    */
   public static function getContainer($forceCreate = FALSE): ContainerInterface {
-    $container = (!$forceCreate && \Drupal::hasContainer())
-      ? \Drupal::getContainer()
-      : new ContainerBuilder();
-    \Drupal::setContainer($container);
-    return $container;
+    if ($forceCreate || !\Drupal::hasContainer()) {
+      \Drupal::setContainer(new ContainerBuilder());
+    }
+    return \Drupal::getContainer();
   }
 
   /**
@@ -356,10 +392,10 @@ class TestHelpers {
    */
   public static function service(string $serviceName, $class = NULL, bool $forceOverride = FALSE, array $mockableMethods = [], array $addMockableMethods = []): object {
     $container = self::getContainer();
-    $currentService = $container->has($serviceName)
-      ? $container->get($serviceName)
-      : new \stdClass();
-    if ($class === NULL) {
+    if ($container->has($serviceName) && $class === NULL && !$forceOverride) {
+      return $container->get($serviceName);
+    }
+    elseif ($class === NULL) {
       $class = self::getServiceStub($serviceName, $mockableMethods, $addMockableMethods);
     }
     elseif (is_string($class)) {
@@ -368,13 +404,25 @@ class TestHelpers {
     elseif (!is_object($class)) {
       throw new \Exception("Class should be an object, string as path to class, or NULL.");
     }
-    if (
-      (get_class($currentService) !== get_class($class))
-      || $forceOverride
-    ) {
-      $container->set($serviceName, $class);
+    if ($container->has($serviceName)) {
+      $configuredService = $container->get($serviceName);
+
+      // Checking if service of already defined and has the same class as
+      // the passed service.
+      if (
+        (get_class($configuredService) !== get_class($class))
+        || $forceOverride
+      ) {
+        $container->set($serviceName, $class);
+        return $class;
+      }
+
+      return $configuredService;
     }
-    return $container->get($serviceName);
+    else {
+      $container->set($serviceName, $class);
+      return $class;
+    }
   }
 
   /**
@@ -393,12 +441,12 @@ class TestHelpers {
       TestHelpers::getContainer(TRUE);
     }
     foreach ($services as $key => $value) {
-      // If we have only a service name - just reuse the default behavior.
       if (is_int($key)) {
+        // If we have only a service name - just reuse the default behavior.
         self::service($value);
       }
-      // If we have a service name in key and class in value - pass the class.
       else {
+        // If we have a service name in key and class in value - pass the class.
         self::service($key, $value);
       }
     }
@@ -452,40 +500,41 @@ class TestHelpers {
    * @param string $entityTypeClassName
    *   The entity type class.
    * @param array $values
-   *   An array with entity values:
-   *   - keys: field/property names.
-   *   - values: the field/property values.
+   *   A list of values to set in the created entity.
+   * @param array $translations
+   *   A list of translations to add to the created entity.
    * @param array $options
-   *   The array of options:
-   *   - entity_base_type: base type of the entity:
-   *     ContentEntityType or ConfigEntityType, default is ContentEntityType.
-   *   - @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
+   *   A list of options to entity stub creation:
+   *   - methods: list of methods to make mockable.
+   *   - addMethods: list of additional methods.
+   *   - skipPrePostSave: a flag to use direct save on the storage without
+   *     calling preSave and postSave functions. Can be useful if that functions
+   *     have dependencies which hard to mock. Applies only on the first
+   *     initialization of this node type.
+   *   - skipEntityConstructor: a flag to skip calling the entity constructor.
+   *   - fields: a list of custom field options by field name.
+   *     Applies only on the first initialization of this field.
+   *     Field options supportable formats:
+   *     - A string, indicating field type, like 'integer', 'string',
+   *       'entity_reference', only core field types are supported.
+   *     - An array with field type and settings, like this:
+   *       [
+   *        '#type' => 'entity_reference',
+   *        '#settings' => 'target_id' => 'node']
+   *       ].
+   *     - A field definition object, that will be applied to the field.
    *
    * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
    *   The stub object for the entity.
    */
-  public static function createEntity(string $entityTypeClassName, array $values = [], array $options = []) {
-    switch ($options['entity_base_type'] ?? NULL) {
-      default:
-        $annotation = NULL;
-        break;
-
-      case 'ContentEntityType':
-        $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
-        break;
-
-      case 'ConfigEntityType':
-        $annotation = '\Drupal\Core\Entity\Annotation\ConfigEntityType';
-        break;
+  public static function createEntity(string $entityTypeClassName, array $values = NULL, array $translations = NULL, array $options = NULL) {
+    $options ??= [];
+    // Splitting $options to entity options and storage options.
+    if (isset($options['skipPrePostSave'])) {
+      $storageOptions['skipPrePostSave'] = $options['skipPrePostSave'];
+      unset($options['skipPrePostSave']);
     }
-    unset($options['entity_base_type']);
-
-    // Initiating entity storage.
-    self::getEntityStorage($entityTypeClassName, $annotation);
-
-    $entity = EntityStubFactory::create($entityTypeClassName, $values, $options);
-
-    return $entity;
+    return EntityStubFactory::create($entityTypeClassName, $values, $translations, $options, $storageOptions ?? NULL);
   }
 
   /**
@@ -494,20 +543,35 @@ class TestHelpers {
    * @param string $entityTypeClassName
    *   The entity type class.
    * @param array $values
-   *   An array with entity values:
-   *   - keys: field/property names.
-   *   - values: the field/property values.
+   *   A list of values to set in the created entity.
+   * @param array $translations
+   *   A list of translations to add to the created entity.
    * @param array $options
-   *   The array of options:
-   *   - entity_base_type: base type of the entity:
-   *     ContentEntityType or ConfigEntityType, default is ContentEntityType.
-   *   - @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
+   *   A list of options to entity stub creation:
+   *   - methods: list of methods to make mockable.
+   *   - addMethods: list of additional methods.
+   *   - skipPrePostSave: a flag to use direct save on the storage without
+   *     calling preSave and postSave functions. Can be useful if that functions
+   *     have dependencies which hard to mock. Applies only on the first
+   *     initialization of this node type.
+   *   - skipEntityConstructor: a flag to skip calling the entity constructor.
+   *   - fields: a list of custom field options by field name.
+   *     Applies only on the first initialization of this field.
+   *     Field options supportable formats:
+   *     - A string, indicating field type, like 'integer', 'string',
+   *       'entity_reference', only core field types are supported.
+   *     - An array with field type and settings, like this:
+   *       [
+   *        '#type' => 'entity_reference',
+   *        '#settings' => 'target_id' => 'node']
+   *       ].
+   *     - A field definition object, that will be applied to the field.
    *
    * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
    *   The stub object for the entity.
    */
-  public static function saveEntity(string $entityTypeClassName, array $values = [], array $options = []) {
-    $entity = self::createEntity($entityTypeClassName, $values, $options);
+  public static function saveEntity(string $entityTypeClassName, array $values = NULL, array $translations = NULL, array $options = NULL) {
+    $entity = self::createEntity($entityTypeClassName, $values, $translations, $options);
     $entity->save();
     return $entity;
   }
@@ -517,14 +581,23 @@ class TestHelpers {
    *
    * @param string $entityTypeClassName
    *   The entity class.
-   * @param string $annotation
+   * @param string|object $annotation
    *   The annotation class.
+   * @param bool $forceOverride
+   *   Forces creation of the new clear storage, if exists.
+   * @param array $storageOptions
+   *   A list of options to pass to the storage initialization. Acts only once
+   *   if the storage is not initialized yet.
+   *   - skipPrePostSave: a flag to use direct save on the storage without
+   *     calling preSave and postSave functions. Can be useful if that functions
+   *     have dependencies which hard to mock.
+   *   - constructorArguments: additional arguments to the constructor.
    *
    * @return \Drupal\Core\Entity\EntityStorageInterface
    *   The initialized stub of Entity Storage.
    */
-  public static function getEntityStorage(string $entityTypeClassName, string $annotation = NULL): EntityStorageInterface {
-    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName, $annotation);
+  public static function getEntityStorage(string $entityTypeClassName, $annotation = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL): EntityStorageInterface {
+    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName, $annotation, $forceOverride, $storageOptions);
   }
 
   /**
@@ -962,7 +1035,12 @@ class TestHelpers {
     if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
       $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
       if (is_string($serviceClass)) {
-        $service = UnitTestCaseWrapper::getInstance()->createPartialMockWithConstructor($serviceClass, $mockableMethods, [], $addMockableMethods);
+        if (empty($mockableMethods) && empty($addMockableMethods)) {
+          $service = new $serviceClass();
+        }
+        else {
+          $service = UnitTestCaseWrapper::getInstance()->createPartialMockWithConstructor($serviceClass, $mockableMethods, [], $addMockableMethods);
+        }
       }
       elseif (is_array($serviceClass)) {
         $service = call_user_func_array($serviceClass, []);
@@ -1036,16 +1114,16 @@ class TestHelpers {
    */
   private static function callClassMethods(object $class, $methods, array $arguments = []) {
     $methodsToCall = [];
-    // When a single method is passed as string.
     if (is_string($methods)) {
+      // When a single method is passed as string.
       $methodsToCall[] = $methods;
     }
-    // When a single method is passed as array with function and priority.
     elseif (is_numeric($methods[1] ?? NULL)) {
+      // When a single method is passed as array with function and priority.
       $methodsToCall[$methods[1]] = $methods[0];
     }
-    // When a list of methids is passed as array.
     else {
+      // When a list of methids is passed as array.
       foreach ($methods as $method) {
         if (is_string($method)) {
           $methodsToCall[] = $method;
