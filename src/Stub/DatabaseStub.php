@@ -90,12 +90,30 @@ class DatabaseStub extends Connection {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public function delete($table, array $options = []) {
+    $methodArguments = \func_get_args();
+    $delete = $this->mockExecuteForMethod('delete', $methodArguments);
+    return $delete;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function insert($table, array $options = []) {
+    $methodArguments = \func_get_args();
+    $insert = $this->mockExecuteForMethod('insert', $methodArguments);
+    return $insert;
+  }
+
+  /**
    * Sets the function to handle execute calls.
    *
    * @param \Closure $executeFunction
    *   The execute function.
    * @param string $method
-   *   The method to use, all methods by default.
+   *   The exact method to set (insert, select, delete), all methods by default.
    */
   public function stubSetExecuteHandler(\Closure $executeFunction, string $method = 'all') {
     $this->stubExecuteHandlers[$method] = $executeFunction;
