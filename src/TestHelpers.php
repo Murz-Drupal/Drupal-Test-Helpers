@@ -334,7 +334,8 @@ class TestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function createServiceFromYaml(string $servicesYamlFile, string $name, array $additionalArguments = [], array $services = NULL): object {
+  public static function createServiceFromYaml(string $servicesYamlFile, string $name, array $additionalArguments = NULL, array $services = NULL): object {
+    $additionalArguments ??= [];
     if ($services !== NULL) {
       self::setServices($services);
     }
@@ -350,6 +351,62 @@ class TestHelpers {
     }
     $classInstance = new $serviceInfo['class'](...$classArguments, ...$additionalArguments);
     return $classInstance;
+  }
+
+  /**
+   * Initializes a service from the service name or class.
+   *
+   * The function tries to auto detect the service YAML file location
+   * automatically by service name or class name.  If auto magic doesn't work
+   * for your case, use the createServiceFromYaml() directly.
+   *
+   * @param string $serviceNameOrClass
+   *   The name of the service id in YAML file of the current module,
+   *   or the full name of a service class.
+   * @param string $serviceNameToCheck
+   *   A service name to check matching the declared one in services.yml file.
+   *   Acts only if the class name is passed as a first argument.
+   * @param array $additionalArguments
+   *   The array additional arguments to the service constructor.
+   * @param array $services
+   *   The array of services to add to the container.
+   *   Format is same as in function setServices().
+   *
+   * @return object
+   *   The initialized class instance.
+   */
+  public static function initService(string $serviceNameOrClass, string $serviceNameToCheck = NULL, array $additionalArguments = NULL, array $services = NULL): object {
+    if (strpos($serviceNameOrClass, '\\') === FALSE) {
+      $serviceName = $serviceNameOrClass;
+      // We have a service id name, use the current module as the module name.
+      $callerInfo = self::getCallerInfo();
+      $moduleName = self::getModuleName($callerInfo['class']);
+      $moduleRoot = self::getModuleRoot($callerInfo['file'], $moduleName);
+      $servicesFile = "$moduleRoot/$moduleName.services.yml";
+    }
+    else {
+      $serviceClass = $serviceNameOrClass;
+      $moduleName = self::getModuleName($serviceClass);
+      $reflection = new \ReflectionClass($serviceClass);
+      $fileName = $reflection->getFileName();
+      $moduleRoot = self::getModuleRoot($fileName, $moduleName);
+      $servicesFile = "$moduleRoot/$moduleName.services.yml";
+      $servicesFileData = Yaml::parseFile($servicesFile);
+      foreach ($servicesFileData['services'] as $name => $info) {
+        if (($info['class'] ?? NULL) == $serviceClass) {
+          $serviceName = $name;
+          break;
+        }
+      }
+      if (!isset($serviceName)) {
+        throw new \Exception("Can't find the service name by class $serviceClass in the service file $servicesFile.");
+      }
+      if ($serviceNameToCheck && $serviceNameToCheck !== $serviceName) {
+        throw new \Exception("The service name '$serviceName' differs from required name '$serviceNameToCheck'");
+      }
+    }
+
+    return self::createServiceFromYaml($servicesFile, $serviceName, $additionalArguments, $services);
   }
 
   /**
@@ -755,17 +812,31 @@ class TestHelpers {
    *   True if matches, false if not.
    */
   public static function matchEntityCondition(EntityInterface $entity, array $condition): bool {
-    $field = $entity->{$condition['field']};
+    $exceptionSuffix = ' Please use function stubSetExecuteHandler() to stub the results.';
+    if (strpos($condition['field'], '.')) {
+      $parts = explode('.', $condition['field']);
+      if (count($parts) > 2) {
+        throw new \Error('Function does not support deep references in fields yet, only field property name is supported.' . $exceptionSuffix);
+      }
+      $fieldName = $parts[0];
+      $propertyName = $parts[1];
+    }
+    else {
+      $fieldName = $condition['field'];
+    }
+    $field = $entity->$fieldName;
     $fieldItem = $field[0] ?? NULL;
-    $mainPropertyName = (is_object($fieldItem) && method_exists($fieldItem, 'mainPropertyName')) ? $fieldItem->mainPropertyName() : 'value';
-    $value = method_exists($field, 'getValue') ? $field->getValue() : NULL;
+    if (!isset($propertyName)) {
+      $propertyName = (is_object($fieldItem) && method_exists($fieldItem, 'mainPropertyName')) ? $fieldItem->mainPropertyName() : 'value';
+    }
+    $value = (is_object($field) && method_exists($field, 'getValue')) ? $field->getValue() : NULL;
     switch ($condition['operator']) {
       case 'IN':
         if ($value == NULL && !empty($condition['value'])) {
           return FALSE;
         }
         foreach ($value as $valueItem) {
-          if (!in_array($valueItem[$mainPropertyName] ?? NULL, $condition['value'])) {
+          if (!in_array($valueItem[$propertyName] ?? NULL, $condition['value'])) {
             return FALSE;
           }
         }
@@ -776,7 +847,7 @@ class TestHelpers {
           return TRUE;
         }
         foreach ($value as $valueItem) {
-          if (in_array($valueItem[$mainPropertyName], $condition['value'])) {
+          if (in_array($valueItem[$propertyName], $condition['value'])) {
             return FALSE;
           }
         }
@@ -787,7 +858,7 @@ class TestHelpers {
       case '=':
         if (is_array($value)) {
           foreach ($value as $valueItem) {
-            if (($valueItem[$mainPropertyName] ?? NULL) == $condition['value']) {
+            if (($valueItem[$propertyName] ?? NULL) == $condition['value']) {
               return TRUE;
             }
           }
@@ -818,7 +889,7 @@ class TestHelpers {
         foreach ($value as $valueItem) {
           // To suppress `The use of function eval() is discouraged` warning.
           // @codingStandardsIgnoreStart
-          if (eval("return '" . addslashes($valueItem[$mainPropertyName] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
+          if (eval("return '" . addslashes($valueItem[$propertyName] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
             // @codingStandardsIgnoreEnd
             return TRUE;
           }
@@ -826,7 +897,7 @@ class TestHelpers {
         return FALSE;
 
       default:
-        throw new \Exception('A stub for the "' . $condition['operator'] . '" operator is not implemented yet. Please use function stubSetExecuteHandler() to stub the results.');
+        throw new \Exception('A stub for the "' . $condition['operator'] . '" operator is not implemented yet.' . $exceptionSuffix);
     }
   }
 
@@ -853,20 +924,34 @@ class TestHelpers {
   }
 
   /**
-   * Calls an event subscriber function.
+   * Calls an event subscriber with checking the definition in services.
    *
-   * @param string $servicesYamlFile
-   *   The path to a services.yml file.
-   * @param string $serviceName
-   *   The name of the service in the services.yml file.
+   * Checks that the event subscriber has a definition in services.yml file
+   * and the 'event_subscriber' tag in it, before calling.
+   *
+   * @param string|array $service
+   *   A service class as a string, or an array with the service info, where:
+   *   - the first element is a path to the service YAML file,
+   *   - the second element - the service name.
    * @param string $eventName
    *   The Event name.
-   * @param mixed $event
+   * @param object $event
    *   The Event object.
    */
-  public static function callEventSubscriber(string $servicesYamlFile, string $serviceName, string $eventName, &$event): void {
+  public static function callEventSubscriber($service, string $eventName, object &$event): void {
+    if (is_array($service)) {
+      [$servicesYamlFile, $serviceName] = $service;
+    }
+    else {
+      // Assuming that the service name is related to a called module.
+      // Using there jumping to one level upper when detecting module info,
+      // because current call adds a new step already.
+      $servicesYamlFile = self::getModuleRoot(1) . '/' . self::getModuleName(1) . '.services.yml';
+      $serviceName = $service;
+    }
     $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $serviceName);
-    // Checking the presention of 'event_subscriber' tag.
+
+    // Checking the presence of the 'event_subscriber' tag.
     $tagFound = FALSE;
     foreach ($serviceInfo['tags'] as $tag) {
       if ($tag['name'] == 'event_subscriber') {
@@ -1012,6 +1097,78 @@ class TestHelpers {
     return $mock;
   }
 
+  /**
+   * Gets a module name from a namespace of a module class.
+   *
+   * @param string|int|null $namespaceOrLevel
+   *   The module class namespace. If NULL - gets the namespace from a called
+   *   function. If numeric - jumps upper the passed number of levels.
+   *
+   * @return string|null
+   *   The module name, or NULL if can't find.
+   */
+  public static function getModuleName($namespaceOrLevel = NULL): ?string {
+    if ($namespaceOrLevel === NULL || is_numeric($namespaceOrLevel)) {
+      $level = is_numeric($namespaceOrLevel) ? 2 + $namespaceOrLevel : 2;
+      $namespace = self::getCallerInfo($level)['class'];
+    }
+    else {
+      $namespace = $namespaceOrLevel;
+    }
+    $parts = explode('\\', $namespace);
+    if ($parts[0] === 'Drupal') {
+      if ($parts[1] === 'Tests') {
+        return $parts[2];
+      }
+      return $parts[1];
+    }
+    return NULL;
+  }
+
+  /**
+   * Gets a root module folder from a module file full path.
+   *
+   * @param string|int|null $pathOrClassOrLevel
+   *   A full path to a file or a class. If empty - gets the path of the
+   *   function caller file.
+   * @param string|null $moduleName
+   *   The name of the module, if empty - gets the caller module name.
+   *
+   * @return string|null
+   *   The full path to the module root.
+   */
+  public static function getModuleRoot($pathOrClassOrLevel = NULL, string $moduleName = NULL): ?string {
+    if ($pathOrClassOrLevel === NULL || is_numeric($pathOrClassOrLevel)) {
+      // Getting a module info from a caller function.
+      $level = is_numeric($pathOrClassOrLevel) ? 2 + $pathOrClassOrLevel : 2;
+      $callerInfo = self::getCallerInfo($level);
+      $file = $callerInfo['file'];
+      $moduleName = self::getModuleName($callerInfo['class']);
+    }
+    elseif (str_starts_with($pathOrClassOrLevel, 'Drupal\\')) {
+      // We have a full path of the Drupal class.
+      $file = self::getClassFile($pathOrClassOrLevel);
+    }
+    else {
+      $file = $pathOrClassOrLevel;
+    }
+    $parts = explode(DIRECTORY_SEPARATOR, $file);
+    $partsReversed = array_reverse($parts);
+    $modulesIndex =
+      array_search('modules', $partsReversed)
+      ?? array_search('themes', $partsReversed);
+    if (!$modulesIndex) {
+      return NULL;
+    }
+    if ($moduleName) {
+      $index = $modulesIndex;
+      while ($partsReversed[$index] !== $moduleName && $index > 0) {
+        $index--;
+      }
+      return $index > 0 ? implode(DIRECTORY_SEPARATOR, array_reverse(array_slice($partsReversed, $index))) : NULL;
+    }
+  }
+
   /* ************************************************************************ *
    * Internal functions.
    * ************************************************************************ */
@@ -1145,6 +1302,39 @@ class TestHelpers {
   }
 
   /**
+   * Gets a filename of a caller (parent) function.
+   *
+   * @internal
+   *   This function is used mostly for internal functionality.
+   *
+   * @param int $level
+   *   The level to use when getting a filename. By defualt '2' to get parent of
+   *   parent caller, because for parent caller it's easier to use __FILE__
+   *   construction.
+   *
+   * @return array
+   *   An array with the caller information:
+   *   - file: the full path to file.
+   *   - function: the function name.
+   *   - class: the full class name.
+   */
+  public static function getCallerInfo(int $level = 2): ?array {
+    $backtrace = debug_backtrace(defined("DEBUG_BACKTRACE_IGNORE_ARGS") ? DEBUG_BACKTRACE_IGNORE_ARGS : FALSE);
+    // The caller filename is located in one level lower.
+    $callerTrace = $backtrace[$level - 1] ?? NULL;
+    // The caller filename is located in one level lower.
+    $calledTrace = $backtrace[$level] ?? NULL;
+    if (!$callerTrace || !$calledTrace) {
+      return NULL;
+    }
+    return [
+      'file' => $callerTrace['file'],
+      'function' => $calledTrace['function'],
+      'class' => $calledTrace['class'],
+    ];
+  }
+
+  /**
    * Disables a construtor calls to allow only static calls.
    */
   private function __construct() {
@@ -1224,32 +1414,6 @@ class TestHelpers {
   public static function bindClosureToClassMethod(\Closure $closure, MockObject $class, string $method): void {
     @trigger_error('Function bindClosureToClassMethod() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to setClassMethod() with changing the order of the arguments. See https://www.drupal.org/project/test_helpers/issues/3336574', E_USER_DEPRECATED);
     self::setMockedClassMethod($class, $method, $closure);
-  }
-
-  /**
-   * Creates a service via calling function create() with container.
-   *
-   * Tests the correct work of create() and __construct() functions
-   * and does the assertion of class match.
-   *
-   * @param string|object $class
-   *   The class to test, can be a string with path or initialized class.
-   * @param array $createArguments
-   *   The list of arguments for passing to function create().
-   * @param array $services
-   *   The array of services to add to the container.
-   *   Format is same as in function setServices().
-   *
-   * @return object
-   *   The initialized class instance.
-   *
-   * @deprecated in test_helpers:1.0.0-beta4 and is removed from
-   *   test_helpers:1.0.0-rc1. Use TestHelpers::service().
-   * @see https://www.drupal.org/project/test_helpers/issues/3336364
-   */
-  public static function createService($class, array $createArguments = NULL, array $services = NULL): object {
-    @trigger_error('Function createService() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to createClass(). See https://www.drupal.org/project/test_helpers/issues/3336801', E_USER_DEPRECATED);
-    return self::createClass($class, $createArguments, $services);
   }
 
   /**

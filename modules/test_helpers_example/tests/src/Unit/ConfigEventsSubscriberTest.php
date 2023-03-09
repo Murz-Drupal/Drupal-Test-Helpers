@@ -20,13 +20,12 @@ class ConfigEventsSubscriberTest extends UnitTestCase {
     $messenger = TestHelpers::service('messenger');
     $config = TestHelpers::service('config.factory')->getEditable('some.config');
     $event = new ConfigCrudEvent($config);
-    $serviceFile = dirname(__FILE__) . '/../../../test_helpers_example.services.yml';
     $serviceName = 'test_helpers_example.config_events_subscriber';
 
-    TestHelpers::callEventSubscriber($serviceFile, $serviceName, ConfigEvents::SAVE, $event);
+    TestHelpers::callEventSubscriber($serviceName, ConfigEvents::SAVE, $event);
     $this->assertEquals('Saved config: some.config', $messenger->deleteAll()['status'][0]);
 
-    TestHelpers::callEventSubscriber($serviceFile, $serviceName, ConfigEvents::DELETE, $event);
+    TestHelpers::callEventSubscriber($serviceName, ConfigEvents::DELETE, $event);
     $this->assertEquals('Deleted config: some.config', $messenger->deleteAll()['status'][0]);
   }
 

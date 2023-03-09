@@ -20,17 +20,19 @@ class CallEventSubscriberTest extends UnitTestCase {
    */
   public function testCallEventSubscriber() {
     $event = new EventStub();
-    TestHelpers::callEventSubscriber(
+    $serviceInfo = [
       dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
       'test_helpers.event_subscriber_stub',
+    ];
+    TestHelpers::callEventSubscriber(
+      $serviceInfo,
       'event1',
       $event,
     );
     $this->assertEquals('value1', $event->value);
 
     TestHelpers::callEventSubscriber(
-      dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
-      'test_helpers.event_subscriber_stub',
+      $serviceInfo,
       'event2',
       $event,
     );
@@ -38,12 +40,16 @@ class CallEventSubscriberTest extends UnitTestCase {
 
     TestHelpers::service('string_translation');
     TestHelpers::callEventSubscriber(
-      dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
-      'test_helpers.event_subscriber_stub',
+      $serviceInfo,
       'event3',
       $event,
     );
     $this->assertEquals('value2', $event->value);
+
+    // The case with just the service name as an argument is tested in the
+    // Drupal\Tests\test_helpers_example\Unit\ConfigEventsSubscriberTest()
+    // because it requires a 'services.yml' file to be presend, but for this
+    // module it is not needed.
   }
 
   /**
@@ -51,10 +57,13 @@ class CallEventSubscriberTest extends UnitTestCase {
    */
   public function testCallEventSubscriberWithNoTag() {
     $event = new EventStub();
+    $serviceInfo = [
+      'yml' => dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
+      'service' => 'test_helpers.event_subscriber_stub_no_tag',
+    ];
     try {
       TestHelpers::callEventSubscriber(
-        dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
-        'test_helpers.event_subscriber_stub_no_tag',
+        $serviceInfo,
         'event3',
         $event,
       );

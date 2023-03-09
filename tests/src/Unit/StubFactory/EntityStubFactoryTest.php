@@ -171,6 +171,7 @@ class EntityStubFactoryTest extends UnitTestCase {
     $this->assertEquals(1, $node1->getRevisionId());
 
     $node1->title = 'Entity 1 Revision 1 still';
+    $node1->status = 1;
     $node1->save();
     $this->assertEquals(1, $node1->getRevisionId());
 
@@ -194,21 +195,26 @@ class EntityStubFactoryTest extends UnitTestCase {
     $node2->save();
     $this->assertEquals(4, $node2->getRevisionId());
 
+    $node1->title = 'Entity 1 Revision 3';
+    $node1->setNewRevision(TRUE);
+    $node1->status = 0;
+    $node1->save();
+    $this->assertEquals(5, $node1->getRevisionId());
+
+    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->load($node1->id());
+    // The revision id should be 2, because the last revision is not published.
+    $this->assertEquals(2, $nodeLoaded->getRevisionId());
+
+    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadRevision(2);
+    $this->assertEquals(2, $nodeLoaded->getRevisionId());
+    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadRevision(1);
+    $this->assertEquals(1, $nodeLoaded->getRevisionId());
+
     $term1 = TestHelpers::createEntity(Term::class, ['name' => 'Term 1 Revision 1']);
     $term2 = TestHelpers::saveEntity(Term::class, ['name' => 'Term 1 Revision 1']);
     $term1->save();
     $this->assertEquals(2, $term1->getRevisionId());
     $this->assertEquals(1, $term2->getRevisionId());
-
-    $node1->title = 'Entity 1 Revision 3';
-    $node1->setNewRevision(TRUE);
-    $node1->save();
-    $this->assertEquals(5, $node1->getRevisionId());
-
-    $node1Loaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadRevision(2);
-    $this->assertEquals(2, $node1Loaded->getRevisionId());
-    $node1Loaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadRevision(1);
-    $this->assertEquals(1, $node1Loaded->getRevisionId());
   }
 
 }

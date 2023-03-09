@@ -86,7 +86,11 @@ class UnitTestHelpersTest extends UnitTestCase {
     // Testing a next getter and overriding of the method return value.
     $labelMethod2 = TestHelpers::getMockedMethod($mock, 'label');
     $labelMethod2->willReturnArgument(1);
+    // Putting coding standards ignore flag to suppress the warning
+    // 'Too many arguments to function label().'.
+    // @codingStandardsIgnoreStart
     $this->assertEquals('arg1', $mock->label('arg0', 'arg1'));
+    // @codingStandardsIgnoreEnd
 
     // Testing a getter with callback function.
     $idMethod = TestHelpers::getMockedMethod($mock, 'id');
@@ -99,7 +103,6 @@ class UnitTestHelpersTest extends UnitTestCase {
   /**
    * @covers ::service
    * @covers ::setServices
-   * @covers ::createService
    */
   public function testAddServices() {
     /** @var \Drupal\Core\Entity\EntityTypeInterface|\PHPUnit\Framework\MockObject\MockObject $entityType */
@@ -169,6 +172,30 @@ class UnitTestHelpersTest extends UnitTestCase {
       ]
     );
     $this->assertEquals(['method1', 'method2'], $service->getNegotiationMethods());
+  }
+
+  /**
+   * @covers ::initService
+   */
+  public function testInitService() {
+    $service = TestHelpers::initService(LanguageNegotiationMethodManager::class);
+    $this->assertInstanceOf(LanguageNegotiationMethodManager::class, $service);
+
+    $service = TestHelpers::initService(LanguageNegotiationMethodManager::class, 'plugin.manager.language_negotiation_method');
+    $this->assertInstanceOf(LanguageNegotiationMethodManager::class, $service);
+
+    try {
+      $service = TestHelpers::initService(LanguageNegotiationMethodManager::class, 'wrong_service_name');
+      $this->fail('Previous line should throw an exception.');
+    }
+    catch (\Exception $e) {
+      $this->assertStringStartsWith("The service name 'plugin.manager.language_negotiation_method' differs from required name 'wrong_service_name'", $e->getMessage());
+    }
+
+    // The case with the service name as an argument is tested in the
+    // Drupal\Tests\test_helpers_example\Unit\ConfigEventsSubscriberTest()
+    // because it requires a 'services.yml' file to be presend, but for this
+    // module it is not needed.
   }
 
 }

@@ -287,13 +287,18 @@ class EntityStorageStubFactory {
         $entityData = EntityStorageStubFactory::entityToValues($entity);
       }
 
-      $entitiesStorage['byId'][$entity->id()] = $entityData;
-
       if ($this->entityType instanceof ContentEntityTypeInterface) {
         $entitiesStorage['byRevisionId'][$entity->getRevisionId()] = $entityData;
         if ($entity->isLatestRevision()) {
           $entitiesStorage['byIdLatestRevision'][$entity->id()] = $entityData;
+          if ($entity->isNew() || $entity->isPublished() || !isset($entitiesStorage['byId'][$entity->id()])) {
+            $entitiesStorage['byId'][$entity->id()] = $entityData;
+          }
         }
+      }
+      else {
+        $entitiesStorage['byId'][$entity->id()] = $entityData;
+
       }
     };
 
@@ -408,6 +413,7 @@ class EntityStorageStubFactory {
   public static function valuesToEntity(EntityTypeInterface $entityType, array $values = []): EntityInterface {
     if ($values['#translationData'] ?? NULL) {
       $entity = TestHelpers::createEntity($entityType->getClass(), $values['#default'] ?? []);
+      $entity->enforceIsNew(FALSE);
       foreach ($values['#translations'] ?? [] as $langCode => $valuesInLang) {
         $entity->addTranslation($langCode, $valuesInLang);
       }
