@@ -734,6 +734,44 @@ class TestHelpers {
   }
 
   /**
+   * Searches query conditions by a field name or sub-conditions.
+   *
+   * @param object $query
+   *   The query object.
+   * @param string|array $requiredCondition
+   *   The string with the field name to search.
+   *   Or an array with sub-conditions like
+   *   `['field' => 'nid', 'operator' => '<>']`.
+   * @param bool $returnAllMatches
+   *   A flag to return all matches as a list, not only the first match.
+   *
+   * @return array|null
+   *   The first matched condition, or NULL if no matcheds.
+   */
+  public static function findQueryCondition(object $query, $requiredCondition, bool $returnAllMatches = FALSE): ?array {
+    $conditionsProperty = self::getPrivateProperty($query, 'condition');
+    $conditions = $conditionsProperty->conditions();
+    $matches = [];
+    foreach ($conditions as $condition) {
+      if (
+        (is_string($requiredCondition) && ($condition['field'] ?? NULL) == $requiredCondition)
+        || (is_array($requiredCondition) && self::isNestedArraySubsetOf($condition, $requiredCondition))
+      ) {
+        if ($returnAllMatches) {
+          $matches[] = $condition;
+        }
+        else {
+          return $condition;
+        }
+      }
+    }
+    if ($returnAllMatches && $matches) {
+      return $matches;
+    }
+    return NULL;
+  }
+
+  /**
    * Performs matching of passed conditions with the query.
    *
    * @param \Drupal\Core\Entity\Query\ConditionInterface|Drupal\Core\Database\Query\ConditionInterface $conditionsObject
@@ -865,16 +903,6 @@ class TestHelpers {
             if (($valueItem[$propertyName] ?? NULL) == $condition['value']) {
               return TRUE;
             }
-          }
-        }
-        return FALSE;
-
-      // NULL is treated as `=` condition for EntityQery queries.
-      case NULL:
-      case '=':
-        foreach ($value as $valueItem) {
-          if (($valueItem[$mainPropertyName] ?? NULL) == $condition['value']) {
-            return TRUE;
           }
         }
         return FALSE;

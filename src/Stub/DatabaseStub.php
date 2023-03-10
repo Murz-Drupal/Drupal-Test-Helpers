@@ -110,6 +110,9 @@ class DatabaseStub extends Connection {
   /**
    * Sets the function to handle execute calls.
    *
+   * You can call `$this->stubExecuteBase()` in your custom callback function
+   * to execute the base stub behavior for the query.
+   *
    * @param \Closure $executeFunction
    *   The execute function.
    * @param string $method

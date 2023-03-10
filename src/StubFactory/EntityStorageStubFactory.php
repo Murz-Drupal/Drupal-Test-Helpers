@@ -349,7 +349,7 @@ class EntityStorageStubFactory {
 
     if (in_array('loadRevision', $overridedMethods)) {
       TestHelpers::setMockedClassMethod($entityStorage, 'loadRevision', function ($id) use (&$entitiesStorage) {
-        if (!$values = $entitiesStorage['byRevisionId'][$id]) {
+        if (!$values = $entitiesStorage['byRevisionId'][$id] ?? NULL) {
           return NULL;
         }
         $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);

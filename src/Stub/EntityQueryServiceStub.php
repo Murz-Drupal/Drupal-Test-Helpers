@@ -121,7 +121,15 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
   }
 
   /**
-   * Adds an execute callback function to the particular entity type.
+   * Sets the function to handle execute calls.
+   *
+   * You can call `$this->stubExecuteBase()` in your custom callback function
+   * to execute the base stub behavior for the query.
+   *
+   * @param \Closure $executeFunction
+   *   The execute function.
+   * @param string $entityTypeId
+   *   The entity type to attach, all entity types by default.
    */
   public function stubSetExecuteHandler(callable $function, string $entityTypeId = 'all') {
     $this->executeFunctions[$entityTypeId] = $function;
