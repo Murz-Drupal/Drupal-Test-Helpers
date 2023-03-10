@@ -106,15 +106,15 @@ class TestHelpers {
   /**
    * Gets a private or protected method from a class using reflection.
    *
-   * @param object $class
-   *   The class instance.
+   * @param object|string $class
+   *   The class instance or the name of the class.
    * @param string $methodName
    *   The name of the method to get.
    *
    * @return \ReflectionMethod
    *   The method instance.
    */
-  public static function getPrivateMethod(object $class, string $methodName): \ReflectionMethod {
+  public static function getPrivateMethod($class, string $methodName): \ReflectionMethod {
     $reflection = new \ReflectionClass($class);
     $method = $reflection
       ->getMethod($methodName);
@@ -126,8 +126,8 @@ class TestHelpers {
   /**
    * Calls a private or protected method from a class using reflection.
    *
-   * @param object $class
-   *   The class instance.
+   * @param object|string $class
+   *   The class instance or the name of the class.
    * @param string $methodName
    *   The name of the method to get.
    * @param array $arguments
@@ -136,16 +136,16 @@ class TestHelpers {
    * @return mixed
    *   The return value of the executed function.
    */
-  public static function callPrivateMethod(object $class, string $methodName, array $arguments = []) {
+  public static function callPrivateMethod($class, string $methodName, array $arguments = []) {
     $method = self::getPrivateMethod($class, $methodName);
-    return $method->invokeArgs($class, $arguments);
+    return $method->invokeArgs(is_object($class) ? $class : NULL, $arguments);
   }
 
   /**
    * Gets a private or protected property from a class using reflection.
    *
-   * @param object $class
-   *   The class instance.
+   * @param object|string $class
+   *   The class instance or the name of the class.
    * @param string $propertyName
    *   The name of the property to get.
    * @param bool $returnReflectionProperty
@@ -154,8 +154,12 @@ class TestHelpers {
    * @return mixed
    *   The property value.
    */
-  public static function getPrivateProperty(object $class, string $propertyName, $returnReflectionProperty = FALSE) {
+  public static function getPrivateProperty($class, string $propertyName, $returnReflectionProperty = FALSE) {
     $reflection = new \ReflectionClass($class);
+    if (is_string($class)) {
+      // Considering property as a static.
+      return $reflection->getStaticPropertyValue($propertyName);
+    }
     $property = $reflection
       ->getProperty($propertyName);
     $property
@@ -169,14 +173,14 @@ class TestHelpers {
   /**
    * Sets a private or protected property value in a class using reflection.
    *
-   * @param object $class
-   *   The class instance.
+   * @param object|string $class
+   *   The class instance or the name of the class.
    * @param string $propertyName
    *   The name of the property to get.
    * @param mixed $value
    *   The value to set.
    */
-  public static function setPrivateProperty(object $class, string $propertyName, $value): void {
+  public static function setPrivateProperty($class, string $propertyName, $value): void {
     $reflection = new \ReflectionClass($class);
     $property = $reflection
       ->getProperty($propertyName);
@@ -1304,9 +1308,6 @@ class TestHelpers {
   /**
    * Gets a filename of a caller (parent) function.
    *
-   * @internal
-   *   This function is used mostly for internal functionality.
-   *
    * @param int $level
    *   The level to use when getting a filename. By defualt '2' to get parent of
    *   parent caller, because for parent caller it's easier to use __FILE__
@@ -1317,6 +1318,9 @@ class TestHelpers {
    *   - file: the full path to file.
    *   - function: the function name.
    *   - class: the full class name.
+   *
+   * @internal
+   *   This function is used mostly for internal functionality.
    */
   public static function getCallerInfo(int $level = 2): ?array {
     $backtrace = debug_backtrace(defined("DEBUG_BACKTRACE_IGNORE_ARGS") ? DEBUG_BACKTRACE_IGNORE_ARGS : FALSE);
@@ -1328,7 +1332,7 @@ class TestHelpers {
       return NULL;
     }
     return [
-      'file' => $callerTrace['file'],
+      'file' => $callerTrace['file'] ?? NULL,
       'function' => $calledTrace['function'],
       'class' => $calledTrace['class'],
     ];

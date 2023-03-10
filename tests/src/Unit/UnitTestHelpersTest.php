@@ -24,34 +24,6 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 class UnitTestHelpersTest extends UnitTestCase {
 
   /**
-   * @covers ::getPrivateProperty
-   * @covers ::getPrivateMethod
-   * @covers ::callPrivateMethod
-   */
-  public function testProtectedUtilities() {
-    $class = new ClassWithProtectedItemsStub();
-
-    try {
-      $class->property1;
-      $this->fail("Expected error is not thrown.");
-    }
-    catch (\Error $e) {
-      $this->assertEquals(0, $e->getCode());
-    }
-
-    $this->assertSame($class->getProperty1(), TestHelpers::getPrivateProperty($class, 'property1'));
-    $this->assertNull(TestHelpers::getPrivateProperty($class, 'property2'));
-
-    TestHelpers::setPrivateProperty($class, 'property2', 'bar');
-    $this->assertSame('bar', TestHelpers::getPrivateProperty($class, 'property2'));
-
-    $this->assertSame('bar', TestHelpers::callPrivateMethod($class, 'getProperty2'));
-    $this->assertSame('bar', TestHelpers::callPrivateMethod($class, 'getPropertyByName', ['property2']));
-    $method = TestHelpers::getPrivateMethod($class, 'getPropertyByName');
-    $this->assertSame('foo', $method->invoke($class, 'property1'));
-  }
-
-  /**
    * @covers ::getMockedMethod
    */
   public function testGetMockedMethod() {

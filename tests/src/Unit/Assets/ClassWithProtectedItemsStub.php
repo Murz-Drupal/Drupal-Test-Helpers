@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit;
+namespace Drupal\Tests\test_helpers\Unit\Assets;
 
 /**
  * A helper class to test utilities for protected class items.
@@ -47,7 +47,7 @@ class ClassWithProtectedItemsStub {
    */
   // @codingStandardsIgnoreStart
   private function getProperty2() {
-  // @codingStandardsIgnoreEnd
+    // @codingStandardsIgnoreEnd
     return $this->property2;
   }
 
@@ -56,7 +56,7 @@ class ClassWithProtectedItemsStub {
    */
   // @codingStandardsIgnoreStart
   private function getPropertyByName($name) {
-  // @codingStandardsIgnoreEnd
+    // @codingStandardsIgnoreEnd
     return $this->$name;
   }
 
