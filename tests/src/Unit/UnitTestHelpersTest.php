@@ -124,25 +124,22 @@ class UnitTestHelpersTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::createServiceFromYaml
+   * @covers ::initServiceFromYaml
    */
-  public function testCreateServiceFromYaml() {
+  public function testInitServiceFromYaml() {
     TestHelpers::service('plugin.manager.language_negotiation_method', $this->createMock(LanguageNegotiationMethodManager::class));
     \Drupal::service('plugin.manager.language_negotiation_method')
       ->method('getDefinitions')
       ->willReturn(['method1', 'method2']);
-
-    $service = TestHelpers::createServiceFromYaml(
+    TestHelpers::setServices([
+      'config.factory' => NULL,
+      'language_manager' => $this->createMock(ConfigurableLanguageManagerInterface::class),
+      'settings' => new Settings([]),
+      'request_stack' => NULL,
+    ]);
+    $service = TestHelpers::initServiceFromYaml(
       'core/modules/language/language.services.yml',
-      'language_negotiator',
-      [],
-      [
-        0 => 'config.factory',
-        'language_manager' => $this->createMock(ConfigurableLanguageManagerInterface::class),
-        'settings' => new Settings([]),
-        'request_stack' => NULL,
-      ]
-    );
+      'language_negotiator');
     $this->assertEquals(['method1', 'method2'], $service->getNegotiationMethods());
   }
 

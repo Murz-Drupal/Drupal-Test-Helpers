@@ -51,7 +51,7 @@ class ArticlesServiceTest extends UnitTestCase {
         'de' => ['title' => 'Eine coole Geschichte', 'field_synopsis' => 'Eine Geschichte über coole Dinge.', 'field_category' => 'Boring articles'],
       ]);
 
-    $service = TestHelpers::createServiceFromYaml(dirname(__FILE__) . '/../../../test_helpers_example.services.yml', 'test_helpers_example.articles_manager');
+    $service = TestHelpers::initService('test_helpers_example.articles_manager');
 
     $this->assertTrue(TestHelpers::isNestedArraySubsetOf($service->getTranslatedArticlesList('en'), [
       ['title' => 'A boring story', 'author' => 'Alice', 'term' => 'Category: Boring articles'],

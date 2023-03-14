@@ -323,26 +323,17 @@ class TestHelpers {
   }
 
   /**
-   * Creates a service from YAML file with passing services as arguments.
+   * Initializes a service from YAML file with passing services as arguments.
    *
    * @param string $servicesYamlFile
    *   The path to the YAML file.
    * @param string $name
    *   The name of the service.
-   * @param array $additionalArguments
-   *   The array additional arguments to the service constructor.
-   * @param array $services
-   *   The array of services to add to the container.
-   *   Format is same as in function setServices().
    *
    * @return object
    *   The initialized class instance.
    */
-  public static function createServiceFromYaml(string $servicesYamlFile, string $name, array $additionalArguments = NULL, array $services = NULL): object {
-    $additionalArguments ??= [];
-    if ($services !== NULL) {
-      self::setServices($services);
-    }
+  public static function initServiceFromYaml(string $servicesYamlFile, string $name): object {
     $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $name);
     $classArguments = [];
     foreach (($serviceInfo['arguments'] ?? []) as $argument) {
@@ -353,7 +344,7 @@ class TestHelpers {
         $classArguments[] = $argument;
       }
     }
-    $classInstance = new $serviceInfo['class'](...$classArguments, ...$additionalArguments);
+    $classInstance = new $serviceInfo['class'](...$classArguments);
     return $classInstance;
   }
 
@@ -362,7 +353,7 @@ class TestHelpers {
    *
    * The function tries to auto detect the service YAML file location
    * automatically by service name or class name.  If auto magic doesn't work
-   * for your case, use the createServiceFromYaml() directly.
+   * for your case, use the initServiceFromYaml() directly.
    *
    * @param string $serviceNameOrClass
    *   The name of the service id in YAML file of the current module,
@@ -370,16 +361,11 @@ class TestHelpers {
    * @param string $serviceNameToCheck
    *   A service name to check matching the declared one in services.yml file.
    *   Acts only if the class name is passed as a first argument.
-   * @param array $additionalArguments
-   *   The array additional arguments to the service constructor.
-   * @param array $services
-   *   The array of services to add to the container.
-   *   Format is same as in function setServices().
    *
    * @return object
    *   The initialized class instance.
    */
-  public static function initService(string $serviceNameOrClass, string $serviceNameToCheck = NULL, array $additionalArguments = NULL, array $services = NULL): object {
+  public static function initService(string $serviceNameOrClass, string $serviceNameToCheck = NULL): object {
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
       $serviceName = $serviceNameOrClass;
       // We have a service id name, use the current module as the module name.
@@ -410,7 +396,7 @@ class TestHelpers {
       }
     }
 
-    return self::createServiceFromYaml($servicesFile, $serviceName, $additionalArguments, $services);
+    return self::initServiceFromYaml($servicesFile, $serviceName);
   }
 
   /**
@@ -997,7 +983,7 @@ class TestHelpers {
       throw new \Exception("EventSubscriber $serviceName misses the 'event_subscriber' tag in the service definition");
     }
 
-    $service = self::createServiceFromYaml($servicesYamlFile, $serviceName);
+    $service = self::initServiceFromYaml($servicesYamlFile, $serviceName);
     $subscribedEvents = $service->getSubscribedEvents();
     self::callClassMethods($service, $subscribedEvents[$eventName], [$event]);
   }
@@ -1430,6 +1416,32 @@ class TestHelpers {
   }
 
   /**
+   * Creates a service via calling function create() with container.
+   *
+   * Tests the correct work of create() and __construct() functions
+   * and does the assertion of class match.
+   *
+   * @param string|object $class
+   *   The class to test, can be a string with path or initialized class.
+   * @param array $createArguments
+   *   The list of arguments for passing to function create().
+   * @param array $services
+   *   The array of services to add to the container.
+   *   Format is same as in function setServices().
+   *
+   * @return object
+   *   The initialized class instance.
+   *
+   * @deprecated in test_helpers:1.0.0-beta4 and is removed from
+   *   test_helpers:1.0.0-rc1. Use TestHelpers::service().
+   * @see https://www.drupal.org/project/test_helpers/issues/3336364
+   */
+  public static function createService($class, array $createArguments = NULL, array $services = NULL): object {
+    @trigger_error('Function createService() is deprecated in test_helpers:1.0.0-beta4 and is removed from test_helpers:1.0.0-rc1. Renamed to createClass(). See https://www.drupal.org/project/test_helpers/issues/3336801', E_USER_DEPRECATED);
+    return self::createClass($class, $createArguments, $services);
+  }
+
+  /**
    * Binds a closure function to a mocked class method.
    *
    * This makes accessible the class methods inside the function via $this.
@@ -1601,6 +1613,45 @@ class TestHelpers {
    */
   public static function setProtectedProperty(object $class, string $propertyName, $value): void {
     self::setPrivateProperty($class, $propertyName, $value);
+  }
+
+  /**
+   * Creates a service from YAML file with passing services as arguments.
+   *
+   * @param string $servicesYamlFile
+   *   The path to the YAML file.
+   * @param string $name
+   *   The name of the service.
+   * @param array $additionalArguments
+   *   The array additional arguments to the service constructor.
+   * @param array $services
+   *   The array of services to add to the container.
+   *   Format is same as in function setServices().
+   *
+   * @return object
+   *   The initialized class instance.
+   *
+   * @deprecated in test_helpers:1.0.0-beta9 and is removed from
+   *   test_helpers:1.0.0-rc1. Use initServiceFromYaml().
+   * @see https://www.drupal.org/project/test_helpers/issues/3341353
+   */
+  public static function createServiceFromYaml(string $servicesYamlFile, string $name, array $additionalArguments = NULL, array $services = NULL): object {
+    $additionalArguments ??= [];
+    if ($services !== NULL) {
+      self::setServices($services);
+    }
+    $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $name);
+    $classArguments = [];
+    foreach (($serviceInfo['arguments'] ?? []) as $argument) {
+      if (substr($argument, 0, 1) == '@') {
+        $classArguments[] = self::service(substr($argument, 1));
+      }
+      else {
+        $classArguments[] = $argument;
+      }
+    }
+    $classInstance = new $serviceInfo['class'](...$classArguments, ...$additionalArguments);
+    return $classInstance;
   }
 
 }
