@@ -10,13 +10,16 @@ use Drupal\test_helpers\TestHelpers;
 /**
  * Tests CreateEntityStub API function.
  *
- * @coversDefaultClass Drupal\test_helpers\TestHelpers
+ * @coversDefaultClass \Drupal\test_helpers\TestHelpers
  * @group test_helpers
  */
 class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating Entity Stubs.
+   *
+   * @covers ::createEntity
+   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testCreateEntityStub() {
     // Creating mocked entities to test the results.
@@ -118,6 +121,9 @@ class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating and saving entitites.
+   *
+   * @covers ::createEntity
+   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testSaveEntityStub() {
     $node = TestHelpers::saveEntity(Node::class);
@@ -128,6 +134,9 @@ class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating configuration Entities.
+   *
+   * @covers ::createEntity
+   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testEntityStorageStubWithConfigurationEntities() {
     $values = [

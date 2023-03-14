@@ -8,7 +8,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests IsNestedArraySubsetOfTest API function.
  *
- * @coversDefaultClass Drupal\test_helpers\TestHelpers
+ * @coversDefaultClass \Drupal\test_helpers\TestHelpers
  * @group test_helpers
  */
 class IsNestedArraySubsetOfTest extends UnitTestCase {

@@ -457,7 +457,7 @@ class TestHelpers {
       return $container->get($serviceName);
     }
     elseif ($class === NULL) {
-      $class = self::getServiceStub($serviceName, $mockableMethods, $addMockableMethods);
+      $class = self::getServiceStubClass($serviceName, $mockableMethods, $addMockableMethods);
     }
     elseif (is_string($class)) {
       $class = self::createMock($class);
@@ -566,7 +566,7 @@ class TestHelpers {
    *   A list of translations to add to the created entity.
    * @param array $options
    *   A list of options to entity stub creation:
-   *   - methods: list of methods to make mockable.
+   *   - mockMethods: list of methods to make mockable.
    *   - addMethods: list of additional methods.
    *   - skipPrePostSave: a flag to use direct save on the storage without
    *     calling preSave and postSave functions. Can be useful if that functions
@@ -609,7 +609,7 @@ class TestHelpers {
    *   A list of translations to add to the created entity.
    * @param array $options
    *   A list of options to entity stub creation:
-   *   - methods: list of methods to make mockable.
+   *   - mockMethods: list of methods to make mockable.
    *   - addMethods: list of additional methods.
    *   - skipPrePostSave: a flag to use direct save on the storage without
    *     calling preSave and postSave functions. Can be useful if that functions
@@ -642,8 +642,8 @@ class TestHelpers {
    *
    * @param string $entityTypeClassName
    *   The entity class.
-   * @param string|object $annotation
-   *   The annotation class.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $storageInstance
+   *   An already initialized instance of a storage, NULL to create a new one.
    * @param bool $forceOverride
    *   Forces creation of the new clear storage, if exists.
    * @param array $storageOptions
@@ -653,12 +653,14 @@ class TestHelpers {
    *     calling preSave and postSave functions. Can be useful if that functions
    *     have dependencies which hard to mock.
    *   - constructorArguments: additional arguments to the constructor.
+   *   - mockMethods: a list of storage methods to mock.
+   *   - addMethods: a list of storage methods to add.
    *
    * @return \Drupal\Core\Entity\EntityStorageInterface
    *   The initialized stub of Entity Storage.
    */
-  public static function getEntityStorage(string $entityTypeClassName, $annotation = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL): EntityStorageInterface {
-    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName, $annotation, $forceOverride, $storageOptions);
+  public static function getEntityStorage(string $entityTypeClassName, EntityStorageInterface $storageInstance = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL): EntityStorageInterface {
+    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName, $storageInstance, $forceOverride, $storageOptions);
   }
 
   /**

@@ -42,7 +42,7 @@ class EntityStorageStubFactory {
    * @param array|null $storageOptions
    *   The array of options:
    *   - constructorArguments: additional arguments to the constructor.
-   *   - methods: list of methods to make mockable.
+   *   - mockMethods: list of methods to make mockable.
    *   - addMethods: list of additional methods.
    *   - skipPrePostSave: a flag to use direct save on the storage without
    *     calling preSave and postSave functions. Can be useful if that functions
@@ -56,6 +56,10 @@ class EntityStorageStubFactory {
    */
   public static function create(string $entityTypeClass, string $annotation = NULL, array $storageOptions = NULL) {
     $storageOptions ??= [];
+    if (is_array($storageOptions['methods'] ?? NULL)) {
+      @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See XXX', E_USER_DEPRECATED);
+      $storageOptions['mockMethods'] = array_unique(array_merge($storageOptions['mockMethods'] ?? [], $storageOptions['methods']));
+    }
     switch ($annotation) {
       case 'ContentEntityType':
       case 'ConfigEntityType':
@@ -66,9 +70,11 @@ class EntityStorageStubFactory {
       $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
     }
     else {
+      // Starting with the Content Entity type at first.
       $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
       $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
       if ($entityTypeDefinition == NULL) {
+        // If it fails - use Config Entity type.
         $annotation = '\Drupal\Core\Entity\Annotation\ConfigEntityType';
         $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
       }
@@ -164,17 +170,21 @@ class EntityStorageStubFactory {
         }
         break;
     }
-    $overridedMethods = array_unique(array_merge($overridedMethods, $storageOptions['methods'] ?? []));
 
     $addMethods = array_unique([
       ...($storageOptions['addMethods'] ?? []),
       'stubGetAllLatestRevision',
     ]);
 
+    $mockMethods = array_unique(array_merge($overridedMethods, $storageOptions['mockMethods'] ?? []));
+
+    // Removing requested mocked methods from mocking by the current class.
+    $overridedMethods = array_diff($overridedMethods, [...$storageOptions['mockMethods'] ?? [], ...$addMethods]);
+
     if ($constructArguments) {
       $entityStorage = TestHelpers::createPartialMockWithConstructor(
         $entityTypeStorageClass,
-        $overridedMethods,
+        $mockMethods,
         $constructArguments,
         $addMethods,
       );
@@ -185,7 +195,7 @@ class EntityStorageStubFactory {
       $entityStorage = TestHelpers::createPartialMock(
         $entityTypeStorageClass,
         [
-          ...$overridedMethods,
+          ...$mockMethods,
           ...$addMethods,
           'stubInit',
         ],

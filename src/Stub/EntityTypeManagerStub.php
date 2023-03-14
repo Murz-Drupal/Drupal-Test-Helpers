@@ -123,17 +123,12 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   /**
    * {@inheritDoc}
    */
-  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, bool $forceOverride = FALSE, $storageOptions = NULL) {
+  public function stubGetOrCreateStorage(string $entityClass, $storageInstance = NULL, bool $forceOverride = FALSE, $storageOptions = NULL) {
     if (!$forceOverride && isset($this->stubEntityStoragesByClass[$entityClass])) {
       return $this->stubEntityStoragesByClass[$entityClass];
     }
-    elseif (is_object($storageInstanceOrAnnotation)) {
-      $storage = $storageInstanceOrAnnotation;
-    }
-    // In this case the annotation is passed, so we should manually initiate
-    // the storage instance.
-    elseif (is_string($storageInstanceOrAnnotation)) {
-      $storage = EntityStorageStubFactory::create($entityClass, $storageInstanceOrAnnotation, $storageOptions);
+    elseif (is_object($storageInstance)) {
+      $storage = $storageInstance;
     }
     else {
       $storage = EntityStorageStubFactory::create($entityClass, NULL, $storageOptions);
@@ -143,7 +138,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     $this->handlers['storage'][$entityTypeId] = $storage;
     $this->definitions[$entityTypeId] = $storage->getEntityType();
 
-    if ($bundleEntityType = $this->definitions[$entityTypeId]->getBundleEntityType()) {
+    if ($this->definitions[$entityTypeId] && $bundleEntityType = $this->definitions[$entityTypeId]->getBundleEntityType()) {
       // @todo Invent a better way to load the bundle entity type.
       $bundleEntityClassName = (new CamelCaseToSnakeCaseNameConverter(NULL, FALSE))->denormalize($bundleEntityType);
       $entityNamespace = substr($entityClass, 0, strrpos($entityClass, '\\'));

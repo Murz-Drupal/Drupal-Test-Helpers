@@ -33,7 +33,7 @@ class EntityStubFactory {
    *   A list of translations to add to the created entity.
    * @param array $options
    *   A list of options to entity stub creation:
-   *   - methods: list of methods to make mockable.
+   *   - mockMethods: list of methods to make mockable.
    *   - addMethods: list of additional methods.
    *   - skipEntityConstructor: a flag to skip calling the entity constructor.
    *   - fields: a list of custom field options by field name.
@@ -61,6 +61,10 @@ class EntityStubFactory {
   public static function create(string $entityTypeClassName, array $values = NULL, array $translations = NULL, array $options = NULL, array $storageOptions = NULL) {
     $values ??= [];
     $options ??= [];
+    if (is_array($options['methods'] ?? NULL)) {
+      @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See XXX', E_USER_DEPRECATED);
+      $options['mockMethods'] = array_unique(array_merge($options['mockMethods'] ?? [], $options['methods']));
+    }
     // Creating a new entity storage stub instance, if not exists.
     /** @var \Drupal\test_helpers\Stub\EntityTypeManagerStub $entityTypeManager */
     $entityTypeManager = TestHelpers::service('entity_type.manager');
@@ -91,7 +95,7 @@ class EntityStubFactory {
       $entityTypeBundleInfo->stubSetBundleInfo($entityTypeId, $bundle);
     }
 
-    $methodsToMock = $options['methods'] ?? [];
+    $methodsToMock = $options['mockMethods'] ?? [];
     if ($bundleKey) {
       $methodsToMock[] = 'bundleFieldDefinitions';
     }
