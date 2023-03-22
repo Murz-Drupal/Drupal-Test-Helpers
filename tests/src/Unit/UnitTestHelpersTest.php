@@ -104,6 +104,7 @@ class UnitTestHelpersTest extends UnitTestCase {
       'renderer' => NULL,
       'entity_type.manager' => $entityTypeManager,
       'entity.repository' => NULL,
+      'current_route_match' => NULL,
     ]);
 
     // Testing the behavior on a real service with the 'create' function.

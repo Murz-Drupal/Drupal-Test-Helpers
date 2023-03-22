@@ -94,14 +94,14 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function findDefinitions() {
     return [];
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function stubSetDefinition(string $pluginId, object $definition = NULL, $forceOverride = FALSE) {
     if ($forceOverride || !isset($this->definitions[$pluginId])) {
@@ -111,7 +111,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function stubGetOrCreateHandler(string $handlerType, string $entityTypeId, object $handler = NULL, $forceOverride = FALSE) {
     if ($forceOverride || !isset($this->handlers[$handlerType][$entityTypeId])) {
@@ -121,7 +121,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function stubGetOrCreateStorage(string $entityClass, $storageInstance = NULL, bool $forceOverride = FALSE, $storageOptions = NULL) {
     if (!$forceOverride && isset($this->stubEntityStoragesByClass[$entityClass])) {
@@ -152,7 +152,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function stubReset(): void {
     $this->handlers = [];

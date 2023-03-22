@@ -74,7 +74,7 @@ class LoggerChannelFactoryStubTest extends UnitTestCase {
     ]));
     $this->assertIsNumeric($logs[0]["timestamp"]);
     $this->assertIsNumeric($logs[1]["_context"]["timestamp"]);
-    $this->assertGreaterThan($logs[0]["_microtime"], $logs[1]["_microtime"],);
+    $this->assertGreaterThan($logs[0]["_microtime"], $logs[1]["_microtime"]);
   }
 
 }

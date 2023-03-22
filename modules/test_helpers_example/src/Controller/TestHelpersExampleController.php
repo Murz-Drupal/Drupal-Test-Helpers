@@ -77,7 +77,9 @@ class TestHelpersExampleController extends ControllerBase {
     $amount = $this->configFactory->get('test_helpers_example.settings')
       ->get('articles_to_display') ?? 3;
 
-    $articlesIds = $this->entityTypeManager->getStorage('node')->getQuery()
+    $articlesQuery = $this->entityTypeManager->getStorage('node')->getQuery();
+    $articlesQuery->accessCheck();
+    $articlesIds = $articlesQuery
       ->condition('status', 1)
       ->condition('type', 'article')
       ->sort('created', 'DESC')

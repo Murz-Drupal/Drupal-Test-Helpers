@@ -44,7 +44,7 @@ class EntityStubFactory {
    *     - An array with field type and settings, like this:
    *       [
    *        '#type' => 'entity_reference',
-   *        '#settings' => 'target_id' => 'node']
+   *        '#settings' => ['target_type' => 'node']
    *       ].
    *     - A field definition object, that will be applied to the field.
    * @param array $storageOptions
@@ -62,7 +62,7 @@ class EntityStubFactory {
     $values ??= [];
     $options ??= [];
     if (is_array($options['methods'] ?? NULL)) {
-      @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See XXX', E_USER_DEPRECATED);
+      @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See https://www.drupal.org/project/test_helpers/issues/3347857', E_USER_DEPRECATED);
       $options['mockMethods'] = array_unique(array_merge($options['mockMethods'] ?? [], $options['methods']));
     }
     // Creating a new entity storage stub instance, if not exists.
@@ -206,7 +206,7 @@ class EntityStubFactory {
               // Parsing value as a field type scalar value.
               $fieldType = $fieldTypeOptions;
               if ($fieldType == 'entity_reference') {
-                throw new \Exception("For entity_reference field type you should also pass the settings like this ['#type' => 'entity_reference', '#settings' => ['target_id' => 'user'].");
+                throw new \Exception("For entity_reference field type you should also pass the settings like this ['#type' => 'entity_reference', '#settings' => ['target_type' => 'user'].");
               }
             }
             elseif (is_array($fieldTypeOptions)) {

@@ -57,7 +57,7 @@ class EntityStorageStubFactory {
   public static function create(string $entityTypeClass, string $annotation = NULL, array $storageOptions = NULL) {
     $storageOptions ??= [];
     if (is_array($storageOptions['methods'] ?? NULL)) {
-      @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See XXX', E_USER_DEPRECATED);
+      @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See https://www.drupal.org/project/test_helpers/issues/3347857', E_USER_DEPRECATED);
       $storageOptions['mockMethods'] = array_unique(array_merge($storageOptions['mockMethods'] ?? [], $storageOptions['methods']));
     }
     switch ($annotation) {
@@ -179,7 +179,10 @@ class EntityStorageStubFactory {
     $mockMethods = array_unique(array_merge($overridedMethods, $storageOptions['mockMethods'] ?? []));
 
     // Removing requested mocked methods from mocking by the current class.
-    $overridedMethods = array_diff($overridedMethods, [...$storageOptions['mockMethods'] ?? [], ...$addMethods]);
+    $overridedMethods = array_diff(
+      $overridedMethods,
+      [...$storageOptions['mockMethods'] ?? [], ...$addMethods]
+    );
 
     if ($constructArguments) {
       $entityStorage = TestHelpers::createPartialMockWithConstructor(
@@ -346,7 +349,7 @@ class EntityStorageStubFactory {
 
         $entities = [];
         foreach ($entitiesValues as $values) {
-          $entity = $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
+          $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
           if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
             $entity->updateLoadedRevisionId();
           }

@@ -14,7 +14,7 @@ use Drupal\test_helpers\TestHelpers;
 class EntityQueryServiceStub implements QueryFactoryInterface {
 
   /**
-   * Constructs a new EntityQueryServiceStub.
+   * {@inheritdoc}
    */
   public function __construct() {
     $this->queryStubFactory = new EntityQueryStubFactory();
@@ -101,7 +101,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
   }
 
   /**
-   * Gets the query for entity type.
+   * {@inheritdoc}
    */
   public function get($entityType, $conjunction) {
     $executeFunction =
@@ -113,7 +113,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
   }
 
   /**
-   * Gets the aggregate query for entity type.
+   * {@inheritdoc}
    */
   public function getAggregate($entityType, $conjunction) {
     // @todo Implement a custom getAggregate call.
@@ -126,7 +126,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
    * You can call `$this->stubExecuteBase()` in your custom callback function
    * to execute the base stub behavior for the query.
    *
-   * @param \Closure $executeFunction
+   * @param callable $function
    *   The execute function.
    * @param string $entityTypeId
    *   The entity type to attach, all entity types by default.

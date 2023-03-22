@@ -17,7 +17,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
-use Drupal\test_helpers\lib\TestHelpersStaticStorageService;
+use Drupal\test_helpers\includes\Utils;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
@@ -77,7 +77,6 @@ class TestHelpers {
    * as array in format "[className, functionName]".
    */
   public const SERVICES_CUSTOM_STUBS = [
-    'test_helpers.static_storage' => TestHelpersStaticStorageService::class,
     'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
     'cache.backend.memory' => MemoryBackendFactory::class,
     'cache_contexts_manager' => CacheContextsManagerStub::class,
@@ -329,11 +328,13 @@ class TestHelpers {
    *   The path to the YAML file.
    * @param string $name
    *   The name of the service.
+   * @param array|null $mockMethods
+   *   A list of method to mock when creating the instance.
    *
    * @return object
    *   The initialized class instance.
    */
-  public static function initServiceFromYaml(string $servicesYamlFile, string $name): object {
+  public static function initServiceFromYaml(string $servicesYamlFile, string $name, array $mockMethods = NULL): object {
     $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $name);
     $classArguments = [];
     foreach (($serviceInfo['arguments'] ?? []) as $argument) {
@@ -344,7 +345,16 @@ class TestHelpers {
         $classArguments[] = $argument;
       }
     }
-    $classInstance = new $serviceInfo['class'](...$classArguments);
+    if ($mockMethods) {
+      $classInstance = TestHelpers::createPartialMockWithConstructor(
+        $serviceInfo['class'],
+        $mockMethods,
+        $classArguments,
+      );
+    }
+    else {
+      $classInstance = new $serviceInfo['class'](...$classArguments);
+    }
     return $classInstance;
   }
 
@@ -361,11 +371,13 @@ class TestHelpers {
    * @param string $serviceNameToCheck
    *   A service name to check matching the declared one in services.yml file.
    *   Acts only if the class name is passed as a first argument.
+   * @param array|null $mockMethods
+   *   A list of method to mock when creating the instance.
    *
    * @return object
    *   The initialized class instance.
    */
-  public static function initService(string $serviceNameOrClass, string $serviceNameToCheck = NULL): object {
+  public static function initService(string $serviceNameOrClass, string $serviceNameToCheck = NULL, array $mockMethods = NULL): object {
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
       $serviceName = $serviceNameOrClass;
       // We have a service id name, use the current module as the module name.
@@ -396,7 +408,7 @@ class TestHelpers {
       }
     }
 
-    return self::initServiceFromYaml($servicesFile, $serviceName);
+    return self::initServiceFromYaml($servicesFile, $serviceName, $mockMethods);
   }
 
   /**
@@ -567,7 +579,7 @@ class TestHelpers {
    *     - An array with field type and settings, like this:
    *       [
    *        '#type' => 'entity_reference',
-   *        '#settings' => 'target_id' => 'node']
+   *        '#settings' => ['target_type' => 'node']
    *       ].
    *     - A field definition object, that will be applied to the field.
    *
@@ -610,7 +622,7 @@ class TestHelpers {
    *     - An array with field type and settings, like this:
    *       [
    *        '#type' => 'entity_reference',
-   *        '#settings' => 'target_id' => 'node']
+   *        '#settings' => ['target_type' => 'node']
    *       ].
    *     - A field definition object, that will be applied to the field.
    *
@@ -1263,7 +1275,15 @@ class TestHelpers {
       $serviceClass = $services[$serviceName]['class'] ?? FALSE;
     }
     else {
-      require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.data';
+      if (Utils::isDrupalVersionEqualOrHigher('10.1')) {
+        require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.10.1.data';
+      }
+      elseif (Utils::isDrupalVersionEqualOrHigher('10.0')) {
+        require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.10.0.data';
+      }
+      else {
+        require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.9.x.data';
+      }
       // This trick prevents 'Undefined constant' warnings in code sniffers.
       defined('DRUPAL_CORE_SERVICES_MAP') || define('DRUPAL_CORE_SERVICES_MAP', '');
       $serviceClass = DRUPAL_CORE_SERVICES_MAP[$serviceName] ?? FALSE;

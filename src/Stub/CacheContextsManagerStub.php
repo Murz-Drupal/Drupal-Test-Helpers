@@ -57,7 +57,7 @@ class CacheContextsManagerStub extends CacheContextsManager {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function assertValidTokens($context_tokens) {
     if ($this->contexts === TRUE) {

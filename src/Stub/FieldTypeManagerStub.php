@@ -32,21 +32,21 @@ class FieldTypeManagerStub extends FieldTypePluginManager {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function getCachedDefinitions() {
     return $this->definitions;
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function getDefaultStorageSettings($type) {
     return $this->definitions[$type]['storage_settings'] ?? [];
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function getDefaultFieldSettings($type) {
     return $this->definitions[$type]['field_settings'] ?? [];

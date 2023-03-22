@@ -95,7 +95,7 @@ class EventSubscriberStub implements EventSubscriberInterface {
   use StringTranslationTrait;
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public static function getSubscribedEvents(): array {
     return [

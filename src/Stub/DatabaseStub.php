@@ -81,7 +81,7 @@ class DatabaseStub extends Connection {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function select($table, $alias = NULL, array $options = []) {
     $methodArguments = \func_get_args();
@@ -90,7 +90,7 @@ class DatabaseStub extends Connection {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function delete($table, array $options = []) {
     $methodArguments = \func_get_args();
@@ -99,7 +99,7 @@ class DatabaseStub extends Connection {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function insert($table, array $options = []) {
     $methodArguments = \func_get_args();
@@ -125,7 +125,7 @@ class DatabaseStub extends Connection {
   /**
    * A stub of original function to do nothing.
    *
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function startTransaction($name = '') {
   }
@@ -133,7 +133,7 @@ class DatabaseStub extends Connection {
   /**
    * A stub of original function to do nothing.
    *
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function popTransaction($name) {
   }
