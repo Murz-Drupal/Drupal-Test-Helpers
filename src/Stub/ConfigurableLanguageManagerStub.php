@@ -105,6 +105,7 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
 
   /**
    * Generates value from langcode.
+   *
    * @param string $langcode
    *   A langcode to use.
    * @param string|null $label

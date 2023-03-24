@@ -686,35 +686,48 @@ class TestHelpers {
   /**
    * Performs matching of passed conditions with the query.
    *
-   * @param \Drupal\Core\Entity\Query\ConditionInterface|Drupal\Core\Database\Query\ConditionInterface $query
+   * @param \Drupal\Core\Entity\Query\ConditionInterface|\Drupal\Core\Database\Query\ConditionInterface $query
    *   The query object to check.
-   * @param \Drupal\Core\Entity\Query\ConditionInterface|Drupal\Core\Database\Query\ConditionInterface $queryExpected
+   * @param \Drupal\Core\Entity\Query\ConditionInterface|\Drupal\Core\Database\Query\ConditionInterface $queryExpected
    *   The query object with expected conditions.
    * @param bool $onlyListed
    *   Forces to return false, if the checking query object contains more
    *   conditions than in object with expected conditions.
+   * @param bool $throwErrors
+   *   Enables throwing notice errors when matching fails, with the explanation
+   *   what exactly doesn't match.
    *
    * @return bool
    *   True if is subset, false if not.
    */
-  public static function queryIsSubsetOf(object $query, object $queryExpected, $onlyListed = FALSE): bool {
+  public static function queryIsSubsetOf(object $query, object $queryExpected, bool $onlyListed = FALSE, bool $throwErrors = TRUE): bool {
     if ($query instanceof DatabaseSelectInterface && $queryExpected instanceof DatabaseSelectInterface) {
       $order = self::getPrivateProperty($query, 'order');
       $orderExpected = self::getPrivateProperty($queryExpected, 'order');
       if (!self::isNestedArraySubsetOf($order, $orderExpected)) {
+        $throwErrors && self::throwMatchError('order', $orderExpected, $order);
         return FALSE;
       }
 
     }
     elseif ($query instanceof EntityQueryInterface && $queryExpected instanceof EntityQueryInterface) {
       if ($query->getEntityTypeId() != $queryExpected->getEntityTypeId()) {
+        $throwErrors && self::throwMatchError('entity type', $queryExpected->getEntityTypeId(), $query->getEntityTypeId());
         return FALSE;
       }
       $sort = self::getPrivateProperty($query, 'sort');
       $sortExpected = self::getPrivateProperty($queryExpected, 'sort');
       if (!self::isNestedArraySubsetOf($sort, $sortExpected)) {
+        $throwErrors && self::throwMatchError('sort', $sortExpected, $sort);
         return FALSE;
       }
+      if (is_bool($accessCheckExpected = self::getPrivateProperty($queryExpected, 'accessCheck'))) {
+        if ($accessCheckExpected !== $accessCheckActual = self::getPrivateProperty($query, 'accessCheck')) {
+          $throwErrors && self::throwMatchError('accessCheck', $accessCheckExpected, $accessCheckActual);
+          return FALSE;
+        }
+      }
+
     }
     else {
       throw new \Exception('Unsupportable query types.');
@@ -722,12 +735,13 @@ class TestHelpers {
     $range = self::getPrivateProperty($query, 'range');
     $rangeExpected = self::getPrivateProperty($queryExpected, 'range');
     if (!self::isNestedArraySubsetOf($range, $rangeExpected)) {
+      $throwErrors && self::throwMatchError('range', $rangeExpected, $range);
       return FALSE;
     }
 
-    $condition = self::getPrivateProperty($query, 'condition');
-    $conditionExpected = self::getPrivateProperty($queryExpected, 'condition');
-    if (!self::matchConditions($condition, $conditionExpected, $onlyListed)) {
+    $conditions = self::getPrivateProperty($query, 'condition');
+    $conditionsExpected = self::getPrivateProperty($queryExpected, 'condition');
+    if (!self::matchConditions($conditions, $conditionsExpected, $onlyListed, $throwErrors)) {
       return FALSE;
     }
     return TRUE;
@@ -774,20 +788,24 @@ class TestHelpers {
   /**
    * Performs matching of passed conditions with the query.
    *
-   * @param \Drupal\Core\Entity\Query\ConditionInterface|Drupal\Core\Database\Query\ConditionInterface $conditionsObject
+   * @param \Drupal\Core\Entity\Query\ConditionInterface|\Drupal\Core\Database\Query\ConditionInterface $conditionsObject
    *   The query object to check.
-   * @param \Drupal\Core\Entity\Query\ConditionInterface|Drupal\Core\Database\Query\ConditionInterface $conditionsExpectedObject
+   * @param \Drupal\Core\Entity\Query\ConditionInterface|\Drupal\Core\Database\Query\ConditionInterface $conditionsExpectedObject
    *   The query object with expected conditions.
    * @param bool $onlyListed
    *   Forces to return false, if the checking query object contains more
    *   conditions than in object with expected conditions.
+   * @param bool $throwErrors
+   *   Enables throwing notice errors when matching fails, with the explanation
+   *   what exactly doesn't match.
    *
    * @return bool
    *   True if is subset, false if not.
    */
-  public static function matchConditions(object $conditionsObject, object $conditionsExpectedObject, $onlyListed = FALSE): bool {
+  public static function matchConditions(object $conditionsObject, object $conditionsExpectedObject, bool $onlyListed = FALSE, bool $throwErrors = FALSE): bool {
     if ($conditionsObject instanceof EntityQueryConditionInterface) {
       if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
+        $throwErrors && self::throwMatchError('conjunction', $conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction());
         return FALSE;
       }
       $conditions = $conditionsObject->conditions();
@@ -795,6 +813,7 @@ class TestHelpers {
     }
     elseif ($conditionsObject instanceof DatabaseQueryConditionInterface) {
       if (strcasecmp($conditionsObject->conditions()['#conjunction'], $conditionsExpectedObject->conditions()['#conjunction']) != 0) {
+        $throwErrors && self::throwMatchError('conjunction', $conditionsExpectedObject->conditions()['#conjunction'], $conditionsObject->conditions()['#conjunction']);
         return FALSE;
       }
       $conditions = $conditionsObject->conditions();
@@ -804,6 +823,7 @@ class TestHelpers {
     }
     elseif (in_array('Drupal\search_api\Query\ConditionGroupInterface', class_implements($conditionsObject))) {
       if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
+        $throwErrors && self::throwMatchError('conjunction', $conditionsExpectedObject->getConjunction(), $conditionsObject->getConjunction());
         return FALSE;
       }
       $conditions = self::conditionsSearchApiObjectsToArray(self::getPrivateProperty($conditionsObject, 'conditions'));
@@ -813,30 +833,63 @@ class TestHelpers {
       throw new \Exception("Conditions should implement Drupal\Core\Entity\Query\ConditionInterface or Drupal\Core\Database\Query\ConditionInterface.");
     }
     $conditionsFound = [];
-    foreach ($conditions as $condition) {
+    $conditionsExpectedFound = [];
+    foreach ($conditions as $conditionDelta => $condition) {
       foreach ($conditionsExpected as $conditionsExpectedDelta => $conditionExpected) {
         if (is_object($condition['field']) || is_object($conditionExpected['field'])) {
           if (!is_object($condition['field']) || !is_object($conditionExpected['field'])) {
             continue;
           }
-          return self::matchConditions($condition['field'], $conditionExpected['field'], $onlyListed);
+          $conditionGroupMatchResult = self::matchConditions($condition['field'], $conditionExpected['field'], $onlyListed, FALSE);
+          if ($conditionGroupMatchResult === TRUE) {
+            $conditionsExpectedFound[$conditionsExpectedDelta] = TRUE;
+            $conditionsFound[$conditionDelta] = TRUE;
+          }
         }
-        if ($condition == $conditionExpected) {
+        elseif ($condition == $conditionExpected) {
           if (is_array($condition['value'])) {
             if ($condition['value'] == $conditionExpected['value']) {
-              $conditionsFound[$conditionsExpectedDelta] = TRUE;
+              $conditionsExpectedFound[$conditionsExpectedDelta] = TRUE;
+              $conditionsFound[$conditionDelta] = TRUE;
             }
           }
           else {
-            $conditionsFound[$conditionsExpectedDelta] = TRUE;
+            $conditionsExpectedFound[$conditionsExpectedDelta] = TRUE;
+            $conditionsFound[$conditionDelta] = TRUE;
           }
         }
       }
     }
-    if (count($conditionsFound) != count($conditionsExpected)) {
+    if (count($conditionsExpectedFound) != count($conditionsExpected)) {
+      foreach ($conditionsExpected as $delta => $condition) {
+        if (!isset($conditionsExpectedFound[$delta])) {
+          // Happens when condition is a conditionGroup.
+          if (is_object($condition['field'])) {
+            $groupConditions = [];
+            foreach ($condition['field']->conditions() as $groupCondition) {
+              if (is_object($groupCondition['field'])) {
+                // @todo Try to find the deep failing condition.
+                $groupCondition['field'] = '[' . $groupCondition['field']->getConjunction() . 'ConditionGroup with ' . count($groupCondition['field']->conditions()) . ' items]';
+              }
+              $groupConditions[] = $groupCondition;
+            }
+            $throwErrors && self::throwUserError('The expected condition group "' . $condition['field']->getConjunction() . '" is not matching, items: ' . var_export($groupConditions, TRUE));
+            return FALSE;
+          }
+          $throwErrors && self::throwUserError('The expected condition is not found: ' . var_export($condition, TRUE));
+          return FALSE;
+        }
+      }
+      $throwErrors && self::throwMatchError('count of matched conditions', count($conditionsExpected), count($conditionsExpectedFound));
       return FALSE;
     }
     if ($onlyListed && (count($conditions) != count($conditionsExpected))) {
+      foreach ($conditions as $delta => $condition) {
+        if (!isset($conditionsFound[$delta])) {
+          $throwErrors && self::throwUserError('The condition is not listed in expected: ' . var_export($condition, TRUE));
+        }
+      }
+      $throwErrors && self::throwMatchError('count of conditions', count($conditions), count($conditionsExpectedFound));
       return FALSE;
     }
     return TRUE;
@@ -1378,6 +1431,30 @@ class TestHelpers {
    * Disables a construtor calls to allow only static calls.
    */
   private function __construct() {
+  }
+
+  /**
+   * Throws a user error with explanation of a failing match.
+   *
+   * @param string $subject
+   *   The name of the property that was checked.
+   * @param mixed $expected
+   *   The expected value.
+   * @param mixed $actual
+   *   The actual value.
+   */
+  private static function throwMatchError(string $subject, $expected, $actual) {
+    trigger_error("The $subject doesn't match, expected: " . var_export($expected, TRUE) . ", actual: " . var_export($actual, TRUE), E_USER_NOTICE);
+  }
+
+  /**
+   * Throws a user error with a message.
+   *
+   * @param string $message
+   *   A message to throw.
+   */
+  private static function throwUserError(string $message): void {
+    trigger_error($message, E_USER_NOTICE);
   }
 
   /* ************************************************************************ *

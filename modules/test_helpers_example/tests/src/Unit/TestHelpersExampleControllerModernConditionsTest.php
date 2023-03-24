@@ -35,6 +35,7 @@ class TestHelpersExampleControllerModernConditionsTest extends UnitTestCase {
 
     TestHelpers::getServiceStub('entity.query.sql')->stubSetExecuteHandler(function () {
       UnitTestCaseWrapper::assertTrue(TestHelpers::queryIsSubsetOf($this, \Drupal::entityQuery('node')
+        ->accessCheck()
         ->condition('status', 1)
         ->condition('type', 'article')
         ->sort('created', 'DESC')

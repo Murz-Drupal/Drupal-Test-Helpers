@@ -43,7 +43,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
       $testClass->assertTrue($this->stubCheckConditionsMatch($conditionsMandatory));
 
       // Checking onlyListed mode returns false, when we have more conditions.
-      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatory, TRUE));
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatory, TRUE, FALSE));
 
       // Checking onlyListed mode returns true with exact conditions list.
       $orConditionGroup->condition('field_size', 'XL');
@@ -52,31 +52,31 @@ class EntityQueryServiceStubTest extends UnitTestCase {
       // Checking that wrong conditions check is return FALSE.
       $conditionsMandatoryWrong1 = $this->orConditionGroup();
       $conditionsMandatoryWrong1->condition('title', $titleValues, 'IN');
-      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong1));
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong1, FALSE, FALSE));
 
       $conditionsMandatoryWrong2 = $this->andConditionGroup();
       $conditionsMandatoryWrong2->condition('title', $titleValues, 'NOT IN');
-      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong2));
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong2, FALSE, FALSE));
 
       $conditionsMandatoryWrong3 = $this->andConditionGroup();
       $conditionsMandatoryWrong3->condition('title', [], 'IN');
-      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong3));
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong3, FALSE, FALSE));
 
       $conditionsMandatoryWrong4 = $this->andConditionGroup();
       $conditionsMandatoryWrong4->condition('field_category', 2, 'NOT IN');
-      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong4));
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong4, FALSE, FALSE));
 
       $conditionsMandatoryWrong5 = $this->andConditionGroup();
       $orConditionGroup = $this->orConditionGroup();
       $orConditionGroup->condition('field_color', 'blue');
       $conditionsMandatoryWrong5->condition($orConditionGroup);
-      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong5));
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong5, FALSE, FALSE));
 
       $conditionsMandatoryWrong6 = $this->andConditionGroup();
       $orConditionGroup = $this->andConditionGroup();
       $orConditionGroup->condition('field_color', 'red');
       $conditionsMandatoryWrong6->condition($orConditionGroup);
-      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong6));
+      $testClass->assertFalse($this->stubCheckConditionsMatch($conditionsMandatoryWrong6, FALSE, FALSE));
 
       // Returning a pre-defined result for the query.
       return $entityQueryTestResult;

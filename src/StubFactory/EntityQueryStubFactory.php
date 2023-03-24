@@ -61,7 +61,7 @@ class EntityQueryStubFactory {
     TestHelpers::setMockedClassMethod($queryStub, 'stubExecuteBase', EntityQueryServiceStub::stubGetExecuteBaseFunction());
     TestHelpers::setMockedClassMethod($queryStub, 'execute', $executeFunction);
     TestHelpers::setMockedClassMethod($queryStub, 'stubCheckConditionsMatch', function (Condition $conditionsExpected, $onlyListed = FALSE) {
-      return TestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed);
+      return TestHelpers::matchConditions($this->condition, $conditionsExpected, $onlyListed, FALSE);
     });
 
     return $queryStub;
