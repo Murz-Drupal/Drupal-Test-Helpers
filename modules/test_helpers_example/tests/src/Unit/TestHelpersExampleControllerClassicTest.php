@@ -31,6 +31,7 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
    */
   public function testArticlesList() {
     $entityQuery = $this->createMock(QueryInterface::class);
+    $entityQuery->method('accessCheck')->willReturn($entityQuery);
     $entityQuery->method('sort')->willReturnCallback(
       function ($field, $direction = 'ASC', $langcode = NULL) use ($entityQuery) {
         $this->assertEquals('created', $field);
@@ -104,7 +105,6 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $entityStorage->method('getQuery')->willReturn($entityQuery);
     $entityStorage->method('loadMultiple')->with(['2', '1'])
       ->willReturn([$node2, $node1]);
-
     $entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $entityTypeManager->method('getStorage')->willReturn($entityStorage);
 
