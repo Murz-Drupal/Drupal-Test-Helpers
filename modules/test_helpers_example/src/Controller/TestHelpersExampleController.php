@@ -101,7 +101,7 @@ class TestHelpersExampleController extends ControllerBase {
     return [
       '#theme' => 'item_list',
       '#items' => $articlesList,
-      '#cache' => ['tags' => ['node:type:article']],
+      '#cache' => ['tags' => ['node_list:article']],
     ];
   }
 

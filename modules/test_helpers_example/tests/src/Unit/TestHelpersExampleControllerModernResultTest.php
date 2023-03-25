@@ -37,7 +37,7 @@ class TestHelpersExampleControllerModernResultTest extends UnitTestCase {
     $result = TestHelpers::createClass(TestHelpersExampleController::class)->articlesList();
     $this->assertCount(1, $result['#items']);
     $this->assertEquals('A2 (02.01.2023 by Alice)', $result['#items'][0]->getText());
-    $this->assertContains('node:type:article', $result['#cache']['tags']);
+    $this->assertContains('node_list:article', $result['#cache']['tags']);
   }
 
 }

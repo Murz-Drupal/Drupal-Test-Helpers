@@ -129,7 +129,7 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $result = $controller->articlesList();
     $this->assertCount(2, $result['#items']);
     $this->assertEquals('A2 (02.01.2023 by Alice)', $result['#items'][0]->getText());
-    $this->assertContains('node:type:article', $result['#cache']['tags']);
+    $this->assertContains('node_list:article', $result['#cache']['tags']);
   }
 
 }
