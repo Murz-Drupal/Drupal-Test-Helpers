@@ -3,11 +3,7 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
-use Drupal\Component\Transliteration\PhpTransliteration;
-use Drupal\Component\Uuid\Php;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Drupal\Core\Cache\MemoryBackendFactory;
-use Drupal\Core\Cache\MemoryCache\MemoryCache;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -17,7 +13,6 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
-use Drupal\test_helpers\includes\Utils;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
@@ -37,11 +32,7 @@ use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use PHPUnit\Framework\MockObject\MethodNameNotConfiguredException;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Yaml\Yaml;
-
-// This trick is to prevent 'Undefined constant' warnings in code sniffers.
-defined('DRUPAL_ROOT') || define('DRUPAL_ROOT', '');
 
 // Some constants are required to be defined for calling Drupal API functions
 // from 'core/modules/system/system.module' file.
@@ -70,7 +61,7 @@ defined('SAVED_UPDATED') || define('SAVED_UPDATED', 2);
 class TestHelpers {
 
   /**
-   * The array of implemented custom stubs for services.
+   * An array of implemented custom stubs for services.
    *
    * Key: a service name.
    * Value: a service class, or a callback function to initialize an instance
@@ -78,28 +69,35 @@ class TestHelpers {
    */
   public const SERVICES_CUSTOM_STUBS = [
     'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
-    'cache.backend.memory' => MemoryBackendFactory::class,
     'cache_contexts_manager' => CacheContextsManagerStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'config.factory' => ConfigFactoryStub::class,
     'database' => DatabaseStub::class,
     'date.formatter' => DateFormatterStub::class,
-    'language_manager' => ConfigurableLanguageManagerStub::class,
     'entity_bundle.listener' => EntityBundleListenerStub::class,
     'entity_field.manager' => EntityFieldManagerStub::class,
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
-    'entity.memory_cache' => MemoryCache::class,
     'entity.repository' => EntityRepositoryStub::class,
+    'language_manager' => ConfigurableLanguageManagerStub::class,
     'logger.factory' => LoggerChannelFactoryStub::class,
-    'module_handler' => ModuleHandlerStub::class,
     'messenger' => MessengerStub::class,
-    'request_stack' => RequestStack::class,
+    'module_handler' => ModuleHandlerStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'token' => TokenStub::class,
-    'transliteration' => PhpTransliteration::class,
     'typed_data_manager' => TypedDataManagerStub::class,
-    'uuid' => Php::class,
+  ];
+
+  /**
+   * A list of core services that can be initialized automatically.
+   */
+  public const SERVICES_CORE_INIT = [
+    'cache.backend.memory',
+    'datetime.time',
+    'entity.memory_cache',
+    'request_stack',
+    'transliteration',
+    'uuid',
   ];
 
   /**
@@ -254,6 +252,27 @@ class TestHelpers {
   }
 
   /**
+   * Finds a Drupal root directory.
+   *
+   * @return string
+   *   A path to the Drupal root directory.
+   */
+  public static function getDrupalRoot(): string {
+    static $path;
+    if ($path) {
+      return $path;
+    }
+    $path = __DIR__;
+    while (!file_exists($path . '/core/lib/Drupal.php')) {
+      $path = dirname($path);
+      if ($path == '') {
+        throw new \Exception('Drupal root directory cannot be found.');
+      }
+    }
+    return $path;
+  }
+
+  /**
    * Parses the annotation for a class and gets the definition.
    *
    * @param string $class
@@ -267,12 +286,6 @@ class TestHelpers {
    *   The definitoin from the plugin.
    */
   public static function getPluginDefinition(string $class, string $plugin = 'TypedData', string $annotationName = NULL) {
-    static $definitions;
-
-    if (isset($definitions[$plugin][$class])) {
-      return $definitions[$plugin][$class];
-    }
-
     $rc = new \ReflectionClass($class);
 
     $reader = new SimpleAnnotationReader();
@@ -293,7 +306,12 @@ class TestHelpers {
 
       $definition = $annotation->get();
 
+      // $definitions[$plugin][$class] = $definition;
       return $definition;
+    }
+    else {
+      // Throw new \Exception('Definition not found in annotation.');.
+      return FALSE;
     }
   }
 
@@ -324,8 +342,8 @@ class TestHelpers {
   /**
    * Initializes a service from YAML file with passing services as arguments.
    *
-   * @param string $servicesYamlFile
-   *   The path to the YAML file.
+   * @param string|array $servicesYamlFileOrData
+   *   The path to the YAML file, or an array with data from YAML.
    * @param string $name
    *   The name of the service.
    * @param array|null $mockMethods
@@ -334,8 +352,16 @@ class TestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function initServiceFromYaml(string $servicesYamlFile, string $name, array $mockMethods = NULL): object {
-    $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $name);
+  public static function initServiceFromYaml($servicesYamlFileOrData, string $name, array $mockMethods = NULL): object {
+    if (is_string($servicesYamlFileOrData)) {
+      $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFileOrData);
+    }
+    elseif (is_array($servicesYamlFileOrData)) {
+      $serviceInfo = $servicesYamlFileOrData;
+    }
+    else {
+      throw new \Error('The first argument should be a path to a YAML file, or array with data.');
+    }
     $classArguments = [];
     foreach (($serviceInfo['arguments'] ?? []) as $argument) {
       if (substr($argument, 0, 1) == '@') {
@@ -377,38 +403,70 @@ class TestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function initService(string $serviceNameOrClass, string $serviceNameToCheck = NULL, array $mockMethods = NULL): object {
+  public static function initService(
+    string $serviceNameOrClass,
+    string $serviceNameToCheck = NULL,
+    array $mockMethods = NULL
+  ): object {
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
       $serviceName = $serviceNameOrClass;
-      // We have a service id name, use the current module as the module name.
-      $callerInfo = self::getCallerInfo();
-      $moduleName = self::getModuleName($callerInfo['class']);
-      $moduleRoot = self::getModuleRoot($callerInfo['file'], $moduleName);
-      $servicesFile = "$moduleRoot/$moduleName.services.yml";
+      self::requireCoreFeaturesMap();
+      if (isset(TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName])) {
+        return self::initServiceFromYaml(TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName], $serviceName, $mockMethods);
+      }
+      else {
+        // We have a service id name, use the current module as the module name.
+        $callerInfo = self::getCallerInfo();
+        $moduleName = self::getModuleName($callerInfo['class']);
+        $moduleRoot = self::getModuleRoot($callerInfo['file'], $moduleName);
+        $servicesFile = "$moduleRoot/$moduleName.services.yml";
+      }
     }
     else {
-      $serviceClass = $serviceNameOrClass;
-      $moduleName = self::getModuleName($serviceClass);
-      $reflection = new \ReflectionClass($serviceClass);
-      $fileName = $reflection->getFileName();
-      $moduleRoot = self::getModuleRoot($fileName, $moduleName);
-      $servicesFile = "$moduleRoot/$moduleName.services.yml";
-      $servicesFileData = Yaml::parseFile($servicesFile);
-      foreach ($servicesFileData['services'] as $name => $info) {
-        if (($info['class'] ?? NULL) == $serviceClass) {
-          $serviceName = $name;
-          break;
-        }
-      }
+      $serviceClass = ltrim($serviceNameOrClass, '\\');
+      $serviceInfo = self::getServiceInfoFromClass($serviceClass);
+      $serviceName = $serviceInfo['#name'];
+      $servicesFile = $serviceInfo['#file'];
       if (!isset($serviceName)) {
-        throw new \Exception("Can't find the service name by class $serviceClass in the service file $servicesFile.");
+        throw new \Exception("Can't find the service name by class $serviceClass.");
       }
       if ($serviceNameToCheck && $serviceNameToCheck !== $serviceName) {
         throw new \Exception("The service name '$serviceName' differs from required name '$serviceNameToCheck'");
       }
     }
-
     return self::initServiceFromYaml($servicesFile, $serviceName, $mockMethods);
+  }
+
+  /**
+   * Gets information about service from YAML file.
+   *
+   * @param string $serviceClass
+   *   A class to search.
+   *
+   * @return array|null
+   *   An array with information, or NULL if nothing found.
+   */
+  public static function getServiceInfoFromClass(string $serviceClass): ?array {
+    $serviceClass = ltrim($serviceClass, '\\');
+    $moduleName = self::getModuleName($serviceClass);
+    $reflection = new \ReflectionClass($serviceClass);
+    $fileName = $reflection->getFileName();
+    $moduleRoot = self::getModuleRoot($fileName, $moduleName);
+    $servicesFile = "$moduleRoot/$moduleName.services.yml";
+    try {
+      $servicesFileData = self::parseYamlFile($servicesFile);
+    }
+    catch (\Exception $e) {
+      return NULL;
+    }
+    foreach ($servicesFileData['services'] as $name => $info) {
+      if (($info['class'] ?? NULL) == $serviceClass) {
+        $info['#name'] = $name;
+        $info['#file'] = $servicesFile;
+        return $info;
+      }
+    }
+    return NULL;
   }
 
   /**
@@ -439,48 +497,95 @@ class TestHelpers {
    *   - null: use stub from Test Heleprs of default class from Drupal Core.
    * @param bool $forceOverride
    *   Control overriding the service:
-   *   - false: overrides only if the class names are different.
-   *   - true: always overrides the class by a new instance.
+   *   - FALSE on NULL: overrides only if the class names are different.
+   *   - TRUE: always overrides the class by a new instance.
    * @param array $mockableMethods
    *   The list of exist methods to make mokable.
    * @param array $addMockableMethods
    *   The list of new methods to make them mokable.
+   * @param bool $initService
+   *   Initializes core service with constructor and passing all dependencies.
    *
    * @return object
    *   The initialised service object.
    */
-  public static function service(string $serviceName, $class = NULL, bool $forceOverride = FALSE, array $mockableMethods = [], array $addMockableMethods = []): object {
+  public static function service(
+    string $serviceName,
+    $class = NULL,
+    bool $forceOverride = NULL,
+    array $mockableMethods = NULL,
+    array $addMockableMethods = NULL,
+    bool $initService = NULL
+  ): object {
     $container = self::getContainer();
     if ($container->has($serviceName) && $class === NULL && !$forceOverride) {
       return $container->get($serviceName);
     }
-    elseif ($class === NULL) {
-      $class = self::getServiceStubClass($serviceName, $mockableMethods, $addMockableMethods);
+    $service = NULL;
+    if ($class === NULL) {
+      if ($initService !== FALSE) {
+        $service = self::getServiceStubClass($serviceName, $mockableMethods, $addMockableMethods);
+      }
     }
     elseif (is_string($class)) {
-      $class = self::createMock($class);
+      if ($initService) {
+        $service = self::initService($class);
+      }
+      else {
+        $service = self::createMock($class);
+      }
     }
-    elseif (!is_object($class)) {
+    elseif (is_object($class)) {
+      $service = $class;
+    }
+    else {
       throw new \Exception("Class should be an object, string as path to class, or NULL.");
     }
+
+    // If we still have not initialized service, use core services list.
+    if ($service === NULL) {
+      $coreServiceClass = self::getServiceClassByName($serviceName);
+      if (
+        $initService
+        // In case when we need to return a mock of an auto initalized service.
+        || ($initService !== FALSE && in_array($serviceName, self::SERVICES_CORE_INIT))
+      ) {
+        if (self::getModuleName($coreServiceClass)) {
+          $service = self::initService($coreServiceClass, NULL, $mockableMethods);
+        }
+        else {
+          // In case of Symfony service, it has no Drupal dependencies.
+          if (empty($mockableMethods) && empty($addMockableMethods)) {
+            $service = new $coreServiceClass();
+          }
+          else {
+            $service = self::initService($coreServiceClass, NULL, $mockableMethods);
+          }
+        }
+      }
+      else {
+        $service = self::createMock($coreServiceClass);
+      }
+    }
+
     if ($container->has($serviceName)) {
       $configuredService = $container->get($serviceName);
 
       // Checking if service of already defined and has the same class as
       // the passed service.
       if (
-        (get_class($configuredService) !== get_class($class))
+        (get_class($configuredService) !== get_class($service))
         || $forceOverride
       ) {
-        $container->set($serviceName, $class);
-        return $class;
+        $container->set($serviceName, $service);
+        return $service;
       }
 
       return $configuredService;
     }
     else {
-      $container->set($serviceName, $class);
-      return $class;
+      $container->set($serviceName, $service);
+      return $service;
     }
   }
 
@@ -488,14 +593,26 @@ class TestHelpers {
    * Initializes list of services and adds them to the container.
    *
    * @param array $services
-   *   The array with services, supports two formats:
-   *   - non associative array with service names: adds default classes.
-   *   - service name as key and object or null in value: adds the class to the
-   *     service, use NULL to add default class.
+   *   An array with services, supports two formats:
+   *   - A numeric array with service names: adds default classes.
+   *   - An associative array with service name as a key and object or NULL
+   *     in value: Attaches the passed class to the service, if NULL - creates
+   *     a stub for default Drupal Core class.
    * @param bool $clearContainer
-   *   Clears the Drupal container, if true.
+   *   Clears the Drupal container, if TRUE.
+   * @param bool $forceOverride
+   *   Control overriding the service:
+   *   - FALSE on NULL: overrides only if the class names are different.
+   *   - TRUE: always overrides the class by a new instance.
+   * @param bool $initServices
+   *   Initializes core service with constructor and passing all dependencies.
    */
-  public static function setServices(array $services, bool $clearContainer = FALSE): void {
+  public static function setServices(
+    array $services,
+    bool $clearContainer = NULL,
+    bool $forceOverride = NULL,
+    bool $initServices = NULL
+  ): void {
     if ($clearContainer) {
       TestHelpers::getContainer(TRUE);
     }
@@ -512,25 +629,6 @@ class TestHelpers {
   }
 
   /**
-   * Creates a mock for a service with getting definition from a YAML file.
-   *
-   * @param string $serviceName
-   *   The name of the service to mock.
-   * @param string $servicesYamlFile
-   *   The YAML file with service info. If empty - uses the default map of
-   *   services classes from Drupal Core.
-   *
-   * @return \PHPUnit\Framework\MockObject\MockObject
-   *   The mocked service instance.
-   */
-  public static function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
-    $serviceClass = self::getServiceClassByName($serviceName, $servicesYamlFile);
-    $service = TestHelpers::createMock($serviceClass);
-    self::service($serviceName, $service);
-    return $service;
-  }
-
-  /**
    * Gets a service stub: custom stub or just a mock for a default Drupal class.
    *
    * @param string $serviceName
@@ -543,7 +641,7 @@ class TestHelpers {
    * @return object
    *   The stub for the service, or a mocked default class.
    */
-  public static function getServiceStub(string $serviceName, array $mockableMethods = [], array $addMockableMethods = []): object {
+  public static function getServiceStub(string $serviceName, array $mockableMethods = NULL, array $addMockableMethods = NULL): object {
     $container = TestHelpers::getContainer();
     if ($container->has($serviceName)) {
       return $container->get($serviceName);
@@ -556,8 +654,9 @@ class TestHelpers {
   /**
    * Creates a stub entity for an entity type from a given class.
    *
-   * @param string $entityTypeClassName
-   *   The entity type class.
+   * @param string $entityTypeNameOrClass
+   *   A full path to an entity type class, or an entity type id for Drupal
+   *   Core entities like `node`, `taxonomy_term`, etc.
    * @param array $values
    *   A list of values to set in the created entity.
    * @param array $translations
@@ -586,21 +685,22 @@ class TestHelpers {
    * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
    *   The stub object for the entity.
    */
-  public static function createEntity(string $entityTypeClassName, array $values = NULL, array $translations = NULL, array $options = NULL) {
+  public static function createEntity(string $entityTypeNameOrClass, array $values = NULL, array $translations = NULL, array $options = NULL) {
     $options ??= [];
     // Splitting $options to entity options and storage options.
     if (isset($options['skipPrePostSave'])) {
       $storageOptions['skipPrePostSave'] = $options['skipPrePostSave'];
       unset($options['skipPrePostSave']);
     }
-    return EntityStubFactory::create($entityTypeClassName, $values, $translations, $options, $storageOptions ?? NULL);
+    return EntityStubFactory::create($entityTypeNameOrClass, $values, $translations, $options, $storageOptions ?? NULL);
   }
 
   /**
    * Creates a stub entity for an entity type from a given class and saves it.
    *
-   * @param string $entityTypeClassName
-   *   The entity type class.
+   * @param string $entityTypeNameOrClass
+   *   A full path to an entity type class, or an entity type id for Drupal
+   *   Core entities like `node`, `taxonomy_term`, etc.
    * @param array $values
    *   A list of values to set in the created entity.
    * @param array $translations
@@ -629,8 +729,8 @@ class TestHelpers {
    * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
    *   The stub object for the entity.
    */
-  public static function saveEntity(string $entityTypeClassName, array $values = NULL, array $translations = NULL, array $options = NULL) {
-    $entity = self::createEntity($entityTypeClassName, $values, $translations, $options);
+  public static function saveEntity(string $entityTypeNameOrClass, array $values = NULL, array $translations = NULL, array $options = NULL) {
+    $entity = self::createEntity($entityTypeNameOrClass, $values, $translations, $options);
     $entity->save();
     return $entity;
   }
@@ -638,7 +738,7 @@ class TestHelpers {
   /**
    * Gets or initializes an Entity Storage for a given Entity Type class name.
    *
-   * @param string $entityTypeClassName
+   * @param string $entityTypeNameOrClass
    *   The entity class.
    * @param \Drupal\Core\Entity\EntityStorageInterface $storageInstance
    *   An already initialized instance of a storage, NULL to create a new one.
@@ -657,8 +757,8 @@ class TestHelpers {
    * @return \Drupal\Core\Entity\EntityStorageInterface
    *   The initialized stub of Entity Storage.
    */
-  public static function getEntityStorage(string $entityTypeClassName, EntityStorageInterface $storageInstance = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL): EntityStorageInterface {
-    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeClassName, $storageInstance, $forceOverride, $storageOptions);
+  public static function getEntityStorage(string $entityTypeNameOrClass, EntityStorageInterface $storageInstance = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL): EntityStorageInterface {
+    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeNameOrClass, $storageInstance, $forceOverride, $storageOptions);
   }
 
   /**
@@ -1034,7 +1134,7 @@ class TestHelpers {
       $servicesYamlFile = self::getModuleRoot(1) . '/' . self::getModuleName(1) . '.services.yml';
       $serviceName = $service;
     }
-    $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $serviceName);
+    $serviceInfo = self::getServiceInfoFromYaml($serviceName, $servicesYamlFile);
 
     // Checking the presence of the 'event_subscriber' tag.
     $tagFound = FALSE;
@@ -1118,7 +1218,7 @@ class TestHelpers {
   /**
    * Creates a partial mock for the class and call constructor with arguments.
    */
-  public static function createPartialMockWithConstructor(string $originalClassName, array $methods, array $constructorArgs = [], array $addMethods = NULL): MockObject {
+  public static function createPartialMockWithConstructor(string $originalClassName, array $methods, array $constructorArgs = NULL, array $addMethods = NULL): MockObject {
     return UnitTestCaseWrapper::getInstance()->createPartialMockWithConstructor($originalClassName, $methods, $constructorArgs, $addMethods);
   }
 
@@ -1193,21 +1293,33 @@ class TestHelpers {
    *   The module name, or NULL if can't find.
    */
   public static function getModuleName($namespaceOrLevel = NULL): ?string {
+    $moduleName = NULL;
     if ($namespaceOrLevel === NULL || is_numeric($namespaceOrLevel)) {
       $level = is_numeric($namespaceOrLevel) ? 2 + $namespaceOrLevel : 2;
       $namespace = self::getCallerInfo($level)['class'];
     }
     else {
-      $namespace = $namespaceOrLevel;
+      $namespace = ltrim($namespaceOrLevel, '\\');
     }
     $parts = explode('\\', $namespace);
     if ($parts[0] === 'Drupal') {
       if ($parts[1] === 'Tests') {
-        return $parts[2];
+        $moduleName = $parts[2];
       }
-      return $parts[1];
+      else {
+        $moduleName = $parts[1];
+      }
     }
-    return NULL;
+
+    if (
+      in_array($moduleName, [
+        'Component',
+        'Core',
+      ])) {
+      $moduleName = 'core';
+    }
+
+    return $moduleName;
   }
 
   /**
@@ -1239,9 +1351,14 @@ class TestHelpers {
     }
     $parts = explode(DIRECTORY_SEPARATOR, $file);
     $partsReversed = array_reverse($parts);
-    $modulesIndex =
-      array_search('modules', $partsReversed)
-      ?? array_search('themes', $partsReversed);
+    if ($moduleName == 'core') {
+      $modulesIndex = array_search('core', $partsReversed);
+    }
+    else {
+      $modulesIndex =
+        array_search('modules', $partsReversed)
+        ?? array_search('themes', $partsReversed);
+    }
     if (!$modulesIndex) {
       return NULL;
     }
@@ -1252,6 +1369,28 @@ class TestHelpers {
       }
       return $index > 0 ? implode(DIRECTORY_SEPARATOR, array_reverse(array_slice($partsReversed, $index))) : NULL;
     }
+  }
+
+  /**
+   * Checks if the actual version is equal or hiher than requested.
+   *
+   * @param string $version
+   *   A version number to check in format like "10.1", "10", "9.5.3".
+   */
+  public static function isDrupalVersionAtLeast(string $version): bool {
+    $requested = explode('.', $version);
+    if (!is_numeric($requested[0])) {
+      throw new \Exception("Can't detect major version number from string \"$version\".");
+    }
+    $actual = explode('.', \DRUPAL::VERSION);
+    if (
+      $actual[0] < $requested[0]
+      || (isset($requested[1]) && $actual[1] < $requested[1])
+      || (isset($requested[2]) && $actual[2] < $requested[2])
+    ) {
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /* ************************************************************************ *
@@ -1273,7 +1412,8 @@ class TestHelpers {
   /**
    * Gets the class for a service, including current module implementations.
    */
-  private static function getServiceStubClass(string $serviceName, array $mockableMethods = [], array $addMockableMethods = []): object {
+  private static function getServiceStubClass(string $serviceName, array $mockableMethods = NULL, array $addMockableMethods = NULL): ?object {
+    $service = NULL;
     if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
       $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
       if (is_string($serviceClass)) {
@@ -1291,17 +1431,14 @@ class TestHelpers {
         throw new \Exception("Bad format of parameters for $serviceName.");
       }
     }
-    else {
-      $service = TestHelpers::createServiceMock($serviceName);
-    }
     return $service;
   }
 
   /**
    * Gets a service info from a YAML file.
    */
-  private static function getServiceInfoFromYaml(string $servicesYamlFile, string $serviceName): array {
-    $services = Yaml::parseFile((str_starts_with($servicesYamlFile, '/') ? '' : DRUPAL_ROOT) . '/' . $servicesYamlFile)['services'];
+  private static function getServiceInfoFromYaml(string $serviceName, string $servicesYamlFile): array {
+    $services = self::parseYamlFile((str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile)['services'];
     return $services[$serviceName];
   }
 
@@ -1324,27 +1461,48 @@ class TestHelpers {
    */
   private static function getServiceClassByName(string $serviceName, string $servicesYamlFile = NULL): string {
     if ($servicesYamlFile) {
-      $services = Yaml::parseFile((str_starts_with($servicesYamlFile, '/') ? '' : DRUPAL_ROOT) . '/' . $servicesYamlFile)['services'];
+      $services = self::parseYamlFile((str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile)['services'];
       $serviceClass = $services[$serviceName]['class'] ?? FALSE;
     }
     else {
-      if (Utils::isDrupalVersionEqualOrHigher('10.1')) {
-        require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.10.1.data';
+      if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
+        $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
       }
-      elseif (Utils::isDrupalVersionEqualOrHigher('10.0')) {
-        require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.10.0.data';
-      }
-      else {
-        require_once dirname(__FILE__) . '/includes/DrupalCoreServicesMap.9.x.data';
-      }
-      // This trick prevents 'Undefined constant' warnings in code sniffers.
-      defined('DRUPAL_CORE_SERVICES_MAP') || define('DRUPAL_CORE_SERVICES_MAP', '');
-      $serviceClass = DRUPAL_CORE_SERVICES_MAP[$serviceName] ?? FALSE;
+      self::requireCoreFeaturesMap();
+      $serviceClass = TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName]['class'] ?? FALSE;
     }
     if (!$serviceClass) {
       throw new \Exception("Service '$serviceName' is missing in the list.");
     }
     return $serviceClass;
+  }
+
+  /**
+   * Loads a Drupal Core services map file for the correct Drupal Core version.
+   *
+   * @internal
+   *   This function is used mostly for the internal functionality.
+   */
+  public static function requireCoreFeaturesMap(): void {
+    if (defined('TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP')) {
+      return;
+    }
+    $mapDirectory = dirname(__FILE__) . '/includes/CoreFeaturesMaps';
+    $filePrefix = 'CoreFeaturesMap';
+    [$major, $minor, $patch] = explode('.', \Drupal::VERSION);
+    unset($patch);
+    while ($major >= 8) {
+      $path = "$mapDirectory/$filePrefix.$major.$minor.php";
+      if (file_exists($path)) {
+        break;
+      }
+      $minor--;
+      if ($minor < 0) {
+        $major--;
+        $minor = 10;
+      }
+    }
+    require_once $path;
   }
 
   /**
@@ -1409,7 +1567,7 @@ class TestHelpers {
    *   - class: the full class name.
    *
    * @internal
-   *   This function is used mostly for internal functionality.
+   *   This function is used mostly for the internal functionality.
    */
   public static function getCallerInfo(int $level = 2): ?array {
     $backtrace = debug_backtrace(defined("DEBUG_BACKTRACE_IGNORE_ARGS") ? DEBUG_BACKTRACE_IGNORE_ARGS : FALSE);
@@ -1425,6 +1583,24 @@ class TestHelpers {
       'function' => $calledTrace['function'],
       'class' => $calledTrace['class'],
     ];
+  }
+
+  /**
+   * Parses a YAML file and caches the result in memory.
+   *
+   * @param string $servicesFile
+   *   A path to a YAML file.
+   *
+   * @return mixed
+   *   A result of file parsing.
+   */
+  private static function parseYamlFile(string $servicesFile) {
+    static $cache;
+    if (isset($cache[$servicesFile])) {
+      return $cache[$servicesFile];
+    }
+    $cache[$servicesFile] = Yaml::parseFile($servicesFile);
+    return $cache[$servicesFile];
   }
 
   /**
@@ -1562,7 +1738,7 @@ class TestHelpers {
   /**
    * Creates a stub entity for an entity type from a given class.
    *
-   * @param string $entityTypeClassName
+   * @param string $entityTypeNameOrClass
    *   The entity type class.
    * @param array $values
    *   An array with entity values:
@@ -1581,15 +1757,15 @@ class TestHelpers {
    *   test_helpers:1.0.0-rc1. Renamed to createEntity().
    * @see https://www.drupal.org/project/test_helpers/issues/3337449
    */
-  public static function createEntityStub(string $entityTypeClassName, array $values = [], array $options = []) {
+  public static function createEntityStub(string $entityTypeNameOrClass, array $values = [], array $options = []) {
     @trigger_error('Function createEntityStub() is deprecated in test_helpers:1.0.0-beta5 and is removed from test_helpers:1.0.0-rc1. Renamed to createEntity(). See https://www.drupal.org/project/test_helpers/issues/3337449', E_USER_DEPRECATED);
-    return self::createEntity($entityTypeClassName, $values, $options);
+    return self::createEntity($entityTypeNameOrClass, $values, $options);
   }
 
   /**
    * Creates a stub entity for an entity type from a given class and saves it.
    *
-   * @param string $entityTypeClassName
+   * @param string $entityTypeNameOrClass
    *   The entity type class.
    * @param array $values
    *   An array with entity values:
@@ -1608,15 +1784,15 @@ class TestHelpers {
    *   test_helpers:1.0.0-rc1. Renamed to saveEntity().
    * @see https://www.drupal.org/project/test_helpers/issues/3337449
    */
-  public static function saveEntityStub(string $entityTypeClassName, array $values = [], array $options = []) {
+  public static function saveEntityStub(string $entityTypeNameOrClass, array $values = [], array $options = []) {
     @trigger_error('Function saveEntityStub() is deprecated in test_helpers:1.0.0-beta5 and is removed from test_helpers:1.0.0-rc1. Renamed to saveEntity(). See https://www.drupal.org/project/test_helpers/issues/3337449', E_USER_DEPRECATED);
-    return self::saveEntity($entityTypeClassName, $values, $options);
+    return self::saveEntity($entityTypeNameOrClass, $values, $options);
   }
 
   /**
    * Gets or initializes an Entity Storage for a given Entity Type class name.
    *
-   * @param string $entityTypeClassName
+   * @param string $entityTypeNameOrClass
    *   The entity class.
    * @param string $annotation
    *   The annotation class.
@@ -1628,9 +1804,9 @@ class TestHelpers {
    *   test_helpers:1.0.0-rc1. Renamed to getEntityStorage().
    * @see https://www.drupal.org/project/test_helpers/issues/3337449
    */
-  public static function getEntityStorageStub(string $entityTypeClassName, string $annotation = NULL): EntityStorageInterface {
+  public static function getEntityStorageStub(string $entityTypeNameOrClass, string $annotation = NULL): EntityStorageInterface {
     @trigger_error('Function getEntityStorageStub() is deprecated in test_helpers:1.0.0-beta5 and is removed from test_helpers:1.0.0-rc1. Renamed to getEntityStorage(). See https://www.drupal.org/project/test_helpers/issues/3337449', E_USER_DEPRECATED);
-    return self::getEntityStorage($entityTypeClassName, $annotation);
+    return self::getEntityStorage($entityTypeNameOrClass, $annotation);
   }
 
   /**
@@ -1737,7 +1913,7 @@ class TestHelpers {
     if ($services !== NULL) {
       self::setServices($services);
     }
-    $serviceInfo = self::getServiceInfoFromYaml($servicesYamlFile, $name);
+    $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFile);
     $classArguments = [];
     foreach (($serviceInfo['arguments'] ?? []) as $argument) {
       if (substr($argument, 0, 1) == '@') {
@@ -1749,6 +1925,29 @@ class TestHelpers {
     }
     $classInstance = new $serviceInfo['class'](...$classArguments, ...$additionalArguments);
     return $classInstance;
+  }
+
+  /**
+   * Creates a mock for a service with getting definition from a YAML file.
+   *
+   * @param string $serviceName
+   *   The name of the service to mock.
+   * @param string $servicesYamlFile
+   *   The YAML file with service info. If empty - uses the default map of
+   *   services classes from Drupal Core.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject
+   *   The mocked service instance.
+   *
+   * @deprecated in test_helpers:1.0.0-beta10 and is removed from
+   *   test_helpers:1.0.0-rc1. Use initServiceFromYaml() instead.
+   * @see https://www.drupal.org/project/test_helpers/issues/3350342
+   */
+  public static function createServiceMock(string $serviceName, string $servicesYamlFile = NULL): MockObject {
+    $serviceClass = self::getServiceClassByName($serviceName, $servicesYamlFile);
+    $service = TestHelpers::createMock($serviceClass);
+    self::service($serviceName, $service);
+    return $service;
   }
 
 }

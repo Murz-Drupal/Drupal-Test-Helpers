@@ -1,82 +1,31 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit;
+namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
 
+use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Drupal\Core\Entity\Controller\EntityController;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\UrlGenerator;
 use Drupal\Core\Site\Settings;
 use Drupal\language\ConfigurableLanguageManagerInterface;
 use Drupal\language\LanguageNegotiationMethodManager;
-use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 /**
- * Tests UnitTestHelpers functions.
+ * Tests Query helper functions.
  *
- * @coversDefaultClass \Drupal\test_helpers\UnitTestHelpers
+ * @coversDefaultClass \Drupal\test_helpers\TestHelpers
  * @group test_helpers
  */
-class UnitTestHelpersTest extends UnitTestCase {
-
-  /**
-   * @covers ::getMockedMethod
-   */
-  public function testGetMockedMethod() {
-    /** @var \Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $mock */
-    $mock = $this->createMock(EntityInterface::class);
-    $mock->method('label')->willReturn('foo');
-    $mock->method('id')->willReturn('42');
-    $this->assertEquals('foo', $mock->label());
-
-    // Ensuring that default overriding is not yet available.
-    try {
-      $mock->method('label')->willReturn('bar');
-    }
-    catch (MethodNameAlreadyConfiguredException $e) {
-      $this->assertInstanceOf(MethodNameAlreadyConfiguredException::class, $e);
-    }
-    $this->assertNotEquals('bar', $mock->label());
-
-    // Testing custom overriding of the method return value.
-    $labelMethod = TestHelpers::getMockedMethod($mock, 'label');
-    $labelMethod->willReturn('baz');
-    $mock->method('uuid')->willReturn('myUUID');
-    $this->assertEquals('baz', $mock->label());
-    $this->assertNotEquals('foo', $mock->label());
-    $this->assertEquals('42', $mock->id());
-    $this->assertEquals('myUUID', $mock->uuid());
-
-    // Testing the second overriding of the method return value.
-    $labelMethod->willReturn('qux');
-    $this->assertEquals('qux', $mock->label());
-
-    // Testing a next getter and overriding of the method return value.
-    $labelMethod2 = TestHelpers::getMockedMethod($mock, 'label');
-    $labelMethod2->willReturnArgument(1);
-    // Putting coding standards ignore flag to suppress the warning
-    // 'Too many arguments to function label().'.
-    // @codingStandardsIgnoreStart
-    $this->assertEquals('arg1', $mock->label('arg0', 'arg1'));
-    // @codingStandardsIgnoreEnd
-
-    // Testing a getter with callback function.
-    $idMethod = TestHelpers::getMockedMethod($mock, 'id');
-    $idMethod->willReturnCallback(function () {
-      return 777;
-    });
-    $this->assertSame(777, $mock->id());
-  }
+class ServicesTest extends UnitTestCase {
 
   /**
    * @covers ::service
    * @covers ::setServices
    */
-  public function testAddServices() {
+  public function testServices() {
     /** @var \Drupal\Core\Entity\EntityTypeInterface|\PHPUnit\Framework\MockObject\MockObject $entityType */
     $entityType = $this->createMock(EntityTypeInterface::class);
     $entityType->method('getSingularLabel')->willReturn('my entity');
@@ -122,6 +71,32 @@ class UnitTestHelpersTest extends UnitTestCase {
       $this->assertStringStartsWith('You have requested a non-existent service', $e->getMessage());
     }
 
+    /* Testing services initialization. */
+
+    // Resetting the container to have a clear environment.
+    TestHelpers::getContainer(TRUE);
+
+    // With no initialization flag here should be a mock that always return
+    // NULL.
+    TestHelpers::service('country_manager', NULL, NULL, NULL, NULL, FALSE);
+    $this->assertNull(\Drupal::service('country_manager')->getList());
+
+    // With the initialization flag here should be a real initialized object.
+    TestHelpers::service('country_manager', NULL, TRUE, NULL, NULL, TRUE);
+    try {
+      $this->assertIsArray(\Drupal::service('country_manager')->getList());
+      $this->fail();
+    }
+    catch (\Exception $e) {
+    }
+    TestHelpers::service('string_translation');
+    $this->assertIsArray(\Drupal::service('country_manager')->getList());
+    $this->assertEquals('foo', \Drupal::service('string_translation')->translate('foo'));
+
+    // With the initialization flag equals FALSE the auto initialized services
+    // should return NULL always.
+    TestHelpers::service('string_translation', NULL, TRUE, NULL, NULL, FALSE);
+    $this->assertNull(\Drupal::service('string_translation')->translate('foo'));
   }
 
   /**

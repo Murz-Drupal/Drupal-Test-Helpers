@@ -25,8 +25,9 @@ class EntityStubFactory {
   /**
    * Creates an entity stub with field values.
    *
-   * @param string $entityTypeClassName
-   *   The entity type class.
+   * @param string $entityTypeNameOrClass
+   *   A full path to an entity type class, or an entity type id for Drupal
+   *   Core entities like `node`, `taxonomy_term`, etc.
    * @param array $values
    *   A list of values to set in the created entity.
    * @param array $translations
@@ -37,40 +38,57 @@ class EntityStubFactory {
    *   - addMethods: list of additional methods.
    *   - skipEntityConstructor: a flag to skip calling the entity constructor.
    *   - fields: a list of custom field options by field name.
-   *     Applies only on the first initialization of this field.
-   *     Field options supportable formats:
-   *     - A string, indicating field type, like 'integer', 'string',
-   *       'entity_reference', only core field types are supported.
-   *     - An array with field type and settings, like this:
-   *       [
-   *        '#type' => 'entity_reference',
-   *        '#settings' => ['target_type' => 'node']
-   *       ].
-   *     - A field definition object, that will be applied to the field.
+   *    Applies only on the first initialization of this field.
+   *    Field options supportable formats:
+   *    - A string, indicating field type, like 'integer', 'string',
+   *      'entity_reference', only core field types are supported.
+   *    - An array with field type and settings, like this:
+   *      [
+   *       '#type' => 'entity_reference',
+   *       '#settings' => ['target_type' => 'node']
+   *      ].
+   *    - A field definition object, that will be applied to the field.
    * @param array $storageOptions
    *   A list of options to pass to the storage initialization. Acts only once
    *   if the storage is not initialized yet.
    *   - skipPrePostSave: a flag to use direct save on the storage without
-   *     calling preSave and postSave functions. Can be useful if that functions
-   *     have dependencies which hard to mock.
+   *    calling preSave and postSave functions. Can be useful if that functions
+   *    have dependencies which hard to mock.
    *   - constructorArguments: additional arguments to the constructor.
    *
    * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
    *   The stub object for the entity.
    */
-  public static function create(string $entityTypeClassName, array $values = NULL, array $translations = NULL, array $options = NULL, array $storageOptions = NULL) {
+  public static function create(
+    string $entityTypeNameOrClass,
+    array $values = NULL,
+    array $translations = NULL,
+    array $options = NULL,
+    array $storageOptions = NULL
+  ) {
     $values ??= [];
     $options ??= [];
+
+    TestHelpers::requireCoreFeaturesMap();
+    $entityTypeClass = ltrim(TEST_HELPERS_DRUPAL_CORE_STORAGE_MAP[$entityTypeNameOrClass] ?? $entityTypeNameOrClass, '\\');
+
     if (is_array($options['methods'] ?? NULL)) {
       @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See https://www.drupal.org/project/test_helpers/issues/3347857', E_USER_DEPRECATED);
       $options['mockMethods'] = array_unique(array_merge($options['mockMethods'] ?? [], $options['methods']));
     }
     // Creating a new entity storage stub instance, if not exists.
-    /** @var \Drupal\test_helpers\Stub\EntityTypeManagerStub $entityTypeManager */
+    /**
+     * @var \Drupal\test_helpers\Stub\EntityTypeManagerStub $entityTypeManager
+     */
     $entityTypeManager = TestHelpers::service('entity_type.manager');
-    /** @var \Drupal\test_helpers\Stub\EntityFieldManagerStub $entityFieldManager */
+    /**
+     * @var \Drupal\test_helpers\Stub\EntityFieldManagerStub $entityFieldManager
+     */
     $entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
-    $storage = $entityTypeManager->stubGetOrCreateStorage($entityTypeClassName, NULL, FALSE, $storageOptions);
+    /**
+     * @var \Drupal\Core\Entity\EntityStorageInterface $storage
+     */
+    $storage = $entityTypeManager->stubGetOrCreateStorage($entityTypeClass, NULL, FALSE, $storageOptions);
     $entityTypeDefinition = $storage->getEntityType();
     $entityTypeId = $storage->getEntityTypeId();
     $bundleKey = $entityTypeDefinition->getKey('bundle');
@@ -82,10 +100,12 @@ class EntityStubFactory {
       if (!$bundleEntity = $bundleStorage->load($bundle)) {
         $idKey = $bundleStorage->getEntityType()->getKey('id');
         $labelKey = $bundleStorage->getEntityType()->getKey('label');
-        $bundleEntity = $bundleStorage->create([
-          $idKey => $values[$bundleKey],
-          $labelKey => $values[$bundleKey],
-        ]);
+        $bundleEntity = $bundleStorage->create(
+          [
+            $idKey => $values[$bundleKey],
+            $labelKey => $values[$bundleKey],
+          ]
+        );
         $bundleEntity->save();
       }
       $entityTypeBundleInfo->stubSetBundleInfo($entityTypeId, $bundle, $bundleEntity);
@@ -102,7 +122,7 @@ class EntityStubFactory {
 
     // @todo Remove this crunch.
     // $entityClass instanceOf ContentEntityBase doesn't work.
-    if (in_array(ContentEntityBase::class, class_parents($entityTypeClassName))) {
+    if (in_array(ContentEntityBase::class, class_parents($entityTypeClass))) {
       $methodsToMock[] = 'updateOriginalValues';
     }
     $valuesForConstructor = [];
@@ -116,15 +136,18 @@ class EntityStubFactory {
       'stubSetFieldObject',
       ...($options['addMethods'] ?? []),
     ];
+    /**
+     * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $entity
+     */
     if ($options['skipEntityConstructor'] ?? NULL) {
       $entity = TestHelpers::createPartialMock(
-        $entityTypeClassName,
+        $entityTypeClass,
         [...$methodsToMock, ...$addMethods]
       );
     }
     else {
       $entity = TestHelpers::createPartialMockWithConstructor(
-        $entityTypeClassName,
+        $entityTypeClass,
         $methodsToMock,
         [
           $valuesForConstructor,
@@ -162,7 +185,9 @@ class EntityStubFactory {
         if ($options['skipEntityConstructor'] ?? NULL) {
           // If we skipped the original constructor, we must define some
           // crucial things manually.
-          /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
+          /**
+           * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface $this
+           */
           $this->entityTypeId = $entityTypeId;
           $this->entityKeys['bundle'] = $bundle ? $bundle : $this->entityTypeId;
           foreach ($this->getEntityType()->getKeys() as $key => $field) {
@@ -287,37 +312,47 @@ class EntityStubFactory {
     }
     $entity->enforceIsNew();
 
-    TestHelpers::setMockedClassMethod($entity, 'stubSetFieldObject', function ($fieldName, $fieldObject, $langCode = NULL) {
-      $this->fieldDefinitions[$fieldName] = $fieldObject;
-      $langCode ??= $this->activeLangCode;
-      $this->fields[$fieldName][$langCode] = $fieldObject;
-    });
+    TestHelpers::setMockedClassMethod(
+      $entity, 'stubSetFieldObject', function ($fieldName, $fieldObject, $langCode = NULL) {
+        /**
+         * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
+         */
+        $this->fieldDefinitions[$fieldName] = $fieldObject;
+        $langCode ??= $this->activeLangCode;
+        $this->fields[$fieldName][$langCode] = $fieldObject;
+      }
+    );
 
     if (array_search('updateOriginalValues', $methodsToMock)) {
-      TestHelpers::setMockedClassMethod($entity, 'updateOriginalValues', function (): void {
-        if (!$this->fields) {
-          // Phpcs shows an error here: Function return type is not void, but
-          // function is returning void here.
-          // Suppressing it.
-          // @codingStandardsIgnoreStart
-          return;
-          // @codingStandardsIgnoreEnd
-        }
-        foreach ($this->getFieldDefinitions() as $name => $definition) {
-          if (!$definition->isComputed() && !empty($this->fields[$name])) {
-            foreach ($this->fields[$name] as $langcode => $item) {
-              $item->filterEmptyItems();
-              // @todo Remove these crunches and use original function.
-              // Crunches start.
-              if (isset($this->values[$name]) && !is_array($this->values[$name])) {
-                $this->values[$name] = [];
+      TestHelpers::setMockedClassMethod(
+        $entity, 'updateOriginalValues', function (): void {
+          /**
+           * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
+           */
+          if (!$this->fields) {
+            // Phpcs shows an error here: Function return type is not void, but
+            // function is returning void here.
+            // Suppressing it.
+            // @codingStandardsIgnoreStart
+            return;
+            // @codingStandardsIgnoreEnd
+          }
+          foreach ($this->getFieldDefinitions() as $name => $definition) {
+            if (!$definition->isComputed() && !empty($this->fields[$name])) {
+              foreach ($this->fields[$name] as $langcode => $item) {
+                $item->filterEmptyItems();
+                // @todo Remove these crunches and use original function.
+                // Crunches start.
+                if (isset($this->values[$name]) && !is_array($this->values[$name])) {
+                  $this->values[$name] = [];
+                }
+                // Crunches end.
+                $this->values[$name][$langcode] = $item->getValue();
               }
-              // Crunches end.
-              $this->values[$name][$langcode] = $item->getValue();
             }
           }
         }
-      });
+      );
     }
     return $entity;
   }

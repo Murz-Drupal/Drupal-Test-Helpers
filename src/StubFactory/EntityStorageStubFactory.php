@@ -93,7 +93,7 @@ class EntityStorageStubFactory {
     $moduleDirectory = dirname(dirname(dirname($entityFile)));
     $moduleName = basename($moduleDirectory);
     $moduleFile = "$moduleDirectory/$moduleName.module";
-    file_exists($moduleFile) && require_once $moduleFile;
+    file_exists($moduleFile) && include_once $moduleFile;
 
     $entityTypeStorageClass = $entityTypeDefinition->getStorageClass();
     self::$entityDataStorage ??= [
@@ -171,10 +171,12 @@ class EntityStorageStubFactory {
         break;
     }
 
-    $addMethods = array_unique([
-      ...($storageOptions['addMethods'] ?? []),
-      'stubGetAllLatestRevision',
-    ]);
+    $addMethods = array_unique(
+      [
+        ...($storageOptions['addMethods'] ?? []),
+        'stubGetAllLatestRevision',
+      ]
+    );
 
     $mockMethods = array_unique(array_merge($overridedMethods, $storageOptions['mockMethods'] ?? []));
 
@@ -204,24 +206,28 @@ class EntityStorageStubFactory {
         ],
       );
 
-      TestHelpers::setMockedClassMethod($entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
-        $this->entityType = $entityTypeDefinition;
-        $this->entityTypeId = $this->entityType->id();
+      TestHelpers::setMockedClassMethod(
+        $entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
+          $this->entityType = $entityTypeDefinition;
+          $this->entityTypeId = $this->entityType->id();
 
-        $this->baseEntityClass = $this->entityType->getClass();
-        $this->entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
+          $this->baseEntityClass = $this->entityType->getClass();
+          $this->entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
 
-        $this->database = TestHelpers::service('database');
-        $this->memoryCache = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
-        $this->cacheBackend = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
+          $this->database = TestHelpers::service('database');
+          $this->memoryCache = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
+          $this->cacheBackend = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
 
-      }, $entityStorage, 'stubInit');
+        }, $entityStorage, 'stubInit'
+      );
 
       $entityStorage->stubInit();
     }
 
     $saveFunction = function (EntityInterface $entity, array $names = []) use (&$entitiesStorage, &$entitiesMaxIdStorage, &$entitiesMaxRevisionIdStorage) {
-      /** @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this */
+      /**
+       * @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this
+       */
       $idProperty = $this->entityType->getKey('id') ?? NULL;
       if ($idProperty) {
         // The `id` value for even integer autoincrement is stored as string in
@@ -323,62 +329,70 @@ class EntityStorageStubFactory {
     }
 
     if (in_array('delete', $overridedMethods)) {
-      TestHelpers::setMockedClassMethod($entityStorage, 'delete', function (array $entities) use (&$entitiesStorage) {
-        foreach ($entities as $entity) {
-          $id = $entity->id();
-          if (isset($entitiesStorage['byId'][$id])) {
-            unset($entitiesStorage['byId'][$id]);
-          }
-        }
-      });
-    }
-
-    if (in_array('loadMultiple', $overridedMethods)) {
-      TestHelpers::setMockedClassMethod($entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$entitiesStorage) {
-        if ($ids === NULL) {
-          $entitiesValues = $entitiesStorage['byId'] ?? [];
-        }
-        else {
-          $entitiesValues = [];
-          foreach ($ids as $id) {
+      TestHelpers::setMockedClassMethod(
+        $entityStorage, 'delete', function (array $entities) use (&$entitiesStorage) {
+          foreach ($entities as $entity) {
+            $id = $entity->id();
             if (isset($entitiesStorage['byId'][$id])) {
-              $entitiesValues[] = $entitiesStorage['byId'][$id];
+              unset($entitiesStorage['byId'][$id]);
             }
           }
         }
+      );
+    }
 
-        $entities = [];
-        foreach ($entitiesValues as $values) {
+    if (in_array('loadMultiple', $overridedMethods)) {
+      TestHelpers::setMockedClassMethod(
+        $entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$entitiesStorage) {
+          if ($ids === NULL) {
+            $entitiesValues = $entitiesStorage['byId'] ?? [];
+          }
+          else {
+            $entitiesValues = [];
+            foreach ($ids as $id) {
+              if (isset($entitiesStorage['byId'][$id])) {
+                $entitiesValues[] = $entitiesStorage['byId'][$id];
+              }
+            }
+          }
+
+          $entities = [];
+          foreach ($entitiesValues as $values) {
+            $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
+            if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
+              $entity->updateLoadedRevisionId();
+            }
+            $entities[$entity->id()] = $entity;
+          }
+
+          return $entities;
+        }
+      );
+    }
+
+    if (in_array('loadRevision', $overridedMethods)) {
+      TestHelpers::setMockedClassMethod(
+        $entityStorage, 'loadRevision', function ($id) use (&$entitiesStorage) {
+          if (!$values = $entitiesStorage['byRevisionId'][$id] ?? NULL) {
+            return NULL;
+          }
           $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
           if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
             $entity->updateLoadedRevisionId();
           }
-          $entities[$entity->id()] = $entity;
+          return $entity;
         }
-
+      );
+    }
+    TestHelpers::setMockedClassMethod(
+      $entityStorage, 'stubGetAllLatestRevision', function () use (&$entitiesStorage) {
+        $entities = [];
+        foreach ($entitiesStorage['byIdLatestRevision'] ?? [] as $values) {
+          $entities[] = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
+        }
         return $entities;
-      });
-    }
-
-    if (in_array('loadRevision', $overridedMethods)) {
-      TestHelpers::setMockedClassMethod($entityStorage, 'loadRevision', function ($id) use (&$entitiesStorage) {
-        if (!$values = $entitiesStorage['byRevisionId'][$id] ?? NULL) {
-          return NULL;
-        }
-        $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
-        if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
-          $entity->updateLoadedRevisionId();
-        }
-        return $entity;
-      });
-    }
-    TestHelpers::setMockedClassMethod($entityStorage, 'stubGetAllLatestRevision', function () use (&$entitiesStorage) {
-      $entities = [];
-      foreach ($entitiesStorage['byIdLatestRevision'] ?? [] as $values) {
-        $entities[] = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
       }
-      return $entities;
-    });
+    );
 
     // Crunches for known specific Core entity types.
     switch ($entityTypeId) {

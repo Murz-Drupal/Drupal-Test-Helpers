@@ -68,7 +68,7 @@ class CreateEntityStubTest extends UnitTestCase {
       'field_sign' => 'Alice',
       'body' => 'Pretty boring page text.',
     ];
-    $node2Entity = TestHelpers::createEntity(Node::class, $node2Values);
+    $node2Entity = TestHelpers::createEntity('node', $node2Values);
 
     $this->assertEquals($node2Values['title'], $node2Entity->title->value);
 
@@ -126,7 +126,7 @@ class CreateEntityStubTest extends UnitTestCase {
    * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testSaveEntityStub() {
-    $node = TestHelpers::saveEntity(Node::class);
+    $node = TestHelpers::saveEntity('node');
     $this->assertEquals('1', $node->id());
     $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadByProperties(['nid' => '1']);
     $this->assertEquals(current($nodeLoaded)->id(), $node->id());
