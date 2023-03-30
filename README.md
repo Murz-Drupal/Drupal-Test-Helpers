@@ -1,18 +1,19 @@
 # Test Helpers
 
-The module provides the API to simplify writing Drupal Unit tests. Using the
-API can significantly reduce the amount of code in your Unit Tests to cover all
-the logic of testing functions, using provided stubs of Drupal services.
+The module provides API to simplify writing Drupal unit tests. Using the API can
+significantly reduce the amount of code in your unit tests to cover all the
+logic of tested functions, using provided stubs of Drupal services.
 
 Basically, the module provides stubs for the most popular Drupal services like
-Entity Storage, Entity Query, Database Query, Configuration Factory, and many
-others. The stubs can emulate the behavior of the services in Unit Tests without
-requiring an initiated Drupal Kernel and database.
+Entity Storage, EntityQuery, Database, Configuration Factory, and many others.
+The stubs can emulate the behavior of entities (create, load, save, delete) and
+core services, but without the real initialization of Drupal Core, database and
+other persistent storages, all are emulated in the memory.
 
 Additionally, it provides some utility functions to get private properties and
 methods from classes, Plugin Definitions from a YAML file, and many more.
 
-See `\Drupal\test_helpers\UnitTestHelpers` for the main API functions.
+See the `\Drupal\test_helpers\TestHelpers` class for the main API functions.
 
 See usage examples in the submodule `test_helpers_example`.
 

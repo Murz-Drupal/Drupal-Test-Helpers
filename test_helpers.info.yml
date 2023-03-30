@@ -1,6 +1,6 @@
 name: Test Helpers
 type: module
-description: 'Helper classes and functions to simplify writing Drupal tests.'
+description: 'A bundle of helpers and utilities to simplify writing unit tests to cover code in custom Drupal modules.'
 package: Development
 core_version_requirement: ^8 || ^9 || ^10
 tags:
