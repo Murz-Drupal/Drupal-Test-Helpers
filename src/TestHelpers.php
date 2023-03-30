@@ -93,6 +93,7 @@ class TestHelpers {
    */
   public const SERVICES_CORE_INIT = [
     'cache.backend.memory',
+    'cache_tags.invalidator',
     'datetime.time',
     'entity.memory_cache',
     'request_stack',
@@ -381,6 +382,9 @@ class TestHelpers {
     else {
       $classInstance = new $serviceInfo['class'](...$classArguments);
     }
+    if (method_exists($classInstance, 'setContainer')) {
+      $classInstance->setContainer(self::getContainer());
+    }
     return $classInstance;
   }
 
@@ -480,7 +484,10 @@ class TestHelpers {
    */
   public static function getContainer($forceCreate = FALSE): ContainerInterface {
     if ($forceCreate || !\Drupal::hasContainer()) {
-      \Drupal::setContainer(new ContainerBuilder());
+      $container = new ContainerBuilder();
+      // Setting default parameters, required for some Core services.
+      $container->setParameter('cache_bins', []);
+      \Drupal::setContainer($container);
     }
     return \Drupal::getContainer();
   }

@@ -8,6 +8,7 @@ use Drupal\Core\Config\MemoryStorage;
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Config\TypedConfigManager;
 use Drupal\Core\Config\TypedConfigManagerInterface;
+use Drupal\test_helpers\Library\ConfigFactoryStubCacheInvalidator;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -24,12 +25,17 @@ class ConfigFactoryStub extends ConfigFactory {
     EventDispatcherInterface $event_dispatcher = NULL,
     TypedConfigManagerInterface $typed_config = NULL
   ) {
-    $this->storage = $storage ?? new MemoryStorage();
+    $storage ??= new MemoryStorage('config_factory_stub');
     // Workaround for the issue
     // https://www.drupal.org/project/drupal/issues/3325571.
-    $this->storage->write('__config_factory_stub_placeholder', []);
-    $this->eventDispatcher = $event_dispatcher ?? new ContainerAwareEventDispatcher(\Drupal::getContainer());
-    $this->typedConfigManager = $typed_config ?? TestHelpers::createMock(TypedConfigManager::class);
+    $storage->write('__config_factory_stub_placeholder', []);
+
+    $event_dispatcher ??= new ContainerAwareEventDispatcher(\Drupal::getContainer());
+    $typed_config ??= TestHelpers::createMock(TypedConfigManager::class);
+    $invalidator = TestHelpers::service('cache_tags.invalidator');
+    $configFactoryStubCacheInvalidator = new ConfigFactoryStubCacheInvalidator();
+    $invalidator->addInvalidator($configFactoryStubCacheInvalidator);
+    parent::__construct($storage, $event_dispatcher, $typed_config);
   }
 
   /**
@@ -43,14 +49,15 @@ class ConfigFactoryStub extends ConfigFactory {
    *   Store as immutable.
    */
   public function stubSetConfig(string $name, $data, bool $immutable = FALSE): void {
-    $config = $this->getEditable($name);
-    $config->setData($data);
-    $key = $this->getConfigCacheKey($name, FALSE);
-    $keyImmutable = $this->getConfigCacheKey($name, TRUE);
-    $this->storage->write($key, ['data' => $config]);
-    // @todo Split to separate immutable and non-immutable sets.
-    $this->cache[$key] = $config;
-    $this->cache[$keyImmutable] = $config;
+    // $config = $this->getEditable($name);
+    // $config->setData($data);
+    // $key = $this->getConfigCacheKey($name, FALSE);
+    // $keyImmutable = $this->getConfigCacheKey($name, TRUE);
+    // $this->storage->write($key, ['data' => $config]);
+    // // @todo Split to separate immutable and non-immutable sets.
+    // $this->cache[$key] = $config;
+    // $this->cache[$keyImmutable] = $config;
+    $this->storage->write($name, $data);
   }
 
 }
