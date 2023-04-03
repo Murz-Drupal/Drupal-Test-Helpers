@@ -39,6 +39,18 @@ class ConfigFactoryStub extends ConfigFactory {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  protected function doLoadMultiple(array $names, $immutable = TRUE) {
+    // Now the static cache clearing is based on events (onConfigSave,
+    // onConfigDelete), that are not working in Unit Tests context, so to
+    // workaround just forces clearing the cache.
+    // @todo Invent a better way to do this.
+    $this->clearStaticCache();
+    return parent::doLoadMultiple($names, $immutable);
+  }
+
+  /**
    * Sets a config value.
    *
    * @param string $name
@@ -49,14 +61,7 @@ class ConfigFactoryStub extends ConfigFactory {
    *   Store as immutable.
    */
   public function stubSetConfig(string $name, $data, bool $immutable = FALSE): void {
-    // $config = $this->getEditable($name);
-    // $config->setData($data);
-    // $key = $this->getConfigCacheKey($name, FALSE);
-    // $keyImmutable = $this->getConfigCacheKey($name, TRUE);
-    // $this->storage->write($key, ['data' => $config]);
-    // // @todo Split to separate immutable and non-immutable sets.
-    // $this->cache[$key] = $config;
-    // $this->cache[$keyImmutable] = $config;
+    $this->clearStaticCache();
     $this->storage->write($name, $data);
   }
 

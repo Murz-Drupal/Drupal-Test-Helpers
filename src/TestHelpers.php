@@ -899,17 +899,17 @@ class TestHelpers {
    *   The query object to check.
    * @param \Drupal\Core\Entity\Query\ConditionInterface|\Drupal\Core\Database\Query\ConditionInterface $conditionsExpectedObject
    *   The query object with expected conditions.
-   * @param bool $onlyListed
+   * @param bool|null $onlyListed
    *   Forces to return false, if the checking query object contains more
    *   conditions than in object with expected conditions.
-   * @param bool $throwErrors
+   * @param bool|null $throwErrors
    *   Enables throwing notice errors when matching fails, with the explanation
    *   what exactly doesn't match.
    *
    * @return bool
    *   True if is subset, false if not.
    */
-  public static function matchConditions(object $conditionsObject, object $conditionsExpectedObject, bool $onlyListed = FALSE, bool $throwErrors = FALSE): bool {
+  public static function matchConditions(object $conditionsObject, object $conditionsExpectedObject, bool $onlyListed = NULL, bool $throwErrors = FALSE): bool {
     if ($conditionsObject instanceof EntityQueryConditionInterface) {
       if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
         $throwErrors && self::throwMatchError('conjunction', $conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction());
@@ -951,6 +951,7 @@ class TestHelpers {
           if ($conditionGroupMatchResult === TRUE) {
             $conditionsExpectedFound[$conditionsExpectedDelta] = TRUE;
             $conditionsFound[$conditionDelta] = TRUE;
+            break;
           }
         }
         elseif ($condition == $conditionExpected) {
@@ -958,11 +959,13 @@ class TestHelpers {
             if ($condition['value'] == $conditionExpected['value']) {
               $conditionsExpectedFound[$conditionsExpectedDelta] = TRUE;
               $conditionsFound[$conditionDelta] = TRUE;
+              break;
             }
           }
           else {
             $conditionsExpectedFound[$conditionsExpectedDelta] = TRUE;
             $conditionsFound[$conditionDelta] = TRUE;
+            break;
           }
         }
       }

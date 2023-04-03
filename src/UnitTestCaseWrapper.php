@@ -93,7 +93,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
    */
   public function createPartialMockWithConstructor(string $originalClassName, array $methods = NULL, array $constructorArgs = NULL, array $addMethods = NULL): MockObject {
     $mockBuilder = $this->getMockBuilder($originalClassName)
-      ->setConstructorArgs($constructorArgs)
+      ->setConstructorArgs($constructorArgs ?? [])
       ->disableOriginalClone()
       ->disableArgumentCloning()
       ->disallowMockingUnknownTypes();
