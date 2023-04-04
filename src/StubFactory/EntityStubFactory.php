@@ -56,7 +56,7 @@ class EntityStubFactory {
    *    have dependencies which hard to mock.
    *   - constructorArguments: additional arguments to the constructor.
    *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
+   * @return \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The stub object for the entity.
    */
   public static function create(
@@ -137,7 +137,7 @@ class EntityStubFactory {
       ...($options['addMethods'] ?? []),
     ];
     /**
-     * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $entity
+     * @var \Drupal\test_helpers\StubFactory\EntityStubInterface&\Drupal\Core\Entity\EntityInterface&\PHPUnit\Framework\MockObject\MockObject $entity
      */
     if ($options['skipEntityConstructor'] ?? NULL) {
       $entity = TestHelpers::createPartialMock(

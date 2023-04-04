@@ -3,6 +3,8 @@
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
 use Drupal\Core\Entity\EntityBundleListener;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\FieldStorageConfigStorage;
 use Drupal\media\Entity\Media;
 use Drupal\media\Entity\MediaType;
 use Drupal\node\Entity\Node;
@@ -215,6 +217,20 @@ class EntityStubFactoryTest extends UnitTestCase {
     $term1->save();
     $this->assertEquals(2, $term1->getRevisionId());
     $this->assertEquals(1, $term2->getRevisionId());
+  }
+
+  /**
+   * Tests revisions API.
+   */
+  public function testFullyMockedEntity() {
+    $fieldStorageConfig = $this->createMock(FieldStorageConfig::class);
+    $fieldStorageConfig->method('getBundles')->willReturn(['foo', 'bar']);
+    $fieldStorageConfigStorage = $this->createMock(FieldStorageConfigStorage::class);
+    $fieldStorageConfigStorage->method('load')->willReturn($fieldStorageConfig);
+    TestHelpers::getEntityStorage(FieldStorageConfig::class, $fieldStorageConfigStorage);
+
+    $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config');
+    $this->assertEquals(['foo', 'bar'], $storage->load(123)->getBundles());
   }
 
 }

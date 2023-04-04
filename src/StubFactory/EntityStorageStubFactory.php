@@ -51,7 +51,7 @@ class EntityStorageStubFactory {
    * @throws \Exception
    *   When the annotation cannot be parsed.
    *
-   * @return \PHPUnit\Framework\MockObject\MockObject
+   * @return \Drupal\Core\Entity\EntityStorageInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The mocked Entity Storage Stub.
    */
   public static function create(string $entityTypeClass, string $annotation = NULL, array $storageOptions = NULL) {
@@ -185,7 +185,7 @@ class EntityStorageStubFactory {
       $overridedMethods,
       [...$storageOptions['mockMethods'] ?? [], ...$addMethods]
     );
-
+    /** @var \Drupal\Core\Entity\EntityStorageInterface|\PHPUnit\Framework\MockObject\MockObject $entityStorage */
     if ($constructArguments) {
       $entityStorage = TestHelpers::createPartialMockWithConstructor(
         $entityTypeStorageClass,

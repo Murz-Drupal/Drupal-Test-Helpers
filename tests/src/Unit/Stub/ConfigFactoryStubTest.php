@@ -47,8 +47,6 @@ class ConfigFactoryStubTest extends UnitTestCase {
 
     $configFactory->stubSetConfig('config.two', ['foo3']);
     $this->assertEquals(['foo3'], $configFactory->get('config.two')->get());
-
-
   }
 
 }

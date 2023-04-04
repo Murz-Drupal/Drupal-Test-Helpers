@@ -129,11 +129,13 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     }
     elseif (is_object($storageInstance)) {
       $storage = $storageInstance;
+      $storageDefinition = TestHelpers::getPluginDefinition($entityClass, 'Entity');
+      $entityTypeId = $storageDefinition->id();
     }
     else {
       $storage = EntityStorageStubFactory::create($entityClass, NULL, $storageOptions);
+      $entityTypeId = $storage->getEntityTypeId();
     }
-    $entityTypeId = $storage->getEntityTypeId();
     $this->stubEntityStoragesByClass[$entityClass] = $storage;
     $this->handlers['storage'][$entityTypeId] = $storage;
     $this->definitions[$entityTypeId] = $storage->getEntityType();
