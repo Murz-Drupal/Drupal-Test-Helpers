@@ -636,7 +636,10 @@ class TestHelpers {
   }
 
   /**
-   * Gets a service stub: custom stub or just a mock for a default Drupal class.
+   * Gets a stub instance fot a service, if no stub present - returns NULL.
+   *
+   * This function is more for internal usage, so consider to use ::service()
+   * in your code instead of this function.
    *
    * @param string $serviceName
    *   The service name.
@@ -647,14 +650,18 @@ class TestHelpers {
    *
    * @return object
    *   The stub for the service, or a mocked default class.
+   *
+   * @internal
+   *   This function is used mostly for the internal functionality.
    */
-  public static function getServiceStub(string $serviceName, array $mockableMethods = NULL, array $addMockableMethods = NULL): object {
+  public static function getServiceStub(string $serviceName, array $mockableMethods = NULL, array $addMockableMethods = NULL): ?object {
     $container = TestHelpers::getContainer();
     if ($container->has($serviceName)) {
       return $container->get($serviceName);
     }
-    $service = self::getServiceStubClass($serviceName, $mockableMethods, $addMockableMethods);
-    $container->set($serviceName, $service);
+    if ($service = self::getServiceStubClass($serviceName, $mockableMethods, $addMockableMethods)) {
+      $container->set($serviceName, $service);
+    }
     return $service;
   }
 
@@ -689,7 +696,7 @@ class TestHelpers {
    *       ].
    *     - A field definition object, that will be applied to the field.
    *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
+   * @return \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The stub object for the entity.
    */
   public static function createEntity(string $entityTypeNameOrClass, array $values = NULL, array $translations = NULL, array $options = NULL) {
@@ -733,7 +740,7 @@ class TestHelpers {
    *       ].
    *     - A field definition object, that will be applied to the field.
    *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
+   * @return \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The stub object for the entity.
    */
   public static function saveEntity(string $entityTypeNameOrClass, array $values = NULL, array $translations = NULL, array $options = NULL) {
@@ -1760,7 +1767,7 @@ class TestHelpers {
    *     ContentEntityType or ConfigEntityType, default is ContentEntityType.
    *   - @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
    *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\Stub\EntityStubInterface
    *   The stub object for the entity.
    *
    * @deprecated in test_helpers:1.0.0-beta5 and is removed from
@@ -1787,7 +1794,7 @@ class TestHelpers {
    *     ContentEntityType or ConfigEntityType, default is ContentEntityType.
    *   - @see \Drupal\test_helpers\StubFactory\EntityStubFactory::create()
    *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\StubFactory\EntityStubInterface
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\test_helpers\Stub\EntityStubInterface
    *   The stub object for the entity.
    *
    * @deprecated in test_helpers:1.0.0-beta5 and is removed from

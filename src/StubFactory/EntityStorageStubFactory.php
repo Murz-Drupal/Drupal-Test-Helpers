@@ -226,7 +226,7 @@ class EntityStorageStubFactory {
 
     $saveFunction = function (EntityInterface $entity, array $names = []) use (&$entitiesStorage, &$entitiesMaxIdStorage, &$entitiesMaxRevisionIdStorage) {
       /**
-       * @var \Drupal\test_helpers\StubFactory\EntityStubInterface $this
+       * @var \Drupal\test_helpers\Stub\EntityStubInterface $this
        */
       $idProperty = $this->entityType->getKey('id') ?? NULL;
       if ($idProperty) {

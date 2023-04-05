@@ -56,7 +56,7 @@ class EntityStubFactory {
    *    have dependencies which hard to mock.
    *   - constructorArguments: additional arguments to the constructor.
    *
-   * @return \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @return \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The stub object for the entity.
    */
   public static function create(
@@ -137,7 +137,7 @@ class EntityStubFactory {
       ...($options['addMethods'] ?? []),
     ];
     /**
-     * @var \Drupal\test_helpers\StubFactory\EntityStubInterface&\Drupal\Core\Entity\EntityInterface&\PHPUnit\Framework\MockObject\MockObject $entity
+     * @var \Drupal\test_helpers\Stub\EntityStubInterface&\Drupal\Core\Entity\EntityInterface&\PHPUnit\Framework\MockObject\MockObject $entity
      */
     if ($options['skipEntityConstructor'] ?? NULL) {
       $entity = TestHelpers::createPartialMock(
@@ -186,7 +186,7 @@ class EntityStubFactory {
           // If we skipped the original constructor, we must define some
           // crucial things manually.
           /**
-           * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface $this
+           * @var \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface $this
            */
           $this->entityTypeId = $entityTypeId;
           $this->entityKeys['bundle'] = $bundle ? $bundle : $this->entityTypeId;
@@ -313,9 +313,9 @@ class EntityStubFactory {
     $entity->enforceIsNew();
 
     TestHelpers::setMockedClassMethod(
-      $entity, 'stubSetFieldObject', function ($fieldName, $fieldObject, $langCode = NULL) {
+      $entity, 'stubSetFieldObject', function (string $fieldName, $fieldObject, string $langCode = NULL): void {
         /**
-         * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
+         * @var \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
          */
         $this->fieldDefinitions[$fieldName] = $fieldObject;
         $langCode ??= $this->activeLangCode;
@@ -327,7 +327,7 @@ class EntityStubFactory {
       TestHelpers::setMockedClassMethod(
         $entity, 'updateOriginalValues', function (): void {
           /**
-           * @var \Drupal\test_helpers\StubFactory\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
+           * @var \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
            */
           if (!$this->fields) {
             // Phpcs shows an error here: Function return type is not void, but
