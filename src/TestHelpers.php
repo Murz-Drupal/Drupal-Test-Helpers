@@ -244,12 +244,12 @@ class TestHelpers {
    * @param mixed $class
    *   Class name or path.
    *
-   * @return string
+   * @return bool|string
    *   The path to the file.
    */
   public static function getClassFile($class) {
     $reflection = new \ReflectionClass($class);
-    return $reflection->getFileName() ?? NULL;
+    return $reflection->getFileName();
   }
 
   /**
@@ -307,7 +307,6 @@ class TestHelpers {
 
       $definition = $annotation->get();
 
-      // $definitions[$plugin][$class] = $definition;
       return $definition;
     }
     else {
@@ -1386,28 +1385,6 @@ class TestHelpers {
       }
       return $index > 0 ? implode(DIRECTORY_SEPARATOR, array_reverse(array_slice($partsReversed, $index))) : NULL;
     }
-  }
-
-  /**
-   * Checks if the actual version is equal or hiher than requested.
-   *
-   * @param string $version
-   *   A version number to check in format like "10.1", "10", "9.5.3".
-   */
-  public static function isDrupalVersionAtLeast(string $version): bool {
-    $requested = explode('.', $version);
-    if (!is_numeric($requested[0])) {
-      throw new \Exception("Can't detect major version number from string \"$version\".");
-    }
-    $actual = explode('.', \DRUPAL::VERSION);
-    if (
-      $actual[0] < $requested[0]
-      || (isset($requested[1]) && $actual[1] < $requested[1])
-      || (isset($requested[2]) && $actual[2] < $requested[2])
-    ) {
-      return FALSE;
-    }
-    return TRUE;
   }
 
   /* ************************************************************************ *

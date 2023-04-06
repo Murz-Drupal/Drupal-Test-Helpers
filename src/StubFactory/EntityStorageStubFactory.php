@@ -89,11 +89,12 @@ class EntityStorageStubFactory {
     // Some entity types depends on hook functions in the module file,
     // so trying to include this file.
     // @todo Add an option to disable this.
-    $entityFile = TestHelpers::getClassFile($entityTypeClass);
-    $moduleDirectory = dirname(dirname(dirname($entityFile)));
-    $moduleName = basename($moduleDirectory);
-    $moduleFile = "$moduleDirectory/$moduleName.module";
-    file_exists($moduleFile) && include_once $moduleFile;
+    if ($entityFile = TestHelpers::getClassFile($entityTypeClass)) {
+      $moduleDirectory = dirname(dirname(dirname($entityFile)));
+      $moduleName = basename($moduleDirectory);
+      $moduleFile = "$moduleDirectory/$moduleName.module";
+      file_exists($moduleFile) && include_once $moduleFile;
+    }
 
     $entityTypeStorageClass = $entityTypeDefinition->getStorageClass();
     self::$entityDataStorage ??= [
