@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
+namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Tests\test_helpers\Unit\Assets\ClassWithProtectedItemsStub;
 use Drupal\Tests\test_helpers\Unit\Assets\StaticClassWithProtectedItemsStub;

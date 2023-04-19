@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
+namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\node\Entity\Node;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
+namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;

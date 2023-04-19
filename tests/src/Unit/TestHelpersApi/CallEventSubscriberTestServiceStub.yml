@@ -1,0 +1,7 @@
+services:
+  test_helpers.event_subscriber_stub:
+    class: Drupal\Tests\test_helpers\Unit\TestHelpersApi\EventSubscriberStub
+    tags:
+      - { name: event_subscriber }
+  test_helpers.event_subscriber_stub_no_tag:
+    class: Drupal\Tests\test_helpers\Unit\TestHelpersApi\EventSubscriberStub

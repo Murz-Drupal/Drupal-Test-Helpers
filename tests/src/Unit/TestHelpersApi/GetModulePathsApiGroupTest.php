@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi;
+namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
@@ -72,7 +72,7 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
     $this->assertEquals([
       'file' => __FILE__,
       'function' => 'testGetCallerFile',
-      'class' => 'Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi\GetModulePathsApiGroupTest',
+      'class' => 'Drupal\Tests\test_helpers\Unit\TestHelpersApi\GetModulePathsApiGroupTest',
     ], TestHelpers::getCallerInfo(1));
     $this->assertEquals([
       'file' => $parentCaller,
@@ -88,18 +88,18 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
     $this->assertEquals([
       'file' => __FILE__,
       'function' => 'testGetCallerFile',
-      'class' => 'Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi\GetModulePathsApiGroupTest',
+      'class' => 'Drupal\Tests\test_helpers\Unit\TestHelpersApi\GetModulePathsApiGroupTest',
     ], $this->testCallerHelper1());
 
     $this->assertEquals([
       'file' => __FILE__,
       'function' => 'testCallerHelper2',
-      'class' => 'Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi\GetModulePathsApiGroupTest',
+      'class' => 'Drupal\Tests\test_helpers\Unit\TestHelpersApi\GetModulePathsApiGroupTest',
     ], $this->testCallerHelper2());
     $this->assertEquals([
       'file' => __FILE__,
       'function' => __FUNCTION__,
-      'class' => 'Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi\GetModulePathsApiGroupTest',
+      'class' => 'Drupal\Tests\test_helpers\Unit\TestHelpersApi\GetModulePathsApiGroupTest',
     ], $this->testCallerHelper2(3));
   }
 
