@@ -38,6 +38,17 @@ class CallEventSubscriberTest extends UnitTestCase {
     );
     $this->assertEquals('value2', $event->value);
 
+    $eventSubscriberStubMocked = TestHelpers::createPartialMock(EventSubscriberStub::class, ['method2']);
+    TestHelpers::setMockedClassMethod($eventSubscriberStubMocked, 'method2', function ($event) {
+      $event->value = 'value2mocked';
+    });
+    TestHelpers::callEventSubscriber(
+      $eventSubscriberStubMocked,
+      'event2',
+      $event,
+    );
+    $this->assertEquals('value2mocked', $event->value);
+
     TestHelpers::service('string_translation');
     TestHelpers::callEventSubscriber(
       $serviceInfo,

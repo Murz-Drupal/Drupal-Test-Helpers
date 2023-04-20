@@ -355,6 +355,7 @@ class TestHelpers {
   public static function initServiceFromYaml($servicesYamlFileOrData, string $name, array $mockMethods = NULL): object {
     if (is_string($servicesYamlFileOrData)) {
       $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFileOrData);
+      $serviceInfo['class'] ??= $name;
     }
     elseif (is_array($servicesYamlFileOrData)) {
       $serviceInfo = $servicesYamlFileOrData;
@@ -463,7 +464,8 @@ class TestHelpers {
       return NULL;
     }
     foreach ($servicesFileData['services'] as $name => $info) {
-      if (($info['class'] ?? NULL) == $serviceClass) {
+      if (($info['class'] ?? $name ?? NULL) == $serviceClass) {
+        $info['class'] ??= $name;
         $info['#name'] = $name;
         $info['#file'] = $servicesFile;
         return $info;
@@ -1130,7 +1132,7 @@ class TestHelpers {
    * Checks that the event subscriber has a definition in services.yml file
    * and the 'event_subscriber' tag in it, before calling.
    *
-   * @param string|array $service
+   * @param string|array|object $service
    *   A service class as a string, or an array with the service info, where:
    *   - the first element is a path to the service YAML file,
    *   - the second element - the service name.
@@ -1140,31 +1142,36 @@ class TestHelpers {
    *   The Event object.
    */
   public static function callEventSubscriber($service, string $eventName, object &$event): void {
-    if (is_array($service)) {
-      [$servicesYamlFile, $serviceName] = $service;
-    }
-    else {
-      // Assuming that the service name is related to a called module.
-      // Using there jumping to one level upper when detecting module info,
-      // because current call adds a new step already.
-      $servicesYamlFile = self::getModuleRoot(1) . '/' . self::getModuleName(1) . '.services.yml';
-      $serviceName = $service;
-    }
-    $serviceInfo = self::getServiceInfoFromYaml($serviceName, $servicesYamlFile);
-
-    // Checking the presence of the 'event_subscriber' tag.
-    $tagFound = FALSE;
-    foreach ($serviceInfo['tags'] as $tag) {
-      if ($tag['name'] == 'event_subscriber') {
-        $tagFound = TRUE;
-        break;
+    if (!is_object($service)) {
+      if (is_array($service)) {
+        [$servicesYamlFile, $serviceName] = $service;
       }
-    }
-    if (!$tagFound) {
-      throw new \Exception("EventSubscriber $serviceName misses the 'event_subscriber' tag in the service definition");
-    }
+      elseif (is_string($service)) {
+        // Assuming that the service name is related to a called module.
+        // Using there jumping to one level upper when detecting module info,
+        // because current call adds a new step already.
+        $servicesYamlFile = self::getModuleRoot(1) . '/' . self::getModuleName(1) . '.services.yml';
+        $serviceName = $service;
+      }
+      else {
+        throw new \Exception('The service parameter is in wrong format.');
+      }
+      $serviceInfo = self::getServiceInfoFromYaml($serviceName, $servicesYamlFile);
 
-    $service = self::initServiceFromYaml($servicesYamlFile, $serviceName);
+      // Checking the presence of the 'event_subscriber' tag.
+      $tagFound = FALSE;
+      foreach ($serviceInfo['tags'] as $tag) {
+        if ($tag['name'] == 'event_subscriber') {
+          $tagFound = TRUE;
+          break;
+        }
+      }
+      if (!$tagFound) {
+        throw new \Exception("EventSubscriber $serviceName misses the 'event_subscriber' tag in the service definition");
+      }
+
+      $service = self::initServiceFromYaml($servicesYamlFile, $serviceName);
+    }
     $subscribedEvents = $service->getSubscribedEvents();
     self::callClassMethods($service, $subscribedEvents[$eventName], [$event]);
   }
