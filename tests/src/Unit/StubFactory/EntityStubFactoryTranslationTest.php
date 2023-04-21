@@ -37,8 +37,8 @@ class EntityStubFactoryTranslationTest extends UnitTestCase {
       [
         'fields' => [
           'field_translatable_field' => [
-            '#type' => 'string',
-            '#settings' => ['translatable' => TRUE],
+            'type' => 'string',
+            'translatable' => TRUE,
           ],
         ],
       ]

@@ -37,8 +37,8 @@ class ArticlesServiceTest extends UnitTestCase {
     ], NULL, [
         'fields' => [
           'uid' => ['translatable' => FALSE],
-          'field_category' => ['#type' => 'entity_reference', '#settings' => ['target_type' => 'taxonomy_term']],
-          'field_synopsis' => ['#settings' => ['translatable' => TRUE]],
+          'field_category' => ['type' => 'entity_reference', 'settings' => ['target_type' => 'taxonomy_term']],
+          'field_synopsis' => ['translatable' => TRUE],
         ],
       ]);
     TestHelpers::saveEntity(Node::class, [

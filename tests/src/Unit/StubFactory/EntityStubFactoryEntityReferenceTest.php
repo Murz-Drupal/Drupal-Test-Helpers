@@ -51,8 +51,8 @@ class EntityStubFactoryEntityReferenceTest extends UnitTestCase {
         'fields' => [
           'field_node_reference1' =>
           [
-            '#type' => 'entity_reference',
-            '#settings' => ['target_type' => 'node'],
+            'type' => 'entity_reference',
+            'settings' => ['target_type' => 'node'],
           ],
           'field_user_reference1' => $entityReferenceUserFieldDefinition,
           'field_node_reference2' => $entityReferenceNodeFieldDefinition,

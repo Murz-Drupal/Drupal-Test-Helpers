@@ -687,13 +687,16 @@ class TestHelpers {
    *   - skipEntityConstructor: a flag to skip calling the entity constructor.
    *   - fields: a list of custom field options by field name.
    *     Applies only on the first initialization of this field.
-   *     Field options supportable formats:
+   *     Supportable formats:
    *     - A string, indicating field type, like 'integer', 'string',
    *       'entity_reference', only core field types are supported.
-   *     - An array with field type and settings, like this:
+   *     - An array with field configuration: type, settings, etc, like this:
    *       [
-   *        '#type' => 'entity_reference',
-   *        '#settings' => ['target_type' => 'node']
+   *        'type' => 'entity_reference',
+   *        'settings' => ['target_type' => 'node']
+   *        'translatable' => TRUE,
+   *        'required' => FALSE,
+   *        'cardinality' => 3,
    *       ].
    *     - A field definition object, that will be applied to the field.
    *
@@ -731,13 +734,16 @@ class TestHelpers {
    *   - skipEntityConstructor: a flag to skip calling the entity constructor.
    *   - fields: a list of custom field options by field name.
    *     Applies only on the first initialization of this field.
-   *     Field options supportable formats:
+   *     Supportable formats:
    *     - A string, indicating field type, like 'integer', 'string',
    *       'entity_reference', only core field types are supported.
-   *     - An array with field type and settings, like this:
+   *     - An array with field configuration: type, settings, etc, like this:
    *       [
-   *        '#type' => 'entity_reference',
-   *        '#settings' => ['target_type' => 'node']
+   *        'type' => 'entity_reference',
+   *        'settings' => ['target_type' => 'node']
+   *        'translatable' => TRUE,
+   *        'required' => FALSE,
+   *        'cardinality' => 3,
    *       ].
    *     - A field definition object, that will be applied to the field.
    *
@@ -1629,8 +1635,10 @@ class TestHelpers {
    *
    * @param string $message
    *   A message to throw.
+   *
+   * @internal For internal usage to throw user errors.
    */
-  private static function throwUserError(string $message): void {
+  public static function throwUserError(string $message): void {
     trigger_error($message, E_USER_NOTICE);
   }
 

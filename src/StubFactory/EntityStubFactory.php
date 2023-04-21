@@ -38,16 +38,19 @@ class EntityStubFactory {
    *   - addMethods: list of additional methods.
    *   - skipEntityConstructor: a flag to skip calling the entity constructor.
    *   - fields: a list of custom field options by field name.
-   *    Applies only on the first initialization of this field.
-   *    Field options supportable formats:
-   *    - A string, indicating field type, like 'integer', 'string',
-   *      'entity_reference', only core field types are supported.
-   *    - An array with field type and settings, like this:
-   *      [
-   *       '#type' => 'entity_reference',
-   *       '#settings' => ['target_type' => 'node']
-   *      ].
-   *    - A field definition object, that will be applied to the field.
+   *     Applies only on the first initialization of this field.
+   *     Supportable formats:
+   *     - A string, indicating field type, like 'integer', 'string',
+   *       'entity_reference', only core field types are supported.
+   *     - An array with field configuration: type, settings, etc, like this:
+   *       [
+   *        'type' => 'entity_reference',
+   *        'settings' => ['target_type' => 'node']
+   *        'translatable' => TRUE,
+   *        'required' => FALSE,
+   *        'cardinality' => 3,
+   *       ].
+   *     - A field definition object, that will be applied to the field.
    * @param array $storageOptions
    *   A list of options to pass to the storage initialization. Acts only once
    *   if the storage is not initialized yet.
@@ -222,28 +225,33 @@ class EntityStubFactory {
 
           $newDefinition = NULL;
           $fieldType = NULL;
-          $fieldTypeSettings = NULL;
-          if ($fieldTypeOptions = $options['fields'][$name] ?? NULL) {
-            if (is_object($fieldTypeOptions)) {
-              $newDefinition = $fieldTypeOptions;
+          if ($fieldTypeConfiguration = $options['fields'][$name] ?? NULL) {
+            if (isset($fieldTypeConfiguration['#type'])) {
+              TestHelpers::throwUserError('The "#type" key is deprecated to match the configuration naming, use "type" instead.');
+              $fieldTypeConfiguration['type'] ??= $fieldTypeConfiguration['#type'];
             }
-            if (is_string($fieldTypeOptions)) {
+            if (isset($fieldTypeConfiguration['#settings'])) {
+              TestHelpers::throwUserError('The "#settings" key is deprecated to match the configuration naming, use "settings" instead.');
+              $fieldTypeConfiguration['settings'] ??= $fieldTypeConfiguration['#settings'];
+            }
+
+            if (is_object($fieldTypeConfiguration)) {
+              $newDefinition = $fieldTypeConfiguration;
+              $fieldTypeConfiguration = NULL;
+            }
+            if (is_string($fieldTypeConfiguration)) {
               // Parsing value as a field type scalar value.
-              $fieldType = $fieldTypeOptions;
+              $fieldType = $fieldTypeConfiguration;
               if ($fieldType == 'entity_reference') {
-                throw new \Exception("For entity_reference field type you should also pass the settings like this ['#type' => 'entity_reference', '#settings' => ['target_type' => 'user'].");
+                throw new \Exception("For entity_reference field type you should also pass the settings like this ['type' => 'entity_reference', 'settings' => ['target_type' => 'user'].");
               }
+              $fieldTypeConfiguration = NULL;
             }
-            elseif (is_array($fieldTypeOptions)) {
-              if (isset($fieldTypeOptions['#type'])) {
+            elseif (is_array($fieldTypeConfiguration)) {
+              if (isset($fieldTypeConfiguration['type'])) {
                 // Parsing value as a field type definition.
-                $fieldType = $fieldTypeOptions['#type'] ?? NULL;
-                $fieldTypeSettings = $fieldTypeOptions['#settings'] ?? NULL;
-              }
-              else {
-                // Interpeting array as field settings values.
-                $fieldType = NULL;
-                $fieldTypeSettings = $fieldTypeOptions;
+                $fieldType = $fieldTypeConfiguration['type'];
+                unset($fieldTypeConfiguration['type']);
               }
             }
             if ($fieldType) {
@@ -266,14 +274,19 @@ class EntityStubFactory {
             $this->fieldDefinitions[$name] = $newDefinition;
             TestHelpers::service('entity_field.manager')->stubAddFieldDefiniton($entityTypeId, $bundle, $name, $newDefinition);
           }
-
+          /** @var \Drupal\Core\Field\BaseFieldDefinition $definition */
           $definition = $this->fieldDefinitions[$name];
-          if ($fieldTypeSettings) {
-            $definition->setSettings($fieldTypeSettings);
-
-            // @todo Replace to correct creation of definition with settings.
-            if (isset($fieldTypeSettings['translatable'])) {
-              $definition->setTranslatable($fieldTypeSettings['translatable']);
+          if (is_array($fieldTypeConfiguration)) {
+            // We should apply the 'settings' item in a special way.
+            if (isset($fieldTypeConfiguration['settings'])) {
+              $definition->setSettings($fieldTypeConfiguration['settings']);
+              unset($fieldTypeConfiguration['settings']);
+            }
+            // Merging current configuration array with passed one.
+            if (!empty($fieldTypeConfiguration)) {
+              $definitionSettings = TestHelpers::getPrivateProperty($definition, 'definition');
+              $definitionSettings = $fieldTypeConfiguration + $definitionSettings;
+              TestHelpers::setPrivateProperty($definition, 'definition', $definitionSettings);
             }
           }
 
@@ -281,7 +294,7 @@ class EntityStubFactory {
 
           if ($definition->getType() == 'entity_reference') {
             // Initializing storages for known references.
-            switch ($definition->getSettings()['target_type']) {
+            switch ($definition->getSetting('target_type')) {
               // @todo Move it to separate function that knows all core types.
               case 'user':
                 TestHelpers::getEntityStorage(User::class);
