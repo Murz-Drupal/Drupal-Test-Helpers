@@ -17,7 +17,7 @@ use Drupal\test_helpers\TestHelpers;
 class QueryIsSubsetOfTest extends UnitTestCase {
 
   /**
-   * @covers ::queryIsSubsetOfTest
+   * @covers ::queryIsSubsetOf
    */
   public function testFindQueryCondition() {
     TestHelpers::saveEntity(Node::class);

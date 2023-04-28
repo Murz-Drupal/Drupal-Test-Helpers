@@ -10,7 +10,7 @@ use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
 /**
  * Tests UnitTestHelpers functions.
  *
- * @coversDefaultClass \Drupal\test_helpers\UnitTestHelpers
+ * @coversDefaultClass \Drupal\test_helpers\TestHelpers
  * @group test_helpers
  */
 class GetMockedMethodTest extends UnitTestCase {

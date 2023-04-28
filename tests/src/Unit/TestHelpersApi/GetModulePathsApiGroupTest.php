@@ -65,7 +65,7 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::getCallerFile
+   * @covers ::getCallerInfo
    */
   public function testGetCallerFile() {
     $parentCaller = DRUPAL_ROOT . '/sites/simpletest/TestCase.php';
@@ -101,6 +101,16 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
       'function' => __FUNCTION__,
       'class' => 'Drupal\Tests\test_helpers\Unit\TestHelpersApi\GetModulePathsApiGroupTest',
     ], $this->testCallerHelper2(3));
+  }
+
+  /**
+   * @covers ::getDrupalRoot
+   */
+  public function testGetDrupalRoot() {
+    $path = TestHelpers::getDrupalRoot();
+    $this->assertTrue(file_exists($path . '/core/lib/Drupal.php'));
+    $path = TestHelpers::getDrupalRoot();
+    $this->assertTrue(file_exists($path . '/core/lib/Drupal.php'));
   }
 
   /**

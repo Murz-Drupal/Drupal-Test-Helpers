@@ -3,7 +3,7 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
-use Drupal\test_helpers\Logger\StaticLogger;
+use Drupal\test_helpers\lib\StaticLogger;
 
 /**
  * A stub of the Drupal's default LoggerChannelFactory class.
@@ -13,7 +13,7 @@ class LoggerChannelFactoryStub extends LoggerChannelFactory {
   /**
    * A static logger instance.
    *
-   * @var \Drupal\test_helpers\Logger\StaticLogger
+   * @var \Drupal\test_helpers\lib\StaticLogger
    */
   protected $staticLogger;
 

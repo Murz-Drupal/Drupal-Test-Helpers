@@ -3,7 +3,7 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Drupal\test_helpers\includes\SingletonTrait;
+use Drupal\test_helpers\lib\SingletonTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 

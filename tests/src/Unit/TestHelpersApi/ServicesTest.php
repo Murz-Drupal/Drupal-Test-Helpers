@@ -2,8 +2,10 @@
 
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
+use Drupal\dblog\Plugin\rest\resource\DBLogResource;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -24,6 +26,7 @@ class ServicesTest extends UnitTestCase {
   /**
    * @covers ::service
    * @covers ::setServices
+   * @covers ::createClass
    */
   public function testServices() {
     /** @var \Drupal\Core\Entity\EntityTypeInterface|\PHPUnit\Framework\MockObject\MockObject $entityType */
@@ -141,6 +144,39 @@ class ServicesTest extends UnitTestCase {
     // Drupal\Tests\test_helpers_example\Unit\ConfigEventsSubscriberTest()
     // because it requires a 'services.yml' file to be presend, but for this
     // module it is not needed.
+  }
+
+  /**
+   * @covers ::createClass
+   */
+  public function testCreateClass() {
+    $configuration = [];
+    $plugin_id = 'my_plugin';
+    $plugin_definition = [];
+    $serializer_formats = [];
+    $logger = $this->createMock(LoggerInterface::class);
+    TestHelpers::getContainer()->setParameter('serializer.formats', []);
+    $class = TestHelpers::createClass(
+      DBLogResource::class,
+      [
+        $configuration,
+        $plugin_id,
+        $plugin_definition,
+        $serializer_formats,
+        $logger,
+      ],
+      ['logger.factory']);
+
+    $this->assertInstanceOf(DBLogResource::class, $class);
+  }
+
+  /**
+   * @covers ::initEntityTypeManagerStubs
+   */
+  public function testInitEntityTypeManagerStubs() {
+    TestHelpers::initEntityTypeManagerStubs();
+    $entityTypeManager = \Drupal::service('entity_type.manager');
+    $this->assertInstanceOf(EntityTypeManagerInterface::class, $entityTypeManager);
   }
 
 }

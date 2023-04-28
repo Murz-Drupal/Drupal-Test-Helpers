@@ -51,7 +51,7 @@ $container = \Drupal::getContainer();
 $drupalVersionArray = explode('.', \Drupal::VERSION);
 $drupalVersionMinor = $drupalVersionArray[0] . '.' . $drupalVersionArray[1];
 
-$filename = dirname(__DIR__) . '/src/includes/CoreFeaturesMaps/CoreFeaturesMap.' . $drupalVersionMinor . '.php';
+$filename = dirname(__DIR__) . '/src/lib/CoreFeaturesMaps/CoreFeaturesMap.' . $drupalVersionMinor . '.php';
 
 // Generating services map.
 $contents .= <<<EOT

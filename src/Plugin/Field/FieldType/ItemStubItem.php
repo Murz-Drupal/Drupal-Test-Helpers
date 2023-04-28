@@ -26,13 +26,13 @@ class ItemStubItem extends FieldItemBase {
   /**
    * {@inheritdoc}
    */
-  public static function schema(FieldStorageDefinitionInterface $field_definition) {
+  public static function schema(FieldStorageDefinitionInterface $fieldDefinition) {
     return [
       'columns' => [
         'value' => [
-          'type' => $field_definition->getSetting('is_ascii') === TRUE ? 'varchar_ascii' : 'varchar',
-          'length' => (int) $field_definition->getSetting('max_length'),
-          'binary' => $field_definition->getSetting('case_sensitive'),
+          'type' => $fieldDefinition->getSetting('is_ascii') === TRUE ? 'varchar_ascii' : 'varchar',
+          'length' => (int) $fieldDefinition->getSetting('max_length'),
+          'binary' => $fieldDefinition->getSetting('case_sensitive'),
         ],
       ],
     ];

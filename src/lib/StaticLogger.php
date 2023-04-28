@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers\Logger;
+namespace Drupal\test_helpers\lib;
 
 use Psr\Log\LoggerInterface;
 

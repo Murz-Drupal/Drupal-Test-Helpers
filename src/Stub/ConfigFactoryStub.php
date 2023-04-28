@@ -8,7 +8,7 @@ use Drupal\Core\Config\MemoryStorage;
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Config\TypedConfigManager;
 use Drupal\Core\Config\TypedConfigManagerInterface;
-use Drupal\test_helpers\Library\ConfigFactoryStubCacheInvalidator;
+use Drupal\test_helpers\lib\ConfigFactoryStubCacheInvalidator;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 

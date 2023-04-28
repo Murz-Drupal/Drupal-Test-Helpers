@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\test_helpers\Library;
+namespace Drupal\test_helpers\lib;
 
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\test_helpers\TestHelpers;
