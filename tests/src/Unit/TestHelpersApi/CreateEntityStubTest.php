@@ -153,4 +153,35 @@ class CreateEntityStubTest extends UnitTestCase {
     $this->assertEquals($values['display_submitted'], $entity->displaySubmitted());
   }
 
+  /**
+   * Tests creating entities with custom methods.
+   *
+   * @covers ::createEntity
+   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
+   */
+  public function testEntityWithMockedMethods() {
+    /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
+    $entity = TestHelpers::saveEntity(
+      'node',
+      [
+        'type' => 'article',
+        'title' => 'My article',
+        'status' => 1,
+      ],
+      NULL,
+      [
+        'mockMethods' => ['createDuplicate'],
+        'addMethods' => ['sendAsEmail'],
+      ],
+    );
+    $entity->method('createDuplicate')->willReturn('[duplicate]');
+    $entity->method('sendAsEmail')->willReturn('Email successfully sent.');
+
+    $entityDuplicate = $entity->createDuplicate();
+    $this->assertEquals('[duplicate]', $entityDuplicate);
+
+    $entitySendResult = $entity->sendAsEmail();
+    $this->assertEquals('Email successfully sent.', $entitySendResult);
+  }
+
 }
