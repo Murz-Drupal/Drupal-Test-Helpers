@@ -2,6 +2,9 @@
 
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldItemList;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\UnitTestCase;
@@ -154,7 +157,7 @@ class CreateEntityStubTest extends UnitTestCase {
   }
 
   /**
-   * Tests creating entities with custom methods.
+   * Tests creating entities with mocked methods.
    *
    * @covers ::createEntity
    * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
@@ -182,6 +185,37 @@ class CreateEntityStubTest extends UnitTestCase {
 
     $entitySendResult = $entity->sendAsEmail();
     $this->assertEquals('Email successfully sent.', $entitySendResult);
+  }
+
+  /**
+   * Tests creating entities with mocked methods.
+   *
+   * @covers ::createEntity
+   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
+   */
+  public function testEntityWithMockedFields() {
+    $customField = $this->createMock(FieldItemListInterface::class);
+    $customField->method('getValue')->willReturn('My custom value');
+
+    $customFieldDefinition = $this->createMock(BaseFieldDefinition::class);
+    $customFieldDefinition->method('getDataType')->willReturn('string');
+    $customFieldDefinition->method('getClass')->willReturn(FieldItemList::class);
+    $customFieldDefinition->method('getPropertyNames')->willReturn(
+      ['custom_property_1', 'custom_property_2']
+    );
+
+    $entity1 = TestHelpers::saveEntity(Node::class, [
+      'title' => 'Article 1',
+      'field_custom' => $customField,
+      'field_very_custom' => NULL,
+    ], NULL, ['fields' => ['field_very_custom' => $customFieldDefinition]],
+    );
+    $entity2 = TestHelpers::saveEntity(Node::class, ['title' => 'Article 2']);
+
+    $this->assertEquals('My custom value', $entity1->field_custom->getValue());
+    $this->assertEquals(['custom_property_1', 'custom_property_2'],
+      $entity2->field_very_custom->getFieldDefinition()->getPropertyNames()
+    );
   }
 
 }

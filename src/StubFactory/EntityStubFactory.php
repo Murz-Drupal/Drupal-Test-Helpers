@@ -219,27 +219,34 @@ class EntityStubFactory {
         // Filling values to the entity array.
         foreach ($values as $name => $value) {
           if (isset($options['definitions'][$name])) {
+            // Legacy start.
             // @todo Deprecate this.
             $options['fields'][$name] = $options['definitions'][$name];
+            // Legacy end.
           }
 
           $newDefinition = NULL;
           $fieldType = NULL;
           if ($fieldTypeConfiguration = $options['fields'][$name] ?? NULL) {
-            if (isset($fieldTypeConfiguration['#type'])) {
-              TestHelpers::throwUserError('The "#type" key is deprecated to match the configuration naming, use "type" instead.');
-              $fieldTypeConfiguration['type'] ??= $fieldTypeConfiguration['#type'];
-            }
-            if (isset($fieldTypeConfiguration['#settings'])) {
-              TestHelpers::throwUserError('The "#settings" key is deprecated to match the configuration naming, use "settings" instead.');
-              $fieldTypeConfiguration['settings'] ??= $fieldTypeConfiguration['#settings'];
-            }
 
+            // Legacy start.
+            // @todo Deprecate and remove this.
+            if (is_array($fieldTypeConfiguration)) {
+              if (isset($fieldTypeConfiguration['#type'])) {
+                TestHelpers::throwUserError('The "#type" key is deprecated to match the configuration naming, use "type" instead.');
+                $fieldTypeConfiguration['type'] ??= $fieldTypeConfiguration['#type'];
+              }
+              if (isset($fieldTypeConfiguration['#settings'])) {
+                TestHelpers::throwUserError('The "#settings" key is deprecated to match the configuration naming, use "settings" instead.');
+                $fieldTypeConfiguration['settings'] ??= $fieldTypeConfiguration['#settings'];
+              }
+            }
+            // Legacy end.
             if (is_object($fieldTypeConfiguration)) {
               $newDefinition = $fieldTypeConfiguration;
               $fieldTypeConfiguration = NULL;
             }
-            if (is_string($fieldTypeConfiguration)) {
+            elseif (is_string($fieldTypeConfiguration)) {
               // Parsing value as a field type scalar value.
               $fieldType = $fieldTypeConfiguration;
               if ($fieldType == 'entity_reference') {
