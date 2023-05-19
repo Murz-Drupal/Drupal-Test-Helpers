@@ -3,6 +3,7 @@
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\dblog\Plugin\rest\resource\DBLogResource;
+use Drupal\Core\Render\Renderer;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Psr\Log\LoggerInterface;
@@ -100,6 +101,23 @@ class ServicesTest extends UnitTestCase {
     // should return NULL always.
     TestHelpers::service('string_translation', NULL, TRUE, NULL, NULL, FALSE);
     $this->assertNull(\Drupal::service('string_translation')->translate('foo'));
+  }
+
+  /**
+   * @covers ::service
+   */
+  public function testServiceMocked() {
+    $renderer = TestHelpers::service('renderer', Renderer::class);
+
+    $renderer->method('render')->willReturn(['#markup' => 'Element']);
+
+    TestHelpers::setMockedClassMethod($renderer, 'renderRoot', function (array &$element) {
+      return ['#markup' => 'Root'];
+    });
+
+    $element = [];
+    $this->assertEquals(['#markup' => 'Element'], \Drupal::service('renderer')->render($element));
+    $this->assertEquals(['#markup' => 'Root'], \Drupal::service('renderer')->renderRoot($element));
   }
 
   /**
