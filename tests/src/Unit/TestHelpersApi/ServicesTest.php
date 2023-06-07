@@ -2,8 +2,8 @@
 
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\dblog\Plugin\rest\resource\DBLogResource;
-use Drupal\Core\Render\Renderer;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Psr\Log\LoggerInterface;
@@ -23,6 +23,8 @@ use Drupal\language\LanguageNegotiationMethodManager;
  * @group test_helpers
  */
 class ServicesTest extends UnitTestCase {
+
+  use StringTranslationTrait;
 
   /**
    * @covers ::service
@@ -107,17 +109,45 @@ class ServicesTest extends UnitTestCase {
    * @covers ::service
    */
   public function testServiceMocked() {
-    $renderer = TestHelpers::service('renderer', Renderer::class);
+    $testClass = $this;
 
-    $renderer->method('render')->willReturn(['#markup' => 'Element']);
+    TestHelpers::service('string_translation');
 
-    TestHelpers::setMockedClassMethod($renderer, 'renderRoot', function (array &$element) {
-      return ['#markup' => 'Root'];
+    $renderer = TestHelpers::service('renderer');
+
+    // The classical approach.
+    $renderer->method('render')->willReturnCallback(function (array &$element) {
+      return [
+        '#markup' => $this->t('Element @title', [
+          '@title' => $element['#title'],
+        ]),
+      ];
     });
 
-    $element = [];
-    $this->assertEquals(['#markup' => 'Element'], \Drupal::service('renderer')->render($element));
-    $this->assertEquals(['#markup' => 'Root'], \Drupal::service('renderer')->renderRoot($element));
+    // The mordern approaches.
+    // Using the setPrivateProperty() we can set values for any private or
+    // protected property.
+    TestHelpers::setPrivateProperty($renderer, 'theme', 'My theme');
+
+    TestHelpers::setMockedClassMethod($renderer, 'renderRoot',
+      function (array &$element) use ($testClass) {
+        // Using the setMockedClassMethod() we can get access to `$this` keyword
+        // with any private and protected properties and methods.
+        /** @var \Drupal\Core\Render\Renderer $this */
+        $this->replacePlaceholders($element);
+        return [
+          '#markup' => TestHelpers::callPrivateMethod($testClass, 't', [
+            'Root for @title with @theme', [
+              '@title' => $element['#title'],
+              '@theme' => $this->theme,
+            ],
+          ]),
+        ];
+      });
+
+    $element = ['#title' => 'My Element'];
+    $this->assertEquals('Element My Element', (string) \Drupal::service('renderer')->render($element)['#markup']);
+    $this->assertEquals('Root for My Element with My theme', (string) \Drupal::service('renderer')->renderRoot($element)['#markup']);
   }
 
   /**
