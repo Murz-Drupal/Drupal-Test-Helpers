@@ -117,6 +117,11 @@ class ServicesTest extends UnitTestCase {
 
     // The classical approach.
     $renderer->method('render')->willReturnCallback(function (array &$element) {
+      // We can't get access to `$this` keyword here, because PHPUnit approach
+      // executes the callback function in the unit test context, not in the
+      // service's class (Renderer).
+      /* $this->replacePlaceholders($element); */
+
       return [
         '#markup' => $this->t('Element @title', [
           '@title' => $element['#title'],
@@ -124,7 +129,7 @@ class ServicesTest extends UnitTestCase {
       ];
     });
 
-    // The mordern approaches.
+    // The modern approaches.
     // Using the setPrivateProperty() we can set values for any private or
     // protected property.
     TestHelpers::setPrivateProperty($renderer, 'theme', 'My theme');
