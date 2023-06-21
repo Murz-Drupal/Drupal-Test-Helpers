@@ -63,7 +63,7 @@ interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
    * @return \PHPUnit\Framework\MockObject\MockObject
    *   The mocked Entity Storage Stub.
    */
-  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL);
+  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, bool $forceOverride = NULL, array $storageOptions = NULL);
 
   /**
    * Resets the stub and clears all storages.
