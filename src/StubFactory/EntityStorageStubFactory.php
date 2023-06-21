@@ -47,6 +47,7 @@ class EntityStorageStubFactory {
    *   - skipPrePostSave: a flag to use direct save on the storage without
    *     calling preSave and postSave functions. Can be useful if that functions
    *     have dependencies which hard to mock.
+   *   - skipModuleFile: skips including of ".module" file.
    *
    * @throws \Exception
    *   When the annotation cannot be parsed.
@@ -89,7 +90,7 @@ class EntityStorageStubFactory {
     // Some entity types depends on hook functions in the module file,
     // so trying to include this file.
     // @todo Add an option to disable this.
-    if ($entityFile = TestHelpers::getClassFile($entityTypeClass)) {
+    if (!($storageOptions['skipModuleFile'] ?? NULL) && $entityFile = TestHelpers::getClassFile($entityTypeClass)) {
       $moduleDirectory = dirname(dirname(dirname($entityFile)));
       $moduleName = basename($moduleDirectory);
       $moduleFile = "$moduleDirectory/$moduleName.module";
@@ -311,7 +312,10 @@ class EntityStorageStubFactory {
         $entitiesStorage['byRevisionId'][$entity->getRevisionId()] = $entityData;
         if ($entity->isLatestRevision()) {
           $entitiesStorage['byIdLatestRevision'][$entity->id()] = $entityData;
-          if ($entity->isNew() || $entity->isPublished() || !isset($entitiesStorage['byId'][$entity->id()])) {
+          if (
+            $entity->isNew()
+            || $entity->isDefaultRevision()
+            || !isset($entitiesStorage['byId'][$entity->id()])) {
             $entitiesStorage['byId'][$entity->id()] = $entityData;
           }
         }
