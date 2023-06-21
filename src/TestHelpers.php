@@ -28,11 +28,13 @@ use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
 use Drupal\test_helpers\StubFactory\EntityStubFactory;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use PHPUnit\Framework\MockObject\MethodNameNotConfiguredException;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Yaml\Yaml;
+use PHPUnit\Framework\AssertionFailedError;
 
 // Some constants are required to be defined for calling Drupal API functions
 // from 'core/modules/system/system.module' file.
@@ -274,6 +276,36 @@ class TestHelpers {
   }
 
   /**
+   * Asserts that a function throws a specific exception.
+   *
+   * @param callable $function
+   *   A function to execute.
+   * @param string $exceptionClass
+   *   (optional) An exception class to assert, \Exception by default.
+   * @param string $message
+   *   (optional) A message text to throw on missing exception.
+   *
+   * @todo Cover this function by a unit test.
+   */
+  public static function assertException(callable $function, string $exceptionClass = NULL, string $message = NULL) {
+    $exceptionClass ??= '\Exception';
+    $message ??= "An exception instance of $exceptionClass is expected.";
+    try {
+      $function();
+      Assert::fail($message);
+    }
+    catch (\Throwable $e) {
+      if (
+        !$e instanceof AssertionFailedError
+        && $e instanceof $exceptionClass
+      ) {
+        return;
+      }
+      throw $e;
+    }
+  }
+
+  /**
    * Parses the annotation for a class and gets the definition.
    *
    * @param string $class
@@ -321,7 +353,9 @@ class TestHelpers {
    * @param string|object $class
    *   The class to test, can be a string with path or initialized class.
    * @param array $createArguments
-   *   The list of arguments for passing to function create().
+   *   The list of arguments for passing to the function create(), excluding
+   *   the container as the first argument, because it is mandatory, so it is
+   *   passed automatically.
    * @param array $services
    *   The array of services to add to the container.
    *   Format is same as in function setServices().
@@ -464,6 +498,14 @@ class TestHelpers {
       return NULL;
     }
     foreach ($servicesFileData['services'] as $name => $info) {
+      if (str_starts_with($info['class'] ?? '', '\\')) {
+        // Remove trailing slashes if present.
+        $info['class'] = ltrim($info['class'], '\\');
+      }
+      if (str_starts_with($name ?? '', '\\')) {
+        // Remove trailing slashes if present.
+        $info['class'] = ltrim($name, '\\');
+      }
       if (($info['class'] ?? $name ?? NULL) == $serviceClass) {
         $info['class'] ??= $name;
         $info['#name'] = $name;
@@ -763,7 +805,7 @@ class TestHelpers {
    *   The entity class.
    * @param \Drupal\Core\Entity\EntityStorageInterface $storageInstance
    *   An already initialized instance of a storage, NULL to create a new one.
-   * @param bool $forceOverride
+   * @param bool|null $forceOverride
    *   Forces creation of the new clear storage, if exists.
    * @param array $storageOptions
    *   A list of options to pass to the storage initialization. Acts only once
@@ -778,7 +820,7 @@ class TestHelpers {
    * @return \Drupal\Core\Entity\EntityStorageInterface
    *   The initialized stub of Entity Storage.
    */
-  public static function getEntityStorage(string $entityTypeNameOrClass, EntityStorageInterface $storageInstance = NULL, bool $forceOverride = FALSE, array $storageOptions = NULL): EntityStorageInterface {
+  public static function getEntityStorage(string $entityTypeNameOrClass, EntityStorageInterface $storageInstance = NULL, ?bool $forceOverride = NULL, array $storageOptions = NULL): EntityStorageInterface {
     return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeNameOrClass, $storageInstance, $forceOverride, $storageOptions);
   }
 
@@ -1374,6 +1416,9 @@ class TestHelpers {
     elseif (str_starts_with($pathOrClassOrLevel, 'Drupal\\')) {
       // We have a full path of the Drupal class.
       $file = self::getClassFile($pathOrClassOrLevel);
+      if (!$moduleName) {
+        $moduleName = self::getModuleName($pathOrClassOrLevel['class']);
+      }
     }
     else {
       $file = $pathOrClassOrLevel;
