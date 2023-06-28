@@ -123,7 +123,9 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   /**
    * {@inheritdoc}
    */
-  public function stubGetOrCreateStorage(string $entityClass, $storageInstance = NULL, ?bool $forceOverride = NULL, $storageOptions = NULL) {
+  public function stubGetOrCreateStorage(string $entityClassOrType, $storageInstance = NULL, ?bool $forceOverride = NULL, $storageOptions = NULL) {
+    TestHelpers::requireCoreFeaturesMap();
+    $entityClass = ltrim(TEST_HELPERS_DRUPAL_CORE_STORAGE_MAP[$entityClassOrType] ?? $entityClassOrType, '\\');
     if (!$forceOverride && isset($this->stubEntityStoragesByClass[$entityClass])) {
       return $this->stubEntityStoragesByClass[$entityClass];
     }

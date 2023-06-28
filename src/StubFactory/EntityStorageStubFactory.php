@@ -30,8 +30,8 @@ class EntityStorageStubFactory {
   /**
    * Creates a new Entity Storage Stub object.
    *
-   * @param string $entityTypeClass
-   *   The original class to use for stub.
+   * @param string $entityClassOrName
+   *   The original class to use for stub, or an entity type for types in.
    * @param string $annotation
    *   The annotation to use. If missing - tries ContentEntityType and
    *   ConfigEntityType.
@@ -55,12 +55,15 @@ class EntityStorageStubFactory {
    * @return \Drupal\Core\Entity\EntityStorageInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The mocked Entity Storage Stub.
    */
-  public static function create(string $entityTypeClass, string $annotation = NULL, array $storageOptions = NULL) {
+  public static function create(string $entityClassOrName, string $annotation = NULL, array $storageOptions = NULL) {
     $storageOptions ??= [];
     if (is_array($storageOptions['methods'] ?? NULL)) {
       @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See https://www.drupal.org/project/test_helpers/issues/3347857', E_USER_DEPRECATED);
       $storageOptions['mockMethods'] = array_unique(array_merge($storageOptions['mockMethods'] ?? [], $storageOptions['methods']));
     }
+    TestHelpers::requireCoreFeaturesMap();
+    $entityClass = ltrim(TEST_HELPERS_DRUPAL_CORE_STORAGE_MAP[$entityClassOrName] ?? $entityClassOrName, '\\');
+    // $entityClass = $entityTypeNameOrClass;
     switch ($annotation) {
       case 'ContentEntityType':
       case 'ConfigEntityType':
@@ -68,21 +71,21 @@ class EntityStorageStubFactory {
     }
 
     if ($annotation) {
-      $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+      $entityTypeDefinition = TestHelpers::getPluginDefinition($entityClass, 'Entity', $annotation);
     }
     else {
       // Starting with the Content Entity type at first.
       $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
-      $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+      $entityTypeDefinition = TestHelpers::getPluginDefinition($entityClass, 'Entity', $annotation);
       if ($entityTypeDefinition == NULL) {
         // If it fails - use Config Entity type.
         $annotation = '\Drupal\Core\Entity\Annotation\ConfigEntityType';
-        $entityTypeDefinition = TestHelpers::getPluginDefinition($entityTypeClass, 'Entity', $annotation);
+        $entityTypeDefinition = TestHelpers::getPluginDefinition($entityClass, 'Entity', $annotation);
       }
     }
 
     if ($entityTypeDefinition == NULL) {
-      throw new \Exception("Can't parse annotation for class $entityTypeClass using annotation $annotation");
+      throw new \Exception("Can't parse annotation for class $entityClass using annotation $annotation");
     }
 
     $entityTypeId = $entityTypeDefinition->id();
@@ -90,7 +93,7 @@ class EntityStorageStubFactory {
     // Some entity types depends on hook functions in the module file,
     // so trying to include this file.
     // @todo Add an option to disable this.
-    if (!($storageOptions['skipModuleFile'] ?? NULL) && $entityFile = TestHelpers::getClassFile($entityTypeClass)) {
+    if (!($storageOptions['skipModuleFile'] ?? NULL) && $entityFile = TestHelpers::getClassFile($entityClass)) {
       $moduleDirectory = dirname(dirname(dirname($entityFile)));
       $moduleName = basename($moduleDirectory);
       $moduleFile = "$moduleDirectory/$moduleName.module";
@@ -138,7 +141,7 @@ class EntityStorageStubFactory {
         break;
 
       case '\Drupal\Core\Entity\Annotation\ConfigEntityType':
-        switch ($entityTypeClass) {
+        switch ($entityClass) {
           case "Drupal\Core\Field\Entity\BaseFieldOverride":
             break;
 
