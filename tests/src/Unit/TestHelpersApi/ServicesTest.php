@@ -3,10 +3,9 @@
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\dblog\Plugin\rest\resource\DBLogResource;
+use Drupal\media\Plugin\Derivative\DynamicLocalTasks;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -203,24 +202,17 @@ class ServicesTest extends UnitTestCase {
    * @covers ::createClass
    */
   public function testCreateClass() {
-    $configuration = [];
-    $plugin_id = 'my_plugin';
-    $plugin_definition = [];
-    $serializer_formats = [];
-    $logger = $this->createMock(LoggerInterface::class);
-    TestHelpers::getContainer()->setParameter('serializer.formats', []);
+    TestHelpers::setServices([
+      'string_translation',
+      'entity_type.manager',
+    ]);
     $class = TestHelpers::createClass(
-      DBLogResource::class,
-      [
-        $configuration,
-        $plugin_id,
-        $plugin_definition,
-        $serializer_formats,
-        $logger,
+      DynamicLocalTasks::class,
+      ['plugin_id',
       ],
-      ['logger.factory']);
+      ['config.factory']);
 
-    $this->assertInstanceOf(DBLogResource::class, $class);
+    $this->assertInstanceOf(DynamicLocalTasks::class, $class);
   }
 
   /**
