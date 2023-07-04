@@ -2,6 +2,4 @@ name: Test Helpers
 type: module
 description: 'A bundle of helpers and utilities to simplify writing unit tests to cover code in custom Drupal modules.'
 package: Development
-core_version_requirement: ^8 || ^9 || ^10
-tags:
- - developer
+core_version_requirement: ^9.4 || ^10
