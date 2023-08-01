@@ -14,6 +14,7 @@ use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
+use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
@@ -327,7 +328,6 @@ class TestHelpers {
     $reader = new SimpleAnnotationReader();
     $reader->addNamespace('Drupal\Core\Annotation');
     $reader->addNamespace('Drupal\Core\\' . $plugin . '\Annotation');
-
     // If no annotation name is passed, just getting the first anotation.
     if (!$annotationName) {
       $annotation = current($reader->getClassAnnotations($rc));
@@ -336,9 +336,14 @@ class TestHelpers {
       $annotation = $reader->getClassAnnotation($rc, $annotationName);
     }
     if ($annotation) {
-      // Inline copy of the proteced function
-      // AnnotatedClassDiscovery::prepareAnnotationDefinition().
-      $annotation->setClass($class);
+      static $annotatedClassDiscovery;
+      $annotatedClassDiscovery ??= new AnnotatedClassDiscovery('', new \ArrayObject([]));
+      // @todo Rework without calling a private method.
+      TestHelpers::callPrivateMethod(
+        $annotatedClassDiscovery,
+        'prepareAnnotationDefinition',
+        [$annotation, $class]
+      );
 
       $definition = $annotation->get();
 
