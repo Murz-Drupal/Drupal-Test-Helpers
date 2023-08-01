@@ -54,9 +54,7 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
     if (isset($values['label'])) {
       $values['name'] = $values['label'];
     }
-    $this->configFactory->stubSetConfig('language.entity.' . $code, $values);
     TestHelpers::saveEntity(ConfigurableLanguage::class, $values);
-    // $this->languages = [];
     $this->stubClearStaticCaches();
   }
 
