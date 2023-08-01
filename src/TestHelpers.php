@@ -402,7 +402,7 @@ class TestHelpers {
     }
     $classArguments = [];
     foreach (($serviceInfo['arguments'] ?? []) as $argument) {
-      if (substr($argument, 0, 1) == '@') {
+      if (substr($argument ?? '', 0, 1) == '@') {
         $classArguments[] = self::service(substr($argument, 1));
       }
       else {

@@ -2,18 +2,18 @@
 
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\media\Plugin\Derivative\DynamicLocalTasks;
-use Drupal\Tests\UnitTestCase;
-use Drupal\test_helpers\TestHelpers;
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\UrlGenerator;
 use Drupal\Core\Site\Settings;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\language\ConfigurableLanguageManagerInterface;
 use Drupal\language\LanguageNegotiationMethodManager;
+use Drupal\media\Plugin\Derivative\DynamicLocalTasks;
+use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 /**
  * Tests Query helper functions.
@@ -172,6 +172,12 @@ class ServicesTest extends UnitTestCase {
       'core/modules/language/language.services.yml',
       'language_negotiator');
     $this->assertEquals(['method1', 'method2'], $service->getNegotiationMethods());
+
+    // Testing initialization of a service with null argument.
+    // @see https://www.drupal.org/project/test_helpers/issues/3378437
+    TestHelpers::initServiceFromYaml(
+      'core/core.services.yml',
+      'transliteration');
   }
 
   /**
