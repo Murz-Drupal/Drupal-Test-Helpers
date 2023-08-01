@@ -18,7 +18,7 @@ even need to install it in Drupal, adding it via composer as a dev dependency
 (without installing on production) is enough:
 
 ```
-composer require --dev 'drupal/test_helpers:^1.0@beta'
+composer require --dev 'drupal/test_helpers'
 ```
 
 See the `\Drupal\test_helpers\TestHelpers` class for the main API functions.
