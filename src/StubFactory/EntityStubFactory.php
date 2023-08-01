@@ -7,7 +7,6 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\entity_test\FieldStorageDefinition;
-use Drupal\test_helpers\Plugin\Field\FieldType\ItemStubItem;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\user\Entity\User;
 
@@ -262,9 +261,8 @@ class EntityStubFactory {
               }
             }
             if ($fieldType) {
-              if (!$itemDefinitionArray = TestHelpers::service('typed_data_manager')->getDefinition('field_item:' . $fieldType)) {
-                throw new \Exception("A definition for a field type '$fieldType', passed in 'fields' options for field '$name', is not found.");
-              }
+              $itemDefinitionArray = TestHelpers::service('typed_data_manager')->getDefinition('field_item:' . $fieldType);
+              // @todo Rework when https://www.drupal.org/node/2280639 lands.
               $newDefinition = FieldStorageDefinition::create($itemDefinitionArray['id']);
             }
           }
@@ -272,7 +270,7 @@ class EntityStubFactory {
           if (!$newDefinition && !isset($this->fieldDefinitions[$name])) {
             // If we have no exact field type and no defined one, creating
             // a new definition.
-            $newDefinition = FieldItemListStubFactory::createFieldItemDefinitionStub(ItemStubItem::class);
+            $newDefinition = FieldItemListStubFactory::createFieldItemDefinitionStub();
           }
           if ($newDefinition) {
             // We have no overrides, so checking the created definition or
@@ -308,7 +306,7 @@ class EntityStubFactory {
                 break;
             }
           }
-          $field = FieldItemListStubFactory::create($name, $value, $definition, $this->typedData);
+          $field = TestHelpers::createFieldStub($value, $definition, $name, $this->typedData);
           if ($entityTypeDefinition->getGroup() == 'configuration') {
             $this->$name = $value;
           }

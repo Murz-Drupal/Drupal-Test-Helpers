@@ -36,10 +36,10 @@ class TypedDataManagerStub extends TypedDataManager {
    * {@inheritdoc}
    */
   public function getDefinition($plugin_id, $exception_on_invalid = TRUE) {
-    if (!isset($this->stubPluginsDefinition[$plugin_id])) {
+    if (!isset($this->definitions[$plugin_id])) {
       $this->tryLoadDefinition($plugin_id);
     }
-    return $this->stubPluginsDefinition[$plugin_id] ?? NULL;
+    return parent::getDefinition($plugin_id, $exception_on_invalid);
   }
 
   /**
@@ -146,8 +146,8 @@ class TypedDataManagerStub extends TypedDataManager {
 
     $definitionClass = $definition['definition_class'];
     $definitionObject = new $definitionClass($definition);
-    $this->stubPluginsDefinition[$id] = new $class($definitionObject);
-    $this->stubPluginsDefinition[$id]->setTypedDataManager($this);
+    $this->definitions[$id] = new $class($definitionObject);
+    $this->definitions[$id]->setTypedDataManager($this);
   }
 
   /**
@@ -165,7 +165,17 @@ class TypedDataManagerStub extends TypedDataManager {
     if (!isset($definition['list_class'])) {
       $definition['list_class'] = 'Drupal\Core\Field\FieldItemList';
     }
-    $this->stubPluginsDefinition[self::getIdWithNamespace($definition['id'], $namespace)] = $definition;
+    $this->definitions[self::getIdWithNamespace($definition['id'], $namespace)] = $definition;
+  }
+
+  /**
+   * Registers a new field type by plugin class.
+   *
+   * @param string $class
+   *   The class name.
+   */
+  public function stubAddFieldType(string $class): void {
+    $this->stubSetPlugin($class, 'Field', 'field_item');
   }
 
   /**
@@ -179,7 +189,7 @@ class TypedDataManagerStub extends TypedDataManager {
    *   Sets the custom id, if needed.
    */
   public function stubSetDefinition($definition, string $namespace = NULL, string $customId = NULL): void {
-    $this->stubPluginsDefinition[self::getIdWithNamespace($customId ?? $definition['id'], $namespace)] = $definition;
+    $this->definitions[self::getIdWithNamespace($customId ?? $definition['id'], $namespace)] = $definition;
   }
 
   /**

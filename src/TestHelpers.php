@@ -12,7 +12,9 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
+use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
@@ -28,13 +30,14 @@ use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\TokenStub;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
 use Drupal\test_helpers\StubFactory\EntityStubFactory;
+use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use PHPUnit\Framework\Assert;
+use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use PHPUnit\Framework\MockObject\MethodNameNotConfiguredException;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Yaml\Yaml;
-use PHPUnit\Framework\AssertionFailedError;
 
 // Some constants are required to be defined for calling Drupal API functions
 // from 'core/modules/system/system.module' file.
@@ -822,6 +825,50 @@ class TestHelpers {
    */
   public static function getEntityStorage(string $entityTypeNameOrClass, EntityStorageInterface $storageInstance = NULL, ?bool $forceOverride = NULL, array $storageOptions = NULL): EntityStorageInterface {
     return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeNameOrClass, $storageInstance, $forceOverride, $storageOptions);
+  }
+
+  /**
+   * Creates a field instance stub.
+   *
+   * @param array|string|null $values
+   *   The field values.
+   * @param string|\Drupal\Core\Field\FieldDefinitionInterface|null $typeOrDefinition
+   *   A field type like 'string', 'integer', 'boolean'.
+   *   Or a path to a field class like
+   *   Drupal\Core\Field\Plugin\Field\FieldType\IntegerItem.
+   *   Or a ready definition object to use.
+   *   If null - will be created a stub with fallback ItemStubItem definition.
+   * @param string|null $name
+   *   The field name.
+   * @param \Drupal\Core\TypedData\TypedDataInterface|null $parent
+   *   Parent item for attaching to the field.
+   * @param bool|null $isBaseField
+   *   A flag to create a base field instance.
+   * @param array|null $mockMethods
+   *   A list of method to mock when creating the instance.
+   *
+   * @return \Drupal\Core\Field\FieldItemListInterface
+   *   A field item list with items as stubs.
+   */
+  public static function createFieldStub(
+    $values = NULL,
+    $typeOrDefinition = NULL,
+    string $name = NULL,
+    TypedDataInterface $parent = NULL,
+    $isBaseField = NULL,
+    array $mockMethods = NULL
+  ): FieldItemListInterface {
+    return FieldItemListStubFactory::create($name, $values, $typeOrDefinition, $parent, $isBaseField, $mockMethods);
+  }
+
+  /**
+   * Adds a field plugin from class to the typed data manager.
+   *
+   * @param string $class
+   *   The field plugin class.
+   */
+  public static function addFieldPlugin(string $class): void {
+    TestHelpers::service('typed_data_manager')->stubAddFieldType($class);
   }
 
   /**
