@@ -3,9 +3,10 @@
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Language\LanguageManager;
+use Drupal\node\Entity\Node;
+use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests ConfigurableLanguageManagerStub class.
@@ -39,6 +40,34 @@ class ConfigurableLanguageManagerStubTest extends UnitTestCase {
     $languages = $configurableLanguageManagerStub->getLanguages();
     $this->assertCount(3, $languages);
     $this->assertEquals('DE custom language', $languages['de-xx']->getName());
+  }
+
+  /**
+   * @covers ::stubSetByCode
+   */
+  public function testStubWithSwitchingDefaultLanguage() {
+    /** @var \Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub */
+    $stub = TestHelpers::service('language_manager');
+    $stub->stubAddLanguage('fr');
+
+    $node = TestHelpers::createEntity(
+      Node::class,
+      [
+        'title' => 'default',
+        'status' => 1,
+      ],
+      [
+        'fr' => [
+          'title' => 'fr',
+          'status' => 0,
+        ],
+      ]
+    );
+    $node->save();
+
+    TestHelpers::service('language.default')->stubSetByCode('fr');
+    $node2 = TestHelpers::service('entity_type.manager')->getStorage('node')->load(1);
+    $this->assertEquals('fr', $node2->label());
   }
 
 }

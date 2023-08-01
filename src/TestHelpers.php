@@ -21,10 +21,12 @@ use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\DateFormatterStub;
+use Drupal\test_helpers\Stub\DrupalKernelStub;
 use Drupal\test_helpers\Stub\EntityFieldManagerStub;
 use Drupal\test_helpers\Stub\EntityRepositoryStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
+use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
 use Drupal\test_helpers\Stub\MessengerStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
@@ -85,6 +87,8 @@ class TestHelpers {
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
     'entity.repository' => EntityRepositoryStub::class,
+    'kernel' => DrupalKernelStub::class,
+    'language.default' => LanguageDefaultStub::class,
     'language_manager' => ConfigurableLanguageManagerStub::class,
     'logger.factory' => LoggerChannelFactoryStub::class,
     'messenger' => MessengerStub::class,

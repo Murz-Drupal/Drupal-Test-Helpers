@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\TranslatableInterface;
 use Drupal\Core\KeyValueStore\KeyValueFactory;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\test_helpers\TestHelpers;
 
 /**
@@ -294,17 +295,11 @@ class EntityStorageStubFactory {
       // For content entities we should look all translations.
       if ($entity instanceof TranslatableInterface) {
         $entityData = [];
-        $entityData['#translationData'] = TRUE;
         foreach ($entity->getTranslationLanguages() as $langcode => $language) {
           if (!$entityInLanguage = $entity->getTranslation($langcode)) {
             break;
           }
-          if ($entityInLanguage->isDefaultTranslation()) {
-            $entityData['#default'] = EntityStorageStubFactory::entityToValues($entityInLanguage);
-          }
-          else {
-            $entityData['#translations'][$langcode] = EntityStorageStubFactory::entityToValues($entityInLanguage);
-          }
+          $entityData['#translations'][$langcode] = EntityStorageStubFactory::entityToValues($entityInLanguage);
         }
       }
       else {
@@ -446,11 +441,27 @@ class EntityStorageStubFactory {
    *   The created entity
    */
   public static function valuesToEntity(EntityTypeInterface $entityType, array $values = []): EntityInterface {
-    if ($values['#translationData'] ?? NULL) {
-      $entity = TestHelpers::createEntity($entityType->getClass(), $values['#default'] ?? []);
+    if ($values['#translations'] ?? NULL) {
+      $defaultLanguageCode = TestHelpers::service('language.default')->get()->getId();
+      $defaultTranslationValues =
+        $values['#translations'][$defaultLanguageCode]
+        ?? $values['#translations'][LanguageInterface::LANGCODE_NOT_SPECIFIED]
+        ?? [];
+
+      // This trick is required when the default language is changed.
+      if (isset($defaultTranslationValues['default_langcode'])) {
+        unset($defaultTranslationValues['default_langcode']);
+      }
+
+      $entity = TestHelpers::createEntity($entityType->getClass(), $defaultTranslationValues);
       $entity->enforceIsNew(FALSE);
       foreach ($values['#translations'] ?? [] as $langCode => $valuesInLang) {
-        $entity->addTranslation($langCode, $valuesInLang);
+        if (
+          $langCode != $defaultLanguageCode
+          && $langCode != LanguageInterface::LANGCODE_NOT_SPECIFIED
+        ) {
+          $entity->addTranslation($langCode, $valuesInLang);
+        }
       }
     }
     else {

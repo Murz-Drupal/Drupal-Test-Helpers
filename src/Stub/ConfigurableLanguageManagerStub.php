@@ -11,6 +11,7 @@ use Drupal\Core\Language\LanguageManager;
 use Drupal\language\Config\LanguageConfigFactoryOverride;
 use Drupal\language\Config\LanguageConfigFactoryOverrideInterface;
 use Drupal\language\ConfigurableLanguageManager;
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -29,17 +30,11 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
     LanguageConfigFactoryOverrideInterface $config_override = NULL,
     RequestStack $request_stack = NULL
   ) {
-    $default_language_values = [
-      'id' => 'en',
-      // In a configuration record the 'label' term is used instead of 'name'.
-      'label' => LanguageManager::getStandardLanguageList()['en'][0],
-    ];
-    $default_language ??= new LanguageDefault($default_language_values);
+    $default_language ??= TestHelpers::service('language.default');
     $config_factory ??= TestHelpers::service('config.factory');
     $module_handler ??= TestHelpers::service('module_handler');
     $config_override ??= TestHelpers::service('language.config_factory_override', LanguageConfigFactoryOverride::class);
     $request_stack ??= TestHelpers::service('request_stack');
-    $config_factory->stubSetConfig('language.entity.' . $default_language_values['id'], $default_language_values);
 
     parent::__construct($default_language, $config_factory, $module_handler, $config_override, $request_stack);
 
@@ -60,21 +55,21 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
       $values['name'] = $values['label'];
     }
     $this->configFactory->stubSetConfig('language.entity.' . $code, $values);
-
-    // Resetting the static cache of languages.
-    $this->languages = [];
+    TestHelpers::saveEntity(ConfigurableLanguage::class, $values);
+    // $this->languages = [];
+    $this->stubClearStaticCaches();
   }
 
   /**
    * Adds languages to the stub.
    *
-   * @param array $languages
+   * @param array $languagecodes
    *   A list of languages codes.
    */
-  public function stubAddLanguages(array $languages) {
-    foreach ($languages as $language) {
+  public function stubAddLanguages(array $languagecodes) {
+    foreach ($languagecodes as $languagecode) {
       // @todo Add support for arrays with language code and name.
-      $this->stubAddLanguage($language);
+      $this->stubAddLanguage($languagecode);
     }
   }
 
@@ -90,7 +85,6 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
     }
     $this->stubDefaultLanguage = $language;
   }
-
   /**
    * {@inheritdoc}
    */
@@ -115,14 +109,31 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
    * @return array
    *   An array with values for creating a Language object.
    */
-  private function languageValuesFromCode(string $langcode, string $label = NULL): array {
-    $languageData = LanguageManager::getStandardLanguageList()[$langcode] ?? NULL;
+  public function languageValuesFromCode(string $langcode, string $label = NULL): array {
+    if ($langcode == LanguageInterface::LANGCODE_NOT_SPECIFIED) {
+      $languageData = ['Not specified', 'Not specified'];
+    }
+    else {
+      $languageData = LanguageManager::getStandardLanguageList()[$langcode] ?? NULL;
+    }
     return [
       'id' => $langcode,
       'label' => $label ?? $languageData[0] ?? "[$langcode]",
       'direction' => $languageData[2] ?? LanguageInterface::DIRECTION_RTL,
     ];
 
+  }
+
+  /**
+   *
+   */
+  public function stubClearStaticCaches() {
+    $this->initialized = FALSE;
+    $this->negotiatedLanguages = [];
+    $this->negotiatedMethods = [];
+    $this->languageTypes = NULL;
+    $this->languageTypesInfo = NULL;
+    $this->languages = [];
   }
 
 }
