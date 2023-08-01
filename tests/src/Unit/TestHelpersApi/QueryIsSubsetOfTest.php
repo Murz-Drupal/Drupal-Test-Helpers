@@ -136,12 +136,12 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The condition is not listed in expected: array (
+      $this->assertEquals("The condition is not listed in expected: [
   'field' => 'title',
   'value' => 'Bar',
   'operator' => NULL,
   'langcode' => NULL,
-)", $e->getMessage());
+]", $e->getMessage());
     }
 
     // Wrong condition case 1.
@@ -156,12 +156,12 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The expected condition is not found: array (
+      $this->assertEquals("The expected condition is not found: [
   'field' => 'uid',
   'value' => 42,
   'operator' => '=',
   'langcode' => NULL,
-)", $e->getMessage());
+]", $e->getMessage());
     }
 
     // Wrong condition case 2.
@@ -175,12 +175,12 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The expected condition is not found: array (
+      $this->assertEquals("The expected condition is not found: [
   'field' => 'nid',
   'value' => 2,
   'operator' => NULL,
   'langcode' => NULL,
-)", $e->getMessage());
+]", $e->getMessage());
     }
 
     // Right accessCheck.
@@ -208,7 +208,7 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The accessCheck doesn't match, expected: true, actual: NULL", $e->getMessage());
+      $this->assertEquals("The accessCheck doesn't match, expected: true\nactual: NULL", $e->getMessage());
     }
 
     try {
@@ -219,7 +219,7 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The accessCheck doesn't match, expected: false, actual: true", $e->getMessage());
+      $this->assertEquals("The accessCheck doesn't match, expected: false\nactual: true", $e->getMessage());
     }
 
     try {
@@ -230,7 +230,7 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The accessCheck doesn't match, expected: true, actual: false", $e->getMessage());
+      $this->assertEquals("The accessCheck doesn't match, expected: true\nactual: false", $e->getMessage());
     }
 
     // Right sort.
@@ -256,21 +256,22 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The sort doesn't match, expected: array (
+      $this->assertEquals("The sort doesn't match, expected: [
   0 =>
-  array (
+  [
     'field' => 'nid',
     'direction' => 'ASC',
     'langcode' => NULL,
-  ),
-), actual: array (
+  ],
+]
+actual: [
   0 =>
-  array (
+  [
     'field' => 'title',
     'direction' => 'ASC',
     'langcode' => NULL,
-  ),
-)", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
+  ],
+]", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
     }
 
     try {
@@ -281,21 +282,22 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The sort doesn't match, expected: array (
+      $this->assertEquals("The sort doesn't match, expected: [
   0 =>
-  array (
+  [
     'field' => 'title',
     'direction' => 'DESC',
     'langcode' => NULL,
-  ),
-), actual: array (
+  ],
+]
+actual: [
   0 =>
-  array (
+  [
     'field' => 'title',
     'direction' => 'ASC',
     'langcode' => NULL,
-  ),
-)", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
+  ],
+]", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
     }
 
     // Right range.
@@ -321,13 +323,14 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The range doesn't match, expected: array (
+      $this->assertEquals("The range doesn't match, expected: [
   'start' => 1,
   'length' => 4,
-), actual: array (
+]
+actual: [
   'start' => 1,
   'length' => 3,
-)", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
+]", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
     }
 
     try {
@@ -338,13 +341,14 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The range doesn't match, expected: array (
+      $this->assertEquals("The range doesn't match, expected: [
   'start' => 1,
   'length' => NULL,
-), actual: array (
+]
+actual: [
   'start' => 1,
   'length' => 3,
-)", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
+]", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
     }
 
     try {
@@ -355,13 +359,14 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The range doesn't match, expected: array (
+      $this->assertEquals("The range doesn't match, expected: [
   'start' => 5,
   'length' => 1,
-), actual: array (
+]
+actual: [
   'start' => 5,
   'length' => NULL,
-)", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
+]", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
     }
 
   }

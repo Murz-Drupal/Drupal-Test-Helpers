@@ -1086,10 +1086,10 @@ class TestHelpers {
               }
               $groupConditions[] = $groupCondition;
             }
-            $throwErrors && self::throwUserError('The expected condition group "' . $condition['field']->getConjunction() . '" is not matching, items: ' . var_export($groupConditions, TRUE));
+            $throwErrors && self::throwUserError('The expected condition group "' . $condition['field']->getConjunction() . '" is not matching, items: ' . self::shorthandVarExport($groupConditions, TRUE));
             return FALSE;
           }
-          $throwErrors && self::throwUserError('The expected condition is not found: ' . var_export($condition, TRUE));
+          $throwErrors && self::throwUserError('The expected condition is not found: ' . self::shorthandVarExport($condition, TRUE));
           return FALSE;
         }
       }
@@ -1099,7 +1099,7 @@ class TestHelpers {
     if ($onlyListed && (count($conditions) != count($conditionsExpected))) {
       foreach ($conditions as $delta => $condition) {
         if (!isset($conditionsFound[$delta])) {
-          $throwErrors && self::throwUserError('The condition is not listed in expected: ' . var_export($condition, TRUE));
+          $throwErrors && self::throwUserError('The condition is not listed in expected: ' . self::shorthandVarExport($condition, TRUE));
         }
       }
       $throwErrors && self::throwMatchError('count of conditions', count($conditions), count($conditionsExpectedFound));
@@ -1206,19 +1206,38 @@ class TestHelpers {
    *   The array to check. Returns false if passed variable is not an array.
    * @param mixed $subset
    *   The array with values to check the subset.
+   * @param bool $throwErrors
+   *   Enables throwing notice errors when matching fails, with the explanation
+   *   what exactly doesn't match.
    *
    * @return bool
    *   True if the array is the subset, false if not.
    */
-  public static function isNestedArraySubsetOf($array, $subset): bool {
+  public static function isNestedArraySubsetOf($array, $subset, bool $throwErrors = FALSE): bool {
+    static $throwErrorsStatic;
+
+    $callbackFunction = self::class . '::isValueSubsetOfCallback';
+    $callerInfo = self::getCallerInfo();
+    if ($callerInfo['class'] . '::' . $callerInfo['function'] !== $callbackFunction) {
+      $throwErrorsStatic = $throwErrors;
+    }
     if ($subset === NULL) {
       return TRUE;
     }
-    if (!is_array($array) || !is_array($subset)) {
+    if (!is_array($array)) {
+      $throwErrorsStatic && self::throwUserError('The array is not an array.');
       return FALSE;
     }
-    $result = array_uintersect_assoc($subset, $array, self::class . '::isValueSubsetOfCallback');
-    return $result == $subset;
+    if (!is_array($subset)) {
+      $throwErrorsStatic && self::throwUserError('The subset is not an array.');
+      return FALSE;
+    }
+    $result = array_uintersect_assoc($subset, $array, $callbackFunction);
+    if ($result != $subset) {
+      $throwErrorsStatic && self::throwMatchError('arrays', $subset, $array);
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /**
@@ -1497,7 +1516,7 @@ class TestHelpers {
    * ************************************************************************ */
 
   /**
-   * Internal callback helper function for array_uintersect.
+   * An internal callback helper function for array_uintersect.
    */
   private static function isValueSubsetOfCallback($expected, $value): int {
     // The callback function for array_uintersect should return
@@ -1506,6 +1525,64 @@ class TestHelpers {
       return self::isNestedArraySubsetOf($value, $expected) ? 0 : -1;
     }
     return ($value == $expected) ? 0 : -1;
+  }
+
+  /**
+   * Replaces all objects to string representation in a nested array.
+   *
+   * @param array $array
+   *   The array to use.
+   *
+   * @return array
+   *   A copy of the array with replaced objects to strings.
+   */
+  private static function arrayObjectsToStrings(array $array): array {
+    $arrayCopy = json_decode(json_encode($array), TRUE);
+    array_walk_recursive($arrayCopy, self::class . '::arrayObjectsToStringsCallback');
+    return $arrayCopy;
+  }
+
+  /**
+   * Makes an in-place replacement of an object to string in an array item.
+   *
+   * An internal callback helper function for arrayObjectsToStrings.
+   *
+   * @param mixed $item
+   *   An array item value.
+   * @param mixed $key
+   *   An array item key.
+   */
+  private static function arrayObjectsToStringsCallback(&$item, $key) {
+    if (is_object($item)) {
+      $item = '[object] ' . get_class($item);
+    }
+  }
+
+  /**
+   * An improved version of var_export that outputs arrays in short format.
+   *
+   * @param mixed $value
+   *   A value to use.
+   * @param mixed $return
+   *   If used and set to true, will return the variable representation instead
+   *   of outputting it.
+   *
+   * @return string|null
+   *   A string representation of the value, if $return is true.
+   */
+  private static function shorthandVarExport($value, $return = FALSE) {
+    $export = var_export($value, TRUE);
+    $patterns = [
+      "/array \(/" => '[',
+      "/^([ ]*)\)(,?)$/m" => '$1]$2',
+    ];
+    $output = preg_replace(array_keys($patterns), array_values($patterns), $export);
+    if ($return) {
+      return $output;
+    }
+    else {
+      echo $output;
+    }
   }
 
   /**
@@ -1721,7 +1798,10 @@ class TestHelpers {
    *   The actual value.
    */
   private static function throwMatchError(string $subject, $expected, $actual) {
-    trigger_error("The $subject doesn't match, expected: " . var_export($expected, TRUE) . ", actual: " . var_export($actual, TRUE), E_USER_NOTICE);
+    trigger_error(
+      "The $subject doesn't match, expected: "
+      . self::shorthandVarExport(is_array($expected) ? self::arrayObjectsToStrings($expected) : $expected, TRUE)
+      . "\nactual: " . self::shorthandVarExport(is_array($actual) ? self::arrayObjectsToStrings($actual) : $actual, TRUE), E_USER_NOTICE);
   }
 
   /**
