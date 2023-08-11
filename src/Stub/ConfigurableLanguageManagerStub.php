@@ -83,7 +83,6 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
     }
     $this->stubDefaultLanguage = $language;
   }
-
   /**
    * {@inheritdoc}
    */
@@ -124,9 +123,9 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
   }
 
   /**
-   * Clears all static caches for the service.
+   *
    */
-  private function stubClearStaticCaches() {
+  public function stubClearStaticCaches() {
     $this->initialized = FALSE;
     $this->negotiatedLanguages = [];
     $this->negotiatedMethods = [];

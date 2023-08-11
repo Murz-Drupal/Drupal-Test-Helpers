@@ -7,8 +7,8 @@ logic of tested functions, using provided stubs of Drupal services.
 Basically, the module provides stubs for the most popular Drupal services like
 Entity Storage, EntityQuery, Database, Configuration Factory, and many others.
 The stubs can emulate the behavior of entities (create, load, save, delete) and
-core services, but without the real initialization of Drupal Kernel, a database,
-and other persistent storages, all are emulated in the memory.
+core services, but without the real initialization of Drupal Core, database, and
+other persistent storages, all are emulated in the memory.
 
 Additionally, it provides some utility functions to get private properties and
 methods from classes, Plugin Definitions from a YAML file, and many more.
@@ -39,13 +39,14 @@ This module does not have any dependency on any other module.
 
 ## Installation
 
-You don't need to install this module to Drupal, just having it as a dev
-dependency in `composer` is enough.
+Install as you would normally install a contributed Drupal module. For further
+information, see
+[Installing Drupal Modules](https://www.drupal.org/docs/extending-drupal/installing-drupal-modules).
 
 
 ## Configuration
 
-The module provides no configuration options.
+The module currently provides no configuration options.
 
 
 ## Maintainers
