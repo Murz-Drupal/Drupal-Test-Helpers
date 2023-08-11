@@ -11,6 +11,7 @@ use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\test_helpers\lib\ConfigFactoryStubCacheInvalidator;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * A stub of the Drupal's default ConfigFactory class.
@@ -55,14 +56,22 @@ class ConfigFactoryStub extends ConfigFactory {
    *
    * @param string $name
    *   The name of the config.
-   * @param mixed $data
-   *   The data to store.
-   * @param bool $immutable
-   *   Store as immutable.
+   * @param array|string $dataOrYamlFile
+   *   An array with a data to store, or a relative path to a yaml file.
    */
-  public function stubSetConfig(string $name, $data, bool $immutable = FALSE): void {
-    $this->clearStaticCache();
+  public function stubSetConfig(string $name, $dataOrYamlFile): void {
+    if (is_string($dataOrYamlFile)) {
+      $filePath = TestHelpers::getModuleFilePath($dataOrYamlFile, 1);
+      $data = Yaml::parseFile($filePath);
+    }
+    elseif (is_array($dataOrYamlFile)) {
+      $data = $dataOrYamlFile;
+    }
+    else {
+      throw new \Exception('The $dataOrYamlFile should be an array or a path to a YAML file.');
+    }
     $this->storage->write($name, $data);
+    $this->clearStaticCache();
   }
 
 }

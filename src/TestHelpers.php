@@ -272,15 +272,11 @@ class TestHelpers {
    */
   public static function getDrupalRoot(): string {
     static $path;
-    if ($path) {
-      return $path;
-    }
-    $path = __DIR__;
-    while (!file_exists($path . '/core/lib/Drupal.php')) {
-      $path = dirname($path);
-      if ($path == '') {
-        throw new \Exception('Drupal root directory cannot be found.');
-      }
+    if (!$path) {
+      $rc = new \ReflectionClass(\Drupal::class);
+      $drupalClassAbsolutePath = $rc->getFileName();
+      $drupalClassRelativePath = 'core/lib/Drupal.php';
+      $path = substr($drupalClassAbsolutePath, 0, -strlen($drupalClassRelativePath) - 1);
     }
     return $path;
   }
@@ -1490,11 +1486,14 @@ class TestHelpers {
       $file = $callerInfo['file'];
       $moduleName = self::getModuleName($callerInfo['class']);
     }
-    elseif (str_starts_with($pathOrClassOrLevel, 'Drupal\\')) {
+    elseif (
+      str_starts_with($pathOrClassOrLevel, 'Drupal\\')
+      || str_starts_with($pathOrClassOrLevel, '\\Drupal\\')
+    ) {
       // We have a full path of the Drupal class.
       $file = self::getClassFile($pathOrClassOrLevel);
       if (!$moduleName) {
-        $moduleName = self::getModuleName($pathOrClassOrLevel['class']);
+        $moduleName = self::getModuleName($pathOrClassOrLevel);
       }
     }
     else {
@@ -1506,9 +1505,10 @@ class TestHelpers {
       $modulesIndex = array_search('core', $partsReversed);
     }
     else {
-      $modulesIndex =
-        array_search('modules', $partsReversed)
-        ?? array_search('themes', $partsReversed);
+      $modulesIndex = array_search('modules', $partsReversed);
+      if ($modulesIndex === FALSE) {
+        $modulesIndex = array_search('themes', $partsReversed);
+      }
     }
     if (!$modulesIndex) {
       return NULL;
@@ -1520,6 +1520,33 @@ class TestHelpers {
       }
       return $index > 0 ? implode(DIRECTORY_SEPARATOR, array_reverse(array_slice($partsReversed, $index))) : NULL;
     }
+  }
+
+  /**
+   * Gets the absolute path to a file in the called module by a relative path.
+   *
+   * Usually used for woring with module's YAML files, like
+   * `config/install/my_module.settings.yml` or `my_module.links.menu.yml`.
+   *
+   * The module root is detected by the location of the file, from which this
+   * function is called. Use $parentCallsLevel more than zero, if you call this
+   * function from an intermediate class.
+   *
+   * @param string $relativePath
+   *   A realative path to a file, from the module root directory.
+   * @param int|null $parentCallsLevel
+   *   An optional level to skip some parent calls, if you need to detect the
+   *   module from a parent function, not from which you call this function.
+   *
+   * @return string
+   *   A full path to the module file.
+   */
+  public static function getModuleFilePath(string $relativePath, int $parentCallsLevel = NULL) {
+    // We should increase a level by one, to bypass this function call.
+    $parentCallsLevel ??= 0;
+    $parentCallsLevel++;
+    $modulePath = TestHelpers::getModuleRoot($parentCallsLevel);
+    return $modulePath . '/' . $relativePath;
   }
 
   /**
