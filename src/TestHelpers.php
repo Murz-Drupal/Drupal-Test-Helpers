@@ -16,6 +16,8 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
 use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\TypedData\TypedDataInterface;
+use Drupal\test_helpers\lib\MockedFunctionCalls;
+use Drupal\test_helpers\lib\MockedFunctionStorage;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
@@ -1517,6 +1519,114 @@ class TestHelpers {
         $index--;
       }
       return $index > 0 ? implode(DIRECTORY_SEPARATOR, array_reverse(array_slice($partsReversed, $index))) : NULL;
+    }
+  }
+
+  /**
+   * Gets the static storage for a mocked PHP function.
+   *
+   * @param string $functionPath
+   *   A full path to a function, like \Drupal\my_module\MyFeature\fopen.
+   *   Or a special value '__ALL__' to get all defined storages.
+   *
+   * @internal
+   *   This function is a helper function for the mockPhpFunction().
+   *
+   * @return \Drupal\test_helpers\lib\MockedFunctionStorage|array
+   *   A class with the function storage, or an array with storages if the
+   *   $functionPath == '__ALL__'.
+   */
+  public static function mockPhpFunctionStorage(string $functionPath) {
+    static $storages;
+    if ($functionPath == '__ALL__') {
+      return $storages;
+    }
+    if (!isset($storages[$functionPath])) {
+      $storage = new MockedFunctionStorage();
+      $storages[$functionPath] = $storage;
+    }
+    $storageReference = $storages[$functionPath];
+    return $storageReference;
+  }
+
+  /**
+   * Sets a mock for a PHP build-in function for the namespace of a class.
+   *
+   * Warning! The function will be mocked for all classes in the passed class
+   * namespace, and will stay for all other test function in the file. So,
+   * always use TestHelpers::unmockPhpFunction() at the end of each test.
+   *
+   * @param string $name
+   *   The function name.
+   * @param string $class
+   *   The full class name (FQCN) to get the namespace.
+   * @param callable|null $callback
+   *   A callback function to call, or NULL if no callback is needed.
+   *
+   * @return \Drupal\test_helpers\lib\MockedFunctionCalls
+   *   A MockedFunctionCalls object, containing list of all function calls.
+   */
+  public static function mockPhpFunction(string $name, string $class, callable $callback = NULL): MockedFunctionCalls {
+    $namespace = implode("\\", array_slice(explode("\\", ltrim($class, '\\')), 0, -1));
+    $functionPath = $namespace . '\\' . $name;
+    $storage = self::mockPhpFunctionStorage($functionPath);
+    $storage->isUnmocked = FALSE;
+    $storage->callback = $callback;
+    $storage->calls = new MockedFunctionCalls();
+
+    // If the mocked function is not defined yet, evaulating the dynamic
+    // definition of it.
+    if (!function_exists($functionPath)) {
+      $code = <<<EOT
+namespace $namespace;
+
+use Drupal\\test_helpers\TestHelpers;
+
+function $name() {
+  \$storage = TestHelpers::mockPhpFunctionStorage('$functionPath');
+  \$args = func_get_args();
+  if (\$storage->isUnmocked == TRUE) {
+    return \\$name(...\$args);
+  }
+  \$storage->calls[] = \$args;
+  if (isset(\$storage->callback)) {
+    \$callback = \$storage->callback;
+    return \$callback(...\$args);
+  }
+}
+EOT;
+      // To suppress `The use of function eval() is discouraged` warning.
+      // @codingStandardsIgnoreStart
+      eval($code);
+      // @codingStandardsIgnoreEnd
+    }
+    return $storage->calls;
+  }
+
+  /**
+   * Unmocks the previously mocked PHP build-in function in a namespace.
+   *
+   * @param string $name
+   *   The function name.
+   * @param string $class
+   *   The full class name (FQCN) to get the namespace.
+   */
+  public static function unmockPhpFunction(string $name, string $class) {
+    $namespace = implode("\\", array_slice(explode("\\", ltrim($class, '\\')), 0, -1));
+    $functionPath = $namespace . '\\' . $name;
+    $storage = self::mockPhpFunctionStorage($functionPath);
+    $storage->isUnmocked = TRUE;
+    $storage->calls = new MockedFunctionCalls();
+  }
+
+  /**
+   * Unmocks all functions, that was mocked by mockPhpFunction().
+   */
+  public static function unmockAllPhpFunctions() {
+    $storage = self::mockPhpFunctionStorage('__ALL__');
+    foreach ($storage as $item) {
+      $item->isUnmocked = TRUE;
+      $item->calls = new MockedFunctionCalls();
     }
   }
 
