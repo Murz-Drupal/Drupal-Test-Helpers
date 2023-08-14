@@ -11,20 +11,7 @@ use PHPUnit\Framework\MockObject\MockObject;
  * A singleton class to provide UnitTestCase private functions as public.
  */
 class UnitTestCaseWrapper extends UnitTestCase {
-  use SingletonTrait {
-    getInstance as _getInstance;
-  }
-
-  /**
-   * Gets the instance via lazy initialization (created on first usage).
-   */
-  public static function getInstance(): UnitTestCaseWrapper {
-    if (!self::$instance) {
-      self::$instance = new self();
-    }
-
-    return self::$instance;
-  }
+  use SingletonTrait;
 
   /**
    * {@inheritdoc}
