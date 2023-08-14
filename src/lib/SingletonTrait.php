@@ -10,29 +10,22 @@ trait SingletonTrait {
   /**
    * The class instance.
    *
-   * @var object
+   * @var static
    */
   private static $instance = NULL;
 
   /**
    * Gets the instance via lazy initialization (created on first usage).
+   *
+   * @return static
    */
-  public static function getInstance(): object {
+  public static function getInstance() {
     if (!self::$instance) {
-      self::$instance = new self();
+      $c = get_called_class();
+      self::$instance = new $c(...func_get_args());
     }
 
     return self::$instance;
-  }
-
-  /**
-   * The private constructor to disable creating new instances.
-   *
-   * Is not allowed to call from outside to prevent from creating multiple
-   * instances, to use the singleton, you have to obtain the instance from
-   * Singleton::getInstance() instead.
-   */
-  private function __construct() {
   }
 
   /**
