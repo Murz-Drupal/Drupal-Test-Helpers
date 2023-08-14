@@ -4,9 +4,9 @@ namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\node\Entity\Node;
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 use Drupal\user\Entity\User;
 
 /**

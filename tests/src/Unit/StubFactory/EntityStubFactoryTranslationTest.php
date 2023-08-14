@@ -3,8 +3,8 @@
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
 use Drupal\node\Entity\Node;
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests LanguageManagerStub class.

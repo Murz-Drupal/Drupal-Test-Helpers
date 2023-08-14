@@ -5,8 +5,8 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests Query helper functions.

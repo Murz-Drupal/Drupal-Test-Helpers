@@ -2,8 +2,8 @@
 
 namespace Drupal\Tests\test_helpers_example\Unit;
 
-use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\Tests\UnitTestCase;
 

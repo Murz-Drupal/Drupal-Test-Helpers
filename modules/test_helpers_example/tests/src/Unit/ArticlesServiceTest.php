@@ -5,8 +5,8 @@ namespace Drupal\Tests\test_helpers_example\Unit;
 use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 use Drupal\user\Entity\User;
 
 /**

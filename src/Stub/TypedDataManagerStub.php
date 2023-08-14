@@ -3,12 +3,12 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\TypedData\Plugin\DataType\ItemList;
 use Drupal\Core\TypedData\TypedDataManager;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
