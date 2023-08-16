@@ -1583,6 +1583,9 @@ class TestHelpers {
    * namespace, and will stay for all other test function in the file. So,
    * always use TestHelpers::unmockPhpFunction() at the end of each test.
    *
+   * For your tests you call it in tearDownAfterClass() to always revert all
+   * mocks after finishing the current unit test, to not affect next tests.
+   *
    * @param string $name
    *   The function name.
    * @param string $class
