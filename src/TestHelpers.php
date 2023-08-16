@@ -1145,7 +1145,7 @@ class TestHelpers {
       $propertyName = (is_object($fieldItem) && method_exists($fieldItem, 'mainPropertyName')) ? $fieldItem->mainPropertyName() : 'value';
     }
     $value = (is_object($field) && method_exists($field, 'getValue')) ? $field->getValue() : NULL;
-    switch ($condition['operator']) {
+    switch (is_string($condition['operator']) ? strtoupper($condition['operator']) : $condition['operator']) {
       case 'IN':
         if ($value == NULL && !empty($condition['value'])) {
           return FALSE;

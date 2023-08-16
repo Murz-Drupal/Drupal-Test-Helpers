@@ -3,8 +3,8 @@
 namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\node\Entity\Node;
-use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests EntityQueryServiceStubTest class.
@@ -132,7 +132,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
       ->execute());
 
     $this->assertSame(self::genId([1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
-      ->condition('title', ['Node 2', 'Node 1'], 'IN')
+      ->condition('title', ['Node 2', 'Node 1'], 'In')
       ->execute());
 
     $this->assertSame(self::genId([100, 101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
