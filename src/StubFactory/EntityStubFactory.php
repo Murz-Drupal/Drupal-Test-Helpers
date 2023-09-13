@@ -95,9 +95,12 @@ class EntityStubFactory {
     $entityTypeId = $storage->getEntityTypeId();
     $bundleKey = $entityTypeDefinition->getKey('bundle');
 
-    if ($bundleKey && ($values[$bundleKey] ?? NULL)) {
+    if (
+      $bundleKey
+      && isset($values[$bundleKey])
+      && $bundleEntityType = $entityTypeDefinition->getBundleEntityType()
+    ) {
       $bundle = self::getFieldPlainValue($values[$bundleKey]);
-      $bundleEntityType = $entityTypeDefinition->getBundleEntityType();
       $bundleStorage = $entityTypeManager->getStorage($bundleEntityType);
       if (!$bundleEntity = $bundleStorage->load($bundle)) {
         $idKey = $bundleStorage->getEntityType()->getKey('id');

@@ -2,11 +2,11 @@
 
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
-use Drupal\Core\Entity\EntityBundleListener;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\FieldStorageConfigStorage;
 use Drupal\media\Entity\Media;
 use Drupal\media\Entity\MediaType;
+use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Term;
@@ -143,25 +143,34 @@ class EntityStubFactoryTest extends UnitTestCase {
   }
 
   /**
-   * Tests config entities.
+   * Tests MenuLinkContent entities.
    */
-  public function testConfigEntities() {
-    TestHelpers::service('entity_bundle.listener', $this->createMock(EntityBundleListener::class));
-
-    $nodeType1 = TestHelpers::createEntity(NodeType::class, [
-      'type' => 'article',
-      'name' => 'Article',
+  public function testMenuLinkContentEntities() {
+    TestHelpers::service('plugin.manager.menu.link');
+    $e1 = TestHelpers::createEntity('menu_link_content', [
+      'title' => 'Menu Item 1',
+      'bundle' => 'bundle1',
+      'menu_name' => 'menu1',
+      'link' => [
+        'uri' => 'route:<nolink>',
+      ],
     ]);
-    $nodeType1->save();
-    $nodeType2 = TestHelpers::saveEntity(NodeType::class, [
-      'type' => 'page',
-      'name' => 'Basic page',
+    $e1->save();
+    $e2 = TestHelpers::saveEntity(MenuLinkContent::class, [
+      'title' => 'Menu Item 2',
+      'menu_name' => 'menu2',
+      'link' => [
+        'title' => 'External link',
+        'uri' => 'http://example.com/page1',
+      ],
     ]);
-    $storage = \Drupal::service('entity_type.manager')->getStorage('node_type');
-    $nodeType1Loaded = $storage->load('article');
-    $this->assertEquals($nodeType1->id(), $nodeType1Loaded->id());
-    $nodeType2Loaded = $storage->load('page');
-    $this->assertEquals($nodeType2->get('name'), $nodeType2Loaded->get('name'));
+    $storage = \Drupal::service('entity_type.manager')->getStorage('menu_link_content');
+    $entitiesIds = $storage->getQuery()->execute();
+    $this->assertEquals([1 => '1', 2 => '2'], $entitiesIds);
+    $entities = $storage->loadMultiple();
+    $this->assertCount(2, $entities);
+    $this->assertEquals($e1->title->value, $entities[1]->title->value);
+    $this->assertEquals($e2->link->uri, $entities[2]->link->uri);
   }
 
   /**
