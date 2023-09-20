@@ -407,13 +407,16 @@ class TestHelpers {
     else {
       throw new \Error('The first argument should be a path to a YAML file, or array with data.');
     }
-    $classArguments = [];
-    foreach (($serviceInfo['arguments'] ?? []) as $argument) {
-      if (substr($argument ?? '', 0, 1) == '@') {
-        $classArguments[] = self::service(substr($argument, 1));
+    $classArguments = self::getServiceClassArguments($serviceInfo);
+    if ($serviceInfo['parent'] ?? NULL) {
+      if ($parentServiceInfo = self::getServiceInfoFromYaml($serviceInfo['parent'], 'core/core.services.yml')) {
+        if ($parentClassArguments = self::getServiceClassArguments($parentServiceInfo)) {
+          $classArguments = [...$parentClassArguments, ...$classArguments];
+        }
       }
       else {
-        $classArguments[] = $argument;
+        // @todo handle parents that aren't defined in core.services.yml.
+        throw new \Error("Could not find {$serviceInfo['parent']} in core/services.yml");
       }
     }
     if ($mockMethods) {
@@ -430,6 +433,28 @@ class TestHelpers {
       $classInstance->setContainer(self::getContainer());
     }
     return $classInstance;
+  }
+
+  /**
+   * Gets the arguments for the provided service info.
+   *
+   * @param array $serviceInfo
+   *   The service info array.
+   *
+   * @return array
+   *   Arguments.
+   */
+  private static function getServiceClassArguments(array $serviceInfo): array {
+    $classArguments = [];
+    foreach (($serviceInfo['arguments'] ?? []) as $argument) {
+      if (substr($argument ?? '', 0, 1) == '@') {
+        $classArguments[] = self::service(substr($argument, 1));
+      }
+      else {
+        $classArguments[] = $argument;
+      }
+    }
+    return $classArguments;
   }
 
   /**
@@ -589,7 +614,7 @@ class TestHelpers {
     }
     elseif (is_string($class)) {
       if ($initService) {
-        $service = self::initService($class);
+        $service = self::initService($class, NULL, $mockableMethods);
       }
       else {
         $service = self::createMock($class);
@@ -1764,7 +1789,7 @@ EOT;
    */
   private static function getServiceInfoFromYaml(string $serviceName, string $servicesYamlFile): array {
     $services = self::parseYamlFile((str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile)['services'];
-    return $services[$serviceName];
+    return $services[$serviceName] ?? NULL;
   }
 
   /**

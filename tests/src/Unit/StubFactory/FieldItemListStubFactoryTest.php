@@ -62,9 +62,13 @@ class FieldItemListStubFactoryTest extends UnitTestCase {
     $this->assertEquals([['last_comment_name' => 'Bob']], $field->getValue());
 
     $definition = FieldItemListStubFactory::createFieldItemDefinitionStub(MapItem::class);
+    $this->assertFalse($definition->isBaseField());
     $field = TestHelpers::createFieldStub([], $definition);
     $this->assertEquals('field_item:map', $field->getItemDefinition()->getDataType());
     $this->assertEquals([], $field->getValue());
+
+    $definition2 = FieldItemListStubFactory::createFieldItemDefinitionStub(MapItem::class, NULL, TRUE);
+    $this->assertTrue($definition2->isBaseField());
 
     $field = TestHelpers::createFieldStub([], 'map');
     $this->assertEquals('field_item:map', $field->getItemDefinition()->getDataType());

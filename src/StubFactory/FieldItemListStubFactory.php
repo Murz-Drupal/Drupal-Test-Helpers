@@ -41,7 +41,8 @@ class FieldItemListStubFactory {
     }
     $definition = TestHelpers::getPluginDefinition($class, 'Field');
     // @todo Rework when https://www.drupal.org/node/2280639 lands.
-    $field_definition = FieldStorageDefinition::create($definition['id']);
+    $definitionFactory = $isBaseField ? BaseFieldDefinition::class : FieldStorageDefinition::class;
+    $field_definition = $definitionFactory::create($definition['id']);
     $field_definition->getItemDefinition()->setClass($class);
     if ($settings) {
       $field_definition->setSettings($settings);
