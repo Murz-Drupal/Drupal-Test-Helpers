@@ -231,7 +231,7 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::initEntityTypeManagerStubs
+   * @covers ::getServiceClassArguments
    *
    * @todo When https://www.drupal.org/project/test_helpers/issues/3388492
    * lands - rework via initService()
