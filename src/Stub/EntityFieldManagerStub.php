@@ -2,9 +2,7 @@
 
 namespace Drupal\test_helpers\Stub;
 
-use Drupal\Core\Entity\EntityDisplayRepository;
 use Drupal\Core\Entity\EntityFieldManager;
-use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
 use Drupal\Core\Field\Entity\BaseFieldOverride;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\test_helpers\TestHelpers;
@@ -13,18 +11,6 @@ use Drupal\test_helpers\TestHelpers;
  * A stub of the Drupal's default EntityFieldManager class.
  */
 class EntityFieldManagerStub extends EntityFieldManager {
-
-  /**
-   * Constructs a new EntityFieldManagerStub.
-   */
-  public function __construct() {
-    $this->languageManager = \Drupal::service('language_manager');
-    $this->entityTypeManager = \Drupal::service('entity_type.manager');
-    $this->moduleHandler = \Drupal::service('module_handler');
-    $this->entityLastInstalledSchemaRepository = TestHelpers::createMock(EntityLastInstalledSchemaRepository::class);
-    $this->entityDisplayRepository = TestHelpers::createMock(EntityDisplayRepository::class);
-    $this->typedDataManager = \Drupal::service('typed_data_manager');
-  }
 
   /**
    * Sets base field definitions.

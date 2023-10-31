@@ -4,16 +4,18 @@ namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
+use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\Entity\EntityBundleListenerStub;
+use Drupal\Core\DrupalKernel;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
+use Drupal\Core\Language\Language;
 use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\lib\MockedFunctionCalls;
@@ -21,18 +23,19 @@ use Drupal\test_helpers\lib\MockedFunctionStorage;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
+use Drupal\test_helpers\Stub\DatabaseStorageStub;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\test_helpers\Stub\DrupalKernelStub;
+use Drupal\test_helpers\Stub\EntityBundleListenerStub;
 use Drupal\test_helpers\Stub\EntityFieldManagerStub;
-use Drupal\test_helpers\Stub\EntityRepositoryStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
-use Drupal\test_helpers\Stub\MessengerStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
-use Drupal\test_helpers\Stub\TokenStub;
+use Drupal\test_helpers\Stub\RendererStub;
+use Drupal\test_helpers\Stub\RequestStackStub;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
 use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
@@ -81,6 +84,9 @@ class TestHelpers {
     'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
     'cache_contexts_manager' => CacheContextsManagerStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
+    'config.storage.active' => DatabaseStorageStub::class,
+    'config.storage.snapshot' => DatabaseStorageStub::class,
+    'cache.config' => MemoryBackend::class,
     'config.factory' => ConfigFactoryStub::class,
     'database' => DatabaseStub::class,
     'date.formatter' => DateFormatterStub::class,
@@ -88,15 +94,14 @@ class TestHelpers {
     'entity_field.manager' => EntityFieldManagerStub::class,
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
-    'entity.repository' => EntityRepositoryStub::class,
     'kernel' => DrupalKernelStub::class,
     'language.default' => LanguageDefaultStub::class,
     'language_manager' => ConfigurableLanguageManagerStub::class,
     'logger.factory' => LoggerChannelFactoryStub::class,
-    'messenger' => MessengerStub::class,
     'module_handler' => ModuleHandlerStub::class,
+    'request_stack' => RequestStackStub::class,
+    'renderer' => RendererStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
-    'token' => TokenStub::class,
     'typed_data_manager' => TypedDataManagerStub::class,
   ];
 
@@ -105,11 +110,20 @@ class TestHelpers {
    */
   public const SERVICES_CORE_INIT = [
     'cache.backend.memory',
+    'cache.config',
     'cache_tags.invalidator',
+    'config.storage',
     'datetime.time',
+    'database.replica_kill_switch',
     'entity.memory_cache',
+    'entity.repository',
+    'logger.factory',
+    'messenger',
     'request_stack',
+    'session.flash_bag',
+    'settings',
     'transliteration',
+    'token',
     'uuid',
   ];
 
@@ -273,10 +287,21 @@ class TestHelpers {
   public static function getDrupalRoot(): string {
     static $path;
     if (!$path) {
-      $rc = new \ReflectionClass(\Drupal::class);
-      $drupalClassAbsolutePath = $rc->getFileName();
-      $drupalClassRelativePath = 'core/lib/Drupal.php';
-      $path = substr($drupalClassAbsolutePath, 0, -strlen($drupalClassRelativePath) - 1);
+      if (class_exists('\Drupal')) {
+        $rc = new \ReflectionClass(\Drupal::class);
+        $drupalClassAbsolutePath = $rc->getFileName();
+        $drupalClassRelativePath = 'core/lib/Drupal.php';
+        $path = substr($drupalClassAbsolutePath, 0, -strlen($drupalClassRelativePath) - 1);
+      }
+      else {
+        $path = __DIR__;
+        while (!file_exists($path . '/core/lib/Drupal.php')) {
+          $path = dirname($path);
+          if ($path == '') {
+            throw new \Exception('Drupal root directory cannot be found.');
+          }
+        }
+      }
     }
     return $path;
   }
@@ -392,11 +417,18 @@ class TestHelpers {
    *   The name of the service.
    * @param array|null $mockMethods
    *   A list of method to mock when creating the instance.
+   * @param string|null $overrideClass
+   *   A class to override the default service class.
    *
    * @return object
    *   The initialized class instance.
    */
-  public static function initServiceFromYaml($servicesYamlFileOrData, string $name, array $mockMethods = NULL): object {
+  public static function initServiceFromYaml(
+    $servicesYamlFileOrData,
+    string $name,
+    array $mockMethods = NULL,
+    string $overrideClass = NULL
+  ): object {
     if (is_string($servicesYamlFileOrData)) {
       $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFileOrData);
       $serviceInfo['class'] ??= $name;
@@ -407,48 +439,54 @@ class TestHelpers {
     else {
       throw new \Error('The first argument should be a path to a YAML file, or array with data.');
     }
-    $classArguments = self::getServiceClassArguments($serviceInfo);
-    if ($serviceInfo['parent'] ?? NULL) {
-      if ($parentServiceInfo = self::getServiceInfoFromYaml($serviceInfo['parent'], 'core/core.services.yml')) {
-        if ($parentClassArguments = self::getServiceClassArguments($parentServiceInfo)) {
-          $classArguments = [...$parentClassArguments, ...$classArguments];
-        }
-      }
-      else {
-        // @todo handle parents that aren't defined in core.services.yml.
-        throw new \Error("Could not find {$serviceInfo['parent']} in core/services.yml");
-      }
-    }
-    if ($mockMethods) {
-      $classInstance = TestHelpers::createPartialMockWithConstructor(
-        $serviceInfo['class'],
-        $mockMethods,
-        $classArguments,
-      );
-    }
-    else {
-      $classInstance = new $serviceInfo['class'](...$classArguments);
-    }
-    if (method_exists($classInstance, 'setContainer')) {
-      $classInstance->setContainer(self::getContainer());
-    }
-    return $classInstance;
+    return self::initServiceFromInfo($serviceInfo, $mockMethods);
   }
 
   /**
-   * Gets the arguments for the provided service info.
+   * Replaces parameters and services to real values in service arguments.
    *
-   * @param array $serviceInfo
-   *   The service info array.
+   * @param array $arguments
+   *   A list of raw arguments.
    *
    * @return array
-   *   Arguments.
+   *   A list of resolved arguments.
    */
-  private static function getServiceClassArguments(array $serviceInfo): array {
+  private static function resolveServiceArguments(array $arguments = []): array {
+    $container = self::getContainer();
+    if (!$container->hasParameter('app.root')) {
+      self::loadParametersFromYamlFile(self::getDrupalRoot() . '/' . 'core/core.services.yml');
+    }
     $classArguments = [];
-    foreach (($serviceInfo['arguments'] ?? []) as $argument) {
-      if (substr($argument ?? '', 0, 1) == '@') {
+    foreach ($arguments as $argument) {
+      $firstCharacter = substr($argument ?? '', 0, 1);
+      if ($firstCharacter == '@') {
         $classArguments[] = self::service(substr($argument, 1));
+      }
+      elseif ($firstCharacter == '%') {
+        $key = trim($argument, '%');
+        if ($container->hasParameter($key)) {
+          $resolved = $container->getParameter($key);
+        }
+        else {
+          switch ($key) {
+            case 'language.default_values':
+              $resolved = Language::$defaultValues;
+              $resolved['label'] = $resolved['name'];
+              break;
+
+            case 'cache_contexts':
+              $resolved = [];
+              break;
+
+            case 'container.modules':
+              $resolved = [];
+              break;
+
+            default:
+              throw new \Error("Container parameter '$key' is missing.\nAdd it using TestHelpers::getContainer()->setParameter('$key', \$value');");
+          }
+        }
+        $classArguments[] = $resolved;
       }
       else {
         $classArguments[] = $argument;
@@ -472,6 +510,8 @@ class TestHelpers {
    *   Acts only if the class name is passed as a first argument.
    * @param array|null $mockMethods
    *   A list of method to mock when creating the instance.
+   * @param string|null $overrideClass
+   *   A class to override the default service class.
    *
    * @return object
    *   The initialized class instance.
@@ -479,13 +519,15 @@ class TestHelpers {
   public static function initService(
     string $serviceNameOrClass,
     string $serviceNameToCheck = NULL,
-    array $mockMethods = NULL
+    array $mockMethods = NULL,
+    string $overrideClass = NULL
   ): object {
+    // If we have just a service name, not a class.
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
       $serviceName = $serviceNameOrClass;
       self::requireCoreFeaturesMap();
       if (isset(TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName])) {
-        return self::initServiceFromYaml(TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName], $serviceName, $mockMethods);
+        return self::initServiceFromYaml(TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName], $serviceName, $mockMethods, $overrideClass);
       }
       else {
         // We have a service id name, use the current module as the module name.
@@ -493,21 +535,22 @@ class TestHelpers {
         $moduleName = self::getModuleName($callerInfo['class']);
         $moduleRoot = self::getModuleRoot($callerInfo['file'], $moduleName);
         $servicesFile = "$moduleRoot/$moduleName.services.yml";
+        return self::initServiceFromYaml($servicesFile, $serviceName, $mockMethods, $overrideClass);
       }
     }
     else {
       $serviceClass = ltrim($serviceNameOrClass, '\\');
       $serviceInfo = self::getServiceInfoFromClass($serviceClass);
-      $serviceName = $serviceInfo['#name'];
-      $servicesFile = $serviceInfo['#file'];
-      if (!isset($serviceName)) {
+      if (!$serviceInfo) {
         throw new \Exception("Can't find the service name by class $serviceClass.");
       }
+      $serviceName = $serviceInfo['#name'];
+      $servicesFile = $serviceInfo['#file'];
       if ($serviceNameToCheck && $serviceNameToCheck !== $serviceName) {
         throw new \Exception("The service name '$serviceName' differs from required name '$serviceNameToCheck'");
       }
+      return self::initServiceFromYaml($servicesFile, $serviceName, $mockMethods, $overrideClass);
     }
-    return self::initServiceFromYaml($servicesFile, $serviceName, $mockMethods);
   }
 
   /**
@@ -532,17 +575,15 @@ class TestHelpers {
     catch (\Exception $e) {
       return NULL;
     }
-    foreach ($servicesFileData['services'] as $name => $info) {
-      if (str_starts_with($info['class'] ?? '', '\\')) {
-        // Remove trailing slashes if present.
-        $info['class'] = ltrim($info['class'], '\\');
+    foreach ($servicesFileData['services'] ?? [] as $name => $info) {
+      if (isset($info['class'])) {
+        $checkingClass = ltrim($info['class'], '\\');
       }
-      if (str_starts_with($name ?? '', '\\')) {
-        // Remove trailing slashes if present.
-        $info['class'] = ltrim($name, '\\');
+      else {
+        $checkingClass = ltrim($name, '\\');
       }
-      if (($info['class'] ?? $name ?? NULL) == $serviceClass) {
-        $info['class'] ??= $name;
+      if ($checkingClass == $serviceClass) {
+        $info['class'] = $checkingClass;
         $info['#name'] = $name;
         $info['#file'] = $servicesFile;
         return $info;
@@ -565,6 +606,7 @@ class TestHelpers {
       $container = new ContainerBuilder();
       // Setting default parameters, required for some Core services.
       $container->setParameter('cache_bins', []);
+      $container->set('kernel', new DrupalKernelStub());
       \Drupal::setContainer($container);
     }
     return \Drupal::getContainer();
@@ -584,7 +626,7 @@ class TestHelpers {
    *   Control overriding the service:
    *   - FALSE on NULL: overrides only if the class names are different.
    *   - TRUE: always overrides the class by a new instance.
-   * @param array $mockableMethods
+   * @param array $mockMethods
    *   The list of exist methods to make mokable.
    * @param array $addMockableMethods
    *   The list of new methods to make them mokable.
@@ -598,59 +640,68 @@ class TestHelpers {
     string $serviceName,
     $class = NULL,
     bool $forceOverride = NULL,
-    array $mockableMethods = NULL,
+    array $mockMethods = NULL,
     array $addMockableMethods = NULL,
     bool $initService = NULL
   ): object {
+    $addMockableMethods ??= [];
     $container = self::getContainer();
     if ($container->has($serviceName) && $class === NULL && !$forceOverride) {
       return $container->get($serviceName);
     }
-    $service = NULL;
-    if ($class === NULL) {
-      if ($initService !== FALSE) {
-        $service = self::getServiceStubClass($serviceName, $mockableMethods, $addMockableMethods);
+
+    // Only use stubs if the class is not explicitly set.
+    if ($class == NULL) {
+      $serviceStub = self::SERVICES_CUSTOM_STUBS[$serviceName] ?? NULL;
+    }
+    else {
+      $serviceStub = NULL;
+    }
+
+    if ($initService === NULL) {
+      if (
+        in_array($serviceName, self::SERVICES_CORE_INIT)
+        || $serviceStub
+      ) {
+        $initService = TRUE;
       }
+      else {
+        $initService = FALSE;
+      }
+    }
+
+    if (is_object($class)) {
+      $service = $class;
     }
     elseif (is_string($class)) {
       if ($initService) {
-        $service = self::initService($class, NULL, $mockableMethods);
+        $service = self::initService($class, NULL, $mockMethods);
       }
       else {
+        // @todo Add $addMockableMethods.
         $service = self::createMock($class);
       }
     }
-    elseif (is_object($class)) {
-      $service = $class;
-    }
-    else {
-      throw new \Exception("Class should be an object, string as path to class, or NULL.");
-    }
+    elseif ($class === NULL) {
+      $serviceInfo = self::getServiceInfo($serviceName);
 
-    // If we still have not initialized service, use core services list.
-    if ($service === NULL) {
-      $coreServiceClass = self::getServiceClassByName($serviceName);
-      if (
-        $initService
-        // In case when we need to return a mock of an auto initalized service.
-        || ($initService !== FALSE && in_array($serviceName, self::SERVICES_CORE_INIT))
-      ) {
-        if (self::getModuleName($coreServiceClass)) {
-          $service = self::initService($coreServiceClass, NULL, $mockableMethods);
+      if ($initService) {
+        if (is_array($serviceStub)) {
+          $service = call_user_func_array($serviceStub, []);
         }
         else {
-          // In case of Symfony service, it has no Drupal dependencies.
-          if (empty($mockableMethods) && empty($addMockableMethods)) {
-            $service = new $coreServiceClass();
+          if (isset($serviceStub)) {
+            $serviceInfo['class'] = $serviceStub;
           }
-          else {
-            $service = self::initService($coreServiceClass, NULL, $mockableMethods);
-          }
+          $service = self::initServiceFromInfo($serviceInfo, $mockMethods);
         }
       }
       else {
-        $service = self::createMock($coreServiceClass);
+        $service = self::createMock($serviceInfo['class']);
       }
+    }
+    else {
+      throw new \Exception("Class should be an object, string as path to class, or NULL.");
     }
 
     if ($container->has($serviceName)) {
@@ -672,6 +723,47 @@ class TestHelpers {
       $container->set($serviceName, $service);
       return $service;
     }
+  }
+
+  /**
+   * Initializes a service from the services info array from YAML file.
+   *
+   * @param array $info
+   *   An array with service information, like in services YAML file.
+   * @param array $mockMethods
+   *   A list of methods to mock.
+   *
+   * @return object
+   *   The service instance.
+   */
+  private static function initServiceFromInfo(array $info, array $mockMethods = NULL) {
+    $info['arguments'] ??= [];
+    if (isset($info['arguments'])) {
+      $info['arguments'] = self::resolveServiceArguments($info['arguments']);
+    }
+    if ($mockMethods) {
+      $service = TestHelpers::createPartialMockWithConstructor(
+        $info['class'],
+        $mockMethods,
+        $info['arguments'],
+      );
+    }
+    else {
+      if (isset($info['factory'])) {
+        // @todo Add call a factory instead of initializing a stub.
+        // $service = call_user_func($info['factory'], $info['arguments']);
+        $service = new $info['class'](...$info['arguments']);
+      }
+      else {
+        $service = new $info['class'](...$info['arguments']);
+      }
+    }
+    // @todo Implement all calls.
+    // if ($instance instanceof ContainerAwareInterface) {
+    if (method_exists($service, 'setContainer')) {
+      $service->setContainer(self::getContainer());
+    }
+    return $service;
   }
 
   /**
@@ -711,36 +803,6 @@ class TestHelpers {
         self::service($key, $value);
       }
     }
-  }
-
-  /**
-   * Gets a stub instance fot a service, if no stub present - returns NULL.
-   *
-   * This function is more for internal usage, so consider to use ::service()
-   * in your code instead of this function.
-   *
-   * @param string $serviceName
-   *   The service name.
-   * @param array $mockableMethods
-   *   The list of exist methods to make mokable.
-   * @param array $addMockableMethods
-   *   The list of new methods to make them mokable.
-   *
-   * @return object
-   *   The stub for the service, or a mocked default class.
-   *
-   * @internal
-   *   This function is used mostly for the internal functionality.
-   */
-  public static function getServiceStub(string $serviceName, array $mockableMethods = NULL, array $addMockableMethods = NULL): ?object {
-    $container = TestHelpers::getContainer();
-    if ($container->has($serviceName)) {
-      return $container->get($serviceName);
-    }
-    if ($service = self::getServiceStubClass($serviceName, $mockableMethods, $addMockableMethods)) {
-      $container->set($serviceName, $service);
-    }
-    return $service;
   }
 
   /**
@@ -856,7 +918,7 @@ class TestHelpers {
    *   The initialized stub of Entity Storage.
    */
   public static function getEntityStorage(string $entityTypeNameOrClass, EntityStorageInterface $storageInstance = NULL, ?bool $forceOverride = NULL, array $storageOptions = NULL): EntityStorageInterface {
-    return self::getServiceStub('entity_type.manager')->stubGetOrCreateStorage($entityTypeNameOrClass, $storageInstance, $forceOverride, $storageOptions);
+    return self::service('entity_type.manager')->stubGetOrCreateStorage($entityTypeNameOrClass, $storageInstance, $forceOverride, $storageOptions);
   }
 
   /**
@@ -918,7 +980,7 @@ class TestHelpers {
    * Also adds them to the Drupal Container.
    */
   public static function initEntityTypeManagerStubs(): void {
-    self::getServiceStub('entity_type.manager');
+    self::service('entity_type.manager');
   }
 
   /* ************************************************************************ *
@@ -1760,36 +1822,33 @@ EOT;
   }
 
   /**
-   * Gets the class for a service, including current module implementations.
+   * Load params from YAML file to the current service container.
+   *
+   * @param string $file
+   *   A path to a YAML file.
+   * @param bool $override
+   *   A flag to override the current parameters.
    */
-  private static function getServiceStubClass(string $serviceName, array $mockableMethods = NULL, array $addMockableMethods = NULL): ?object {
-    $service = NULL;
-    if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
-      $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
-      if (is_string($serviceClass)) {
-        if (empty($mockableMethods) && empty($addMockableMethods)) {
-          $service = new $serviceClass();
-        }
-        else {
-          $service = UnitTestCaseWrapper::getInstance()->createPartialMockWithConstructor($serviceClass, $mockableMethods, [], $addMockableMethods);
-        }
-      }
-      elseif (is_array($serviceClass)) {
-        $service = call_user_func_array($serviceClass, []);
-      }
-      else {
-        throw new \Exception("Bad format of parameters for $serviceName.");
+  public static function loadParametersFromYamlFile(string $file, bool $override = TRUE): void {
+    $container = self::getContainer();
+    $content = self::parseYamlFile($file);
+    foreach ($content['parameters'] ?? [] as $key => $value) {
+      if ($override || !$container->hasParameter($key)) {
+        $container->setParameter($key, $value);
       }
     }
-    return $service;
   }
 
   /**
    * Gets a service info from a YAML file.
    */
-  private static function getServiceInfoFromYaml(string $serviceName, string $servicesYamlFile): array {
-    $services = self::parseYamlFile((str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile)['services'];
-    return $services[$serviceName] ?? NULL;
+  private static function getServiceInfoFromYaml(string $serviceName, string $servicesYamlFile, bool $skipLoadingParams = FALSE): array {
+    $filePath = (str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile;
+    $info = self::getServiceInfo($serviceName, $filePath);
+    if (!$skipLoadingParams) {
+      self::loadParametersFromYamlFile($filePath);
+    }
+    return $info;
   }
 
   /**
@@ -1809,22 +1868,55 @@ EOT;
   /**
    * Gets a service class by name, using Drupal defaults or a custom YAML file.
    */
-  private static function getServiceClassByName(string $serviceName, string $servicesYamlFile = NULL): string {
-    if ($servicesYamlFile) {
-      $services = self::parseYamlFile((str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile)['services'];
-      $serviceClass = $services[$serviceName]['class'] ?? FALSE;
+  private static function getServiceInfo(string $serviceName, string $servicesYamlFile = NULL): array {
+    if ($serviceName == 'kernel') {
+      $info = [
+        'class' => DrupalKernel::class,
+      ];
+      return $info;
+    }
+    if ($servicesYamlFile === NULL) {
+      self::requireCoreFeaturesMap();
+      if (isset(TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName])) {
+        $file = self::getDrupalRoot() . '/' . TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName];
+      }
+      // If we have a path to a Drupal class.
+      else {
+        // Trying to auto detect the location of the services file.
+        $calledModulePath = self::getModuleRoot();
+        $calledModuleName = self::getModuleName();
+        $file = "$calledModulePath/$calledModuleName.services.yml";
+      }
     }
     else {
-      if (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
-        $serviceClass = self::SERVICES_CUSTOM_STUBS[$serviceName];
+      $file = (str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile;
+    }
+    $serviceYaml = self::parseYamlFile($file);
+    if (isset($serviceYaml['services'][$serviceName])) {
+      $info = $serviceYaml['services'][$serviceName];
+    }
+    elseif (isset(self::SERVICES_CUSTOM_STUBS[$serviceName])) {
+      $info = [
+        'class' => self::SERVICES_CUSTOM_STUBS[$serviceName],
+      ];
+    }
+    else {
+      throw new \Exception("Service '$serviceName' is not found in the list of core services and in the current module file ($file).");
+    }
+    if (isset($info['parent'])) {
+      $infoParent = self::getServiceInfo($info['parent']);
+      if (!isset($info['class'])) {
+        $info['class'] = $infoParent['class'];
       }
-      self::requireCoreFeaturesMap();
-      $serviceClass = TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName]['class'] ?? FALSE;
+      if (isset($infoParent['arguments'])) {
+        $info['arguments'] =
+          [...$infoParent['arguments'], ...($info['arguments'] ?? [])];
+      }
+      if (isset($infoParent['factory'])) {
+        $info['factory'] = $infoParent['factory'];
+      }
     }
-    if (!$serviceClass) {
-      throw new \Exception("Service '$serviceName' is missing in the list.");
-    }
-    return $serviceClass;
+    return $info;
   }
 
   /**
@@ -1946,11 +2038,14 @@ EOT;
    */
   private static function parseYamlFile(string $servicesFile) {
     static $cache;
+    $cache ??= [];
     if (isset($cache[$servicesFile])) {
       return $cache[$servicesFile];
     }
-    $cache[$servicesFile] = Yaml::parseFile($servicesFile);
-    return $cache[$servicesFile];
+    if (file_exists($servicesFile)) {
+      $cache[$servicesFile] = Yaml::parseFile($servicesFile);
+    }
+    return $cache[$servicesFile] ?? NULL;
   }
 
   /**

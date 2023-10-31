@@ -12,11 +12,28 @@ use Drupal\Core\DrupalKernel;
 use Drupal\Core\Site\Settings;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Yaml\Yaml;
 
+// Works only for Core >= 8.9
+// For 8.0 - use drupal/drupal instead of drupal/recommended-project and
+// drush/drush:^8.
+// For versions less than 9.3 - use PHP < 8.1.
 // @codingStandardsIgnoreLine
 const ONELINER = '
-export DRUPAL_VERSION=9.3; rm -rf ./drupal_$DRUPAL_VERSION && composer create-project drupal/recommended-project:~$DRUPAL_VERSION.0 drupal_$DRUPAL_VERSION && cd drupal_$DRUPAL_VERSION && composer require drush/drush && composer require drupal/test_helpers:@alpha --prefer-source && ./vendor/bin/drush si --db-url=sqlite://db.sqlite -y
-./web/modules/contrib/test_helpers/scripts/generateCoreFeaturesMap.php
+export DRUPAL_VERSION=9.4
+export ISSUE_ID=3388492
+export ISSUE_BRANCH=3388492-parent-services
+rm -rf ./drupal_$DRUPAL_VERSION && composer create-project drupal/recommended-project:~$DRUPAL_VERSION.0 drupal_$DRUPAL_VERSION && \
+cd drupal_$DRUPAL_VERSION && composer require drush/drush && composer require drupal/test_helpers --prefer-source && ./vendor/bin/drush si --db-url=sqlite://db.sqlite -y && \
+cd ./web/modules/contrib/test_helpers && \
+git remote add core-features git@git.drupal.org:issue/test_helpers-$ISSUE_ID.git && \
+git fetch core-features && \
+git checkout core-features/$ISSUE_BRANCH && \
+git checkout $ISSUE_BRANCH && \
+./scripts/generateCoreFeaturesMap.php && \
+git commit -a -m "Drupal $DRUPAL_VERSION services" && \
+git push && \
+cd ../../../../..
 ';
 
 $contents = <<<EOT
@@ -47,7 +64,6 @@ DrupalKernel::createFromRequest($request, $autoloader, 'prod')->boot();
 
 \Drupal::service('request_stack')->push($request);
 
-$container = \Drupal::getContainer();
 $drupalVersionArray = explode('.', \Drupal::VERSION);
 $drupalVersionMinor = $drupalVersionArray[0] . '.' . $drupalVersionArray[1];
 
@@ -59,26 +75,35 @@ $contents .= <<<EOT
 const TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP = [
 
 EOT;
-foreach ($container->getServiceIds() as $serviceId) {
-  $service = $container->get($serviceId);
-  if (!is_object($service)) {
+
+$it = new RecursiveDirectoryIterator($drupalRoot . '/core');
+foreach (new RecursiveIteratorIterator($it) as $file) {
+  if (strpos($file, '/tests/')) {
     continue;
   }
-  $class = get_class($service);
-  $info = TestHelpers::getServiceInfoFromClass($class);
-  if (isset($info['arguments'])) {
-    $arguments = ", 'arguments' => ['" . implode("', '", $info['arguments'] ?? []) . "']";
+  if (preg_match('#\.services.yml$#', $file)) {
+    $files[] = $file->getPathName();
   }
-  else {
-    $arguments = '';
-  }
-  $contents .= "  '$serviceId' => ['class' => '\\$class'$arguments],\n";
 }
+
+foreach ($files as $file) {
+  $data = Yaml::parseFile($file);
+  $fileRelative = ltrim(str_replace($drupalRoot, '', $file), '/');
+  foreach (array_keys($data['services'] ?? []) as $service) {
+    if (strpos($service, '\\') !== FALSE) {
+      continue;
+    }
+    $contents .= <<<EOT
+  '$service' => '$fileRelative',
+
+EOT;
+  }
+}
+
 $contents .= <<<EOT
 ];
 
 EOT;
-
 
 // Generating storage map.
 $contents .= <<<EOT

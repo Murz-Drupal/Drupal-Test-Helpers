@@ -2,12 +2,10 @@
 
 namespace Drupal\test_helpers\Stub;
 
-use Drupal\Component\FileCache\FileCacheFactory;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Database\ReplicaKillSwitch;
 use Drupal\Core\DependencyInjection\ClassResolverInterface;
-use Drupal\Core\Entity\EntityLastInstalledSchemaRepository;
 use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeRepository;
@@ -34,41 +32,25 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
    * {@inheritdoc}
    */
   public function __construct(
-    \Traversable $namespaces = NULL,
-    ModuleHandlerInterface $module_handler = NULL,
-    CacheBackendInterface $cache = NULL,
-    TranslationInterface $string_translation = NULL,
-    ClassResolverInterface $class_resolver = NULL,
-    EntityLastInstalledSchemaRepositoryInterface $entity_last_installed_schema_repository = NULL
+    \Traversable $namespaces,
+    ModuleHandlerInterface $module_handler,
+    CacheBackendInterface $cache,
+    TranslationInterface $string_translation,
+    ClassResolverInterface $class_resolver,
+    EntityLastInstalledSchemaRepositoryInterface $entity_last_installed_schema_repository
   ) {
-    // Replacing missing arguments to mocks and stubs.
-    $module_handler ??= TestHelpers::service('module_handler');
-    // @todo Fill some right value!
-    FileCacheFactory::setPrefix('test_helpers');
-    $namespaces ??= new \ArrayObject([]);
-    $cache ??= TestHelpers::service('cache.static');
-    $string_translation ??= TestHelpers::service('string_translation');
-    $class_resolver ??= TestHelpers::service('class_resolver');
-    $entity_last_installed_schema_repository ??= TestHelpers::service('entity.last_installed_schema.repository');
 
-    $this->setContainer(TestHelpers::getContainer());
+    // @todo Rework this workaround.
+    $container = TestHelpers::getContainer();
+    if (!$container->has('entity_type.manager')) {
+      $container->set('entity_type.manager', $this);
+    }
 
-    // Calling original costructor with mocked services.
-    parent::__construct(
-      $namespaces,
-      $module_handler,
-      $cache,
-      $string_translation,
-      $class_resolver,
-      $entity_last_installed_schema_repository
-    );
-
-    TestHelpers::service('typed_data_manager', new TypedDataManagerStub());
+    TestHelpers::service('typed_data_manager');
+    // @todo Try to get rid of these initializations.
     TestHelpers::setServices([
-      'uuid' => NULL,
       'current_user' => NULL,
-      'entity_type.manager' => $this,
-      'entity_bundle.listener' => EntityBundleListenerStub::class,
+      'entity_bundle.listener' => NULL,
       'entity.repository' => NULL,
       'entity_type.repository' => new EntityTypeRepository($this),
       'entity_type.bundle.info' => NULL,
@@ -86,18 +68,16 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       'database.replica_kill_switch' => TestHelpers::createMock(ReplicaKillSwitch::class),
     ]);
 
-    // @todo Make a proper call of parent::__construct() instead of manual
-    // assinging all here.
-    $this->entityLastInstalledSchemaRepository = TestHelpers::createMock(EntityLastInstalledSchemaRepository::class);
-    $this->moduleHandler = TestHelpers::service('module_handler');
-    $this->stringTranslation = TestHelpers::service('string_translation');
-  }
+    // Calling original costructor with mocked services.
+    parent::__construct(
+      $namespaces,
+      $module_handler,
+      $cache,
+      $string_translation,
+      $class_resolver,
+      $entity_last_installed_schema_repository
+    );
 
-  /**
-   * {@inheritdoc}
-   */
-  public function findDefinitions() {
-    return [];
   }
 
   /**

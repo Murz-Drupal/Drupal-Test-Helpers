@@ -20,18 +20,12 @@ class DateFormatterStub extends DateFormatter {
    * {@inheritdoc}
    */
   public function __construct(
-    EntityTypeManagerInterface $entity_type_manager = NULL,
-    LanguageManagerInterface $language_manager = NULL,
-    TranslationInterface $translation = NULL,
-    ConfigFactoryInterface $config_factory = NULL,
-    RequestStack $request_stack = NULL
+    EntityTypeManagerInterface $entity_type_manager,
+    LanguageManagerInterface $language_manager,
+    TranslationInterface $translation,
+    ConfigFactoryInterface $config_factory,
+    RequestStack $request_stack
   ) {
-    $entity_type_manager ??= TestHelpers::service('entity_type.manager');
-    $language_manager ??= TestHelpers::service('language_manager');
-    $translation ??= TestHelpers::service('string_translation');
-    $config_factory ??= TestHelpers::service('config.factory');
-    $request_stack ??= TestHelpers::service('request_stack');
-
     // Creating default fallback format.
     $entity_type_manager->stubGetOrCreateStorage(DateFormat::class);
     $this->stubSetFormat('fallback', 'Fallback date format', 'D, m/d/Y - H:i', TRUE);

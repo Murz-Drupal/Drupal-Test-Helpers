@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
-use Drupal\test_helpers\Stub\DateFormatterStub;
+use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -18,7 +18,7 @@ class DateFormatterStubTest extends UnitTestCase {
    * @covers ::stubSetFormat
    */
   public function testStubSetFormat() {
-    $dateFormatterStub = new DateFormatterStub();
+    $dateFormatterStub = TestHelpers::service('date.formatter');
     $this->assertEquals('Sat, 01/01/2000 - 23:00', $dateFormatterStub->format(946728000));
     $dateFormatterStub->stubSetFormat('medium', 'Medium', 'c');
     $this->assertEquals('2000-01-01T23:00:00+11:00', $dateFormatterStub->format(946728000, 'medium'));

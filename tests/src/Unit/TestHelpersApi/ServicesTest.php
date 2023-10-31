@@ -112,7 +112,7 @@ class ServicesTest extends UnitTestCase {
 
     TestHelpers::service('string_translation');
 
-    $renderer = TestHelpers::service('renderer');
+    $renderer = TestHelpers::service('renderer', NULL, NULL, NULL, NULL, FALSE);
 
     // The classical approach.
     $renderer->method('render')->willReturnCallback(function (array &$element) {

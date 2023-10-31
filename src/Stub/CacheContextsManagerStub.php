@@ -3,7 +3,6 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Cache\Context\CacheContextsManager;
-use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -15,6 +14,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class CacheContextsManagerStub extends CacheContextsManager {
 
   /**
+   * A flag to accept all contexts by default, if no contexts is set manually.
+   *
+   * @var bool
+   */
+  protected $stubAllowAnyContexts;
+
+  /**
    * Constructs a CacheContextsManager object.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
@@ -22,10 +28,9 @@ class CacheContextsManagerStub extends CacheContextsManager {
    * @param string[] $contexts
    *   An array of the available cache context IDs, NULL to accept all contexts.
    */
-  public function __construct(ContainerInterface $container = NULL, array $contexts = NULL) {
-    $container ??= TestHelpers::getContainer();
+  public function __construct(ContainerInterface $container, array $contexts = []) {
     parent::__construct($container, $contexts ?? []);
-    $this->contexts = $contexts ?? TRUE;
+    $this->stubAllowAnyContexts = TRUE;
   }
 
   /**
@@ -35,9 +40,7 @@ class CacheContextsManagerStub extends CacheContextsManager {
    *   The list of valid contexts.
    */
   public function stubAddContexts($contexts) {
-    if ($this->contexts === TRUE) {
-      $this->contexts = [];
-    }
+    $this->stubAllowAnyContexts = FALSE;
     if (is_string($contexts)) {
       $contexts = [$contexts];
     }
@@ -52,6 +55,7 @@ class CacheContextsManagerStub extends CacheContextsManager {
    *   The list of valid contexts.
    */
   public function stubSetContexts(array $contexts) {
+    $this->stubAllowAnyContexts = FALSE;
     $this->contexts = $contexts;
     unset($this->validContextTokens);
   }
@@ -60,7 +64,7 @@ class CacheContextsManagerStub extends CacheContextsManager {
    * {@inheritdoc}
    */
   public function assertValidTokens($context_tokens) {
-    if ($this->contexts === TRUE) {
+    if ($this->stubAllowAnyContexts === TRUE) {
       return TRUE;
     }
     return parent::assertValidTokens($context_tokens);

@@ -20,7 +20,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    */
   public function testMatchingConditions() {
     /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface $entityTypeManager */
-    $entityTypeManager = TestHelpers::getServiceStub('entity_type.manager');
+    $entityTypeManager = TestHelpers::service('entity_type.manager');
     $entityTypeManager->stubGetOrCreateStorage(Node::class);
 
     // Creating a custom function to generate the query result.

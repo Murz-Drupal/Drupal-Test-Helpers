@@ -2,11 +2,8 @@
 
 namespace Drupal\test_helpers\Stub;
 
-use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\Core\Config\ConfigFactory;
-use Drupal\Core\Config\MemoryStorage;
 use Drupal\Core\Config\StorageInterface;
-use Drupal\Core\Config\TypedConfigManager;
 use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\test_helpers\lib\ConfigFactoryStubCacheInvalidator;
 use Drupal\test_helpers\TestHelpers;
@@ -22,17 +19,13 @@ class ConfigFactoryStub extends ConfigFactory {
    * {@inheritdoc}
    */
   public function __construct(
-    StorageInterface $storage = NULL,
-    EventDispatcherInterface $event_dispatcher = NULL,
-    TypedConfigManagerInterface $typed_config = NULL
+    StorageInterface $storage,
+    EventDispatcherInterface $event_dispatcher,
+    TypedConfigManagerInterface $typed_config
   ) {
-    $storage ??= new MemoryStorage('config_factory_stub');
     // Workaround for the issue
     // https://www.drupal.org/project/drupal/issues/3325571.
-    $storage->write('__config_factory_stub_placeholder', []);
-
-    $event_dispatcher ??= new ContainerAwareEventDispatcher(\Drupal::getContainer());
-    $typed_config ??= TestHelpers::createMock(TypedConfigManager::class);
+    // $storage->write('__config_factory_stub_placeholder', []);.
     $invalidator = TestHelpers::service('cache_tags.invalidator');
     $configFactoryStubCacheInvalidator = new ConfigFactoryStubCacheInvalidator();
     $invalidator->addInvalidator($configFactoryStubCacheInvalidator);

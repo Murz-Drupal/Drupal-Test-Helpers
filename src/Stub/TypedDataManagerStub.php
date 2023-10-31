@@ -2,10 +2,7 @@
 
 namespace Drupal\test_helpers\Stub;
 
-use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\TypedData\Plugin\DataType\ItemList;
 use Drupal\Core\TypedData\TypedDataManager;
 use Drupal\test_helpers\TestHelpers;
@@ -15,22 +12,6 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
  * A stub of the Drupal's default TypedDataManager class.
  */
 class TypedDataManagerStub extends TypedDataManager {
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __construct(
-    \Traversable $namespaces = NULL,
-    CacheBackendInterface $cache_backend = NULL,
-    ModuleHandlerInterface $module_handler = NULL,
-    ClassResolverInterface $class_resolver = NULL
-  ) {
-    $namespaces ??= new \ArrayObject([]);
-    $cache_backend ??= TestHelpers::service('cache.backend.memory')->get('cache_discovery');
-    $module_handler ??= TestHelpers::service('module_handler');
-    $class_resolver ??= TestHelpers::service('class_resolver');
-    parent::__construct($namespaces, $cache_backend, $module_handler, $class_resolver);
-  }
 
   /**
    * {@inheritdoc}

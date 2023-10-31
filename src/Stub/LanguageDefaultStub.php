@@ -24,10 +24,6 @@ class LanguageDefaultStub extends LanguageDefault {
         'label' => LanguageManager::getStandardLanguageList()['en'][0],
       ];
     }
-    // This service is required to reset kernel container when the default
-    // language is changed.
-    TestHelpers::service('kernel');
-
     TestHelpers::service('config.factory')->stubSetConfig('language.entity.' . $values['id'], $values);
 
     parent::__construct($values);

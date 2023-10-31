@@ -31,7 +31,7 @@ class TestHelpersExampleControllerModernConditionsTest extends UnitTestCase {
     TestHelpers::saveEntity('node', ['title' => 'A2', 'uid' => 1, 'created' => 1672660800]);
     // @codingStandardsIgnoreEnd
 
-    TestHelpers::getServiceStub('entity.query.sql')->stubSetExecuteHandler(function () {
+    TestHelpers::service('entity.query.sql')->stubSetExecuteHandler(function () {
       UnitTestCaseWrapper::assertTrue(TestHelpers::queryIsSubsetOf($this, \Drupal::entityQuery('node')
         ->accessCheck()
         ->condition('status', 1)
