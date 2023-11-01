@@ -1846,6 +1846,8 @@ EOT;
     $patterns = [
       "/array \(/" => '[',
       "/^([ ]*)\)(,?)$/m" => '$1]$2',
+      "/\s\=\>\s+\n\s+\[/" => ' => [',
+      "/\[\n\s+\]/" => '[]',
     ];
     $output = preg_replace(array_keys($patterns), array_values($patterns), $export);
     if ($return) {

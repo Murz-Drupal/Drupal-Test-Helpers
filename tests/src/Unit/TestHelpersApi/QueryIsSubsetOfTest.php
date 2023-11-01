@@ -257,16 +257,14 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
       $this->assertEquals("The sort doesn't match, expected: [
-  0 =>
-  [
+  0 => [
     'field' => 'nid',
     'direction' => 'ASC',
     'langcode' => NULL,
   ],
 ]
 actual: [
-  0 =>
-  [
+  0 => [
     'field' => 'title',
     'direction' => 'ASC',
     'langcode' => NULL,
@@ -283,16 +281,14 @@ actual: [
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
       $this->assertEquals("The sort doesn't match, expected: [
-  0 =>
-  [
+  0 => [
     'field' => 'title',
     'direction' => 'DESC',
     'langcode' => NULL,
   ],
 ]
 actual: [
-  0 =>
-  [
+  0 => [
     'field' => 'title',
     'direction' => 'ASC',
     'langcode' => NULL,
