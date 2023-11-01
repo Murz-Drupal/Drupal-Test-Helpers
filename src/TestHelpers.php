@@ -36,7 +36,9 @@ use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\RendererStub;
 use Drupal\test_helpers\Stub\RequestStackStub;
+use Drupal\test_helpers\Stub\RouteProviderStub;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
+use Drupal\test_helpers\Stub\UrlGeneratorStub;
 use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use PHPUnit\Framework\Assert;
@@ -81,13 +83,15 @@ class TestHelpers {
    * as array in format "[className, functionName]".
    */
   public const SERVICES_CUSTOM_STUBS = [
+    // @todo Get rid of this service.
     'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
+
     'cache_contexts_manager' => CacheContextsManagerStub::class,
+    'cache.config' => MemoryBackend::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
+    'config.factory' => ConfigFactoryStub::class,
     'config.storage.active' => DatabaseStorageStub::class,
     'config.storage.snapshot' => DatabaseStorageStub::class,
-    'cache.config' => MemoryBackend::class,
-    'config.factory' => ConfigFactoryStub::class,
     'database' => DatabaseStub::class,
     'date.formatter' => DateFormatterStub::class,
     'entity_bundle.listener' => EntityBundleListenerStub::class,
@@ -95,37 +99,68 @@ class TestHelpers {
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
     'kernel' => DrupalKernelStub::class,
-    'language.default' => LanguageDefaultStub::class,
     'language_manager' => ConfigurableLanguageManagerStub::class,
+    'language.default' => LanguageDefaultStub::class,
     'logger.factory' => LoggerChannelFactoryStub::class,
     'module_handler' => ModuleHandlerStub::class,
-    'request_stack' => RequestStackStub::class,
     'renderer' => RendererStub::class,
+    'request_stack' => RequestStackStub::class,
+    'router.route_provider' => RouteProviderStub::class,
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'typed_data_manager' => TypedDataManagerStub::class,
+    'url_generator.non_bubbling' => UrlGeneratorStub::class,
   ];
 
   /**
    * A list of core services that can be initialized automatically.
    */
   public const SERVICES_CORE_INIT = [
+    'cache_tags.invalidator',
     'cache.backend.memory',
     'cache.config',
-    'cache_tags.invalidator',
     'config.storage',
-    'datetime.time',
+    'path.current',
     'database.replica_kill_switch',
+    'datetime.time',
     'entity.memory_cache',
     'entity.repository',
+    'link_generator',
     'logger.factory',
     'messenger',
+    'path_processor_manager',
     'request_stack',
+    'router.no_access_checks',
     'session.flash_bag',
     'settings',
-    'transliteration',
     'token',
+    'transliteration',
+    'unrouted_url_assembler',
+    'url_generator',
     'uuid',
   ];
+
+  /**
+   * An uri with a placeholder domain, to use in requests by default.
+   *
+   * It is used to produce absolute links when no request is pushed manually to
+   * the 'request_stack' service.
+   *
+   * You can override this default behavior in your unit test via:
+   * ```
+   * TestHelpers::service('request_stack')->push(Request::create('https://example.com/some-path');
+   * ```
+   *
+   * Example of how to check the url with the default request stub:
+   * ```
+   * $this->assertEquals(
+   *   TestHelpers::REQUEST_STUB_DEFAULT_URI,
+   *   $service->getCurrentRequest()->getUri()
+   * );
+   * ```
+   *
+   * @var string
+   */
+  public const REQUEST_STUB_DEFAULT_URI = 'http://drupal-unit-test.local/';
 
   /**
    * Gets a private or protected method from a class using reflection.
@@ -1319,11 +1354,11 @@ class TestHelpers {
       return TRUE;
     }
     if (!is_array($array)) {
-      $throwErrorsStatic && self::throwUserError('The array is not an array.');
+      $throwErrorsStatic && self::throwMatchError('array', $subset, $array);
       return FALSE;
     }
     if (!is_array($subset)) {
-      $throwErrorsStatic && self::throwUserError('The subset is not an array.');
+      $throwErrorsStatic && self::throwMatchError('subset', $subset, $array);
       return FALSE;
     }
     $result = array_uintersect_assoc($subset, $array, $callbackFunction);

@@ -2,6 +2,7 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -13,16 +14,16 @@ class RequestStackStub extends RequestStack {
   /**
    * A flag to indicate that the request stub is still pushed by default.
    */
-  protected bool $isStubPushed;
+  protected bool $isStubPushed = FALSE;
 
   /**
    * {@inheritdoc}
    */
   public function __construct() {
-    $this->isStubPushed = TRUE;
     // Pushing an example request by default.
-    $requestStub = Request::create('https://example.com/some-path');
+    $requestStub = Request::create(TestHelpers::REQUEST_STUB_DEFAULT_URI);
     $this->push($requestStub);
+    $this->isStubPushed = TRUE;
   }
 
   /**
