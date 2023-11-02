@@ -260,7 +260,7 @@ class TestHelpers {
    * @param \Closure $closure
    *   The closure function to bind.
    */
-  public static function setMockedClassMethod(MockObject $class, string $method, \Closure $closure): void {
+  public static function setMockedClassMethod(object $class, string $method, \Closure $closure): void {
     $doClosure = $closure->bindTo($class, get_class($class));
     $class->method($method)->willReturnCallback($doClosure);
   }
@@ -365,6 +365,7 @@ class TestHelpers {
         !$e instanceof AssertionFailedError
         && $e instanceof $exceptionClass
       ) {
+        Assert::assertInstanceOf($exceptionClass, $e);
         return;
       }
       throw $e;
@@ -1808,7 +1809,8 @@ EOT;
    *   A copy of the array with replaced objects to strings.
    */
   private static function arrayObjectsToStrings(array $array): array {
-    $arrayCopy = json_decode(json_encode($array), TRUE);
+    $arrayCopy = $array;
+    // $arrayCopy = json_decode(json_encode($array), TRUE);
     array_walk_recursive($arrayCopy, self::class . '::arrayObjectsToStringsCallback');
     return $arrayCopy;
   }
@@ -1820,12 +1822,10 @@ EOT;
    *
    * @param mixed $item
    *   An array item value.
-   * @param mixed $key
-   *   An array item key.
    */
-  private static function arrayObjectsToStringsCallback(&$item, $key) {
+  private static function arrayObjectsToStringsCallback(&$item) {
     if (is_object($item)) {
-      $item = '[object] ' . get_class($item);
+      $item = '[object] ' . get_class($item) . ', id ' . spl_object_id($item);
     }
   }
 
