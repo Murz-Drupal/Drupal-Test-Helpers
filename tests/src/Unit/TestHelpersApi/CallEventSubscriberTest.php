@@ -81,6 +81,7 @@ class CallEventSubscriberTest extends UnitTestCase {
       $this->fail('An exception should be thown.');
     }
     catch (\Exception $e) {
+      $this->assertTrue(TRUE);
     }
   }
 

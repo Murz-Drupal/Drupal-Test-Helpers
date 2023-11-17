@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
+use Drupal\Core\Entity\Query\ConditionInterface;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\FieldStorageConfigStorage;
 use Drupal\media\Entity\Media;
@@ -22,6 +23,13 @@ use Drupal\user\Entity\User;
  * @group test_helpers
  */
 class EntityStubFactoryTest extends UnitTestCase {
+
+  /**
+   * A condition.
+   *
+   * @var \Drupal\Core\Entity\Query\ConditionInterface
+   */
+  protected ConditionInterface $condition;
 
   /**
    * @covers ::create
@@ -165,7 +173,7 @@ class EntityStubFactoryTest extends UnitTestCase {
       ],
     ]);
     $storage = \Drupal::service('entity_type.manager')->getStorage('menu_link_content');
-    $entitiesIds = $storage->getQuery()->execute();
+    $entitiesIds = $storage->getQuery()->accessCheck(FALSE)->execute();
     $this->assertEquals([1 => '1', 2 => '2'], $entitiesIds);
     $entities = $storage->loadMultiple();
     $this->assertCount(2, $entities);
@@ -212,13 +220,15 @@ class EntityStubFactoryTest extends UnitTestCase {
     $node1->save();
     $this->assertEquals(5, $node1->getRevisionId());
 
-    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->load($node1->id());
+    /** @var \Drupal\Core\Entity\RevisionableStorageInterface $nodeStorage */
+    $nodeStorage = \Drupal::service('entity_type.manager')->getStorage('node');
+    $nodeLoaded = $nodeStorage->load($node1->id());
     // The revision id should be 2, because the last revision is not published.
     $this->assertEquals(2, $nodeLoaded->getRevisionId());
 
-    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadRevision(2);
+    $nodeLoaded = $nodeStorage->loadRevision(2);
     $this->assertEquals(2, $nodeLoaded->getRevisionId());
-    $nodeLoaded = \Drupal::service('entity_type.manager')->getStorage('node')->loadRevision(1);
+    $nodeLoaded = $nodeStorage->loadRevision(1);
     $this->assertEquals(1, $nodeLoaded->getRevisionId());
 
     $term1 = TestHelpers::createEntity(Term::class, ['name' => 'Term 1 Revision 1']);

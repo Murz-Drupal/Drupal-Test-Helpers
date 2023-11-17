@@ -214,14 +214,21 @@ class EntityStorageStubFactory {
 
       TestHelpers::setMockedClassMethod(
         $entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->entityType = $entityTypeDefinition;
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->entityTypeId = $this->entityType->id();
 
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->baseEntityClass = $this->entityType->getClass();
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
 
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->database = TestHelpers::service('database');
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->memoryCache = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->cacheBackend = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
 
         }, $entityStorage, 'stubInit'
@@ -234,6 +241,7 @@ class EntityStorageStubFactory {
       /**
        * @var \Drupal\test_helpers\Stub\EntityStubInterface $this
        */
+      // @phpstan-ignore-next-line `$this` will be available in the runtime.
       $idProperty = $this->entityType->getKey('id') ?? NULL;
       if ($idProperty) {
         // The `id` value for even integer autoincrement is stored as string in
@@ -249,6 +257,7 @@ class EntityStorageStubFactory {
         }
       }
 
+      // @phpstan-ignore-next-line `$this` will be available in the runtime.
       $uuidProperty = $this->entityType->getKey('uuid') ?? NULL;
       if ($uuidProperty && empty($entity->uuid())) {
         $uuid = TestHelpers::service('uuid')->generate();
@@ -261,8 +270,10 @@ class EntityStorageStubFactory {
         }
       }
 
+      // @phpstan-ignore-next-line `$this` will be available in the runtime.
       if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
         $setRevisionId = function ($entity, $revisionId) {
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $revisionProperty = $this->entityType->getKey('revision') ?? NULL;
           $entityKeys = TestHelpers::getPrivateProperty($entity, 'entityKeys');
           $entityKeys['revision'] = $revisionId;
@@ -306,6 +317,7 @@ class EntityStorageStubFactory {
         $entityData = EntityStorageStubFactory::entityToValues($entity);
       }
 
+      // @phpstan-ignore-next-line `$this` will be available in the runtime.
       if ($this->entityType instanceof ContentEntityTypeInterface) {
         $entitiesStorage['byRevisionId'][$entity->getRevisionId()] = $entityData;
         if ($entity->isLatestRevision()) {
@@ -361,7 +373,9 @@ class EntityStorageStubFactory {
 
           $entities = [];
           foreach ($entitiesValues as $values) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
               $entity->updateLoadedRevisionId();
             }
@@ -379,7 +393,9 @@ class EntityStorageStubFactory {
           if (!$values = $entitiesStorage['byRevisionId'][$id] ?? NULL) {
             return NULL;
           }
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $entity = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
             $entity->updateLoadedRevisionId();
           }
@@ -391,6 +407,7 @@ class EntityStorageStubFactory {
       $entityStorage, 'stubGetAllLatestRevision', function () use (&$entitiesStorage) {
         $entities = [];
         foreach ($entitiesStorage['byIdLatestRevision'] ?? [] as $values) {
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $entities[] = EntityStorageStubFactory::valuesToEntity($this->entityType, $values);
         }
         return $entities;

@@ -64,6 +64,7 @@ class DatabaseStorageStub extends DatabaseStorage {
   public function rename($name, $new_name) {
     $this->stubStorage[$new_name] = $this->stubStorage[$name];
     unset($this->stubStorage[$name]);
+    return TRUE;
   }
 
   /**
@@ -88,6 +89,7 @@ class DatabaseStorageStub extends DatabaseStorage {
         unset($this->stubStorage[$name]);
       }
     }
+    return TRUE;
   }
 
 }

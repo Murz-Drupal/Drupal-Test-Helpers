@@ -3,6 +3,7 @@
 namespace Drupal\test_helpers\StubFactory;
 
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\Query\ConditionInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\Query\Sql\Query;
@@ -15,6 +16,27 @@ use Drupal\Tests\Core\Database\Stub\StubPDO;
  * The EntityQueryStub factory.
  */
 class EntityQueryStubFactory {
+
+  /**
+   * The list of namespaces.
+   *
+   * @var array
+   */
+  protected array $namespaces;
+
+  /**
+   * A database connection.
+   *
+   * @var \Drupal\Tests\Core\Database\Stub\StubConnection
+   */
+  protected StubConnection $dbConnection;
+
+  /**
+   * A condition.
+   *
+   * @var \Drupal\Core\Entity\Query\ConditionInterface
+   */
+  protected ConditionInterface $condition;
 
   /**
    * Constructs a QueryStubFactory object.

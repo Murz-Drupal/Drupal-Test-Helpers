@@ -31,13 +31,13 @@ class GetEntityStorageTest extends UnitTestCase {
     $storage3 = TestHelpers::getEntityStorage(Term::class, NULL, TRUE, [
       'mockMethods' => ['loadMultiple'],
     ]);
-    $this->assertSame(NULL, $storage3->loadMultiple());
+    $this->assertNull($storage3->loadMultiple());
 
     $storage4 = TestHelpers::getEntityStorage(Term::class, NULL, TRUE, [
       'addMethods' => ['newMethod1', 'newMethod2'],
     ]);
     $storage4->method('newMethod2')->willReturn('foo');
-    $this->assertSame(NULL, $storage4->newMethod1());
+    $this->assertNull($storage4->newMethod1());
     $this->assertSame('foo', $storage4->newMethod2());
   }
 

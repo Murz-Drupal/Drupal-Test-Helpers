@@ -18,6 +18,7 @@ class ConstructTest extends UnitTestCase {
    */
   public function testConstruct() {
     try {
+      // @phpstan-ignore-next-line We're testing the exception.
       new TestHelpers();
       $this->fail('The __construct method should be private.');
     }

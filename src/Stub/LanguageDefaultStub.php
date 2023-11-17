@@ -34,7 +34,9 @@ class LanguageDefaultStub extends LanguageDefault {
    */
   public function set(LanguageInterface $language) {
     parent::set($language);
+    // @phpstan-ignore-next-line We need a static call here.
     if (\Drupal::hasService('language_manager')) {
+      // @phpstan-ignore-next-line We need a static call here.
       \Drupal::service('language_manager')->reset();
     }
   }

@@ -253,7 +253,7 @@ class TestHelpers {
    *
    * This makes private class methods accessible inside the function via $this.
    *
-   * @param \PHPUnit\Framework\MockObject\MockObject $class
+   * @param object $class
    *   The mocked class.
    * @param string $method
    *   The method name.

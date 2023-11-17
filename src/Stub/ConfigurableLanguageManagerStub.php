@@ -21,6 +21,13 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
 
   /**
+   * A default stub language.
+   *
+   * @var string
+   */
+  protected Language $stubDefaultLanguage;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(

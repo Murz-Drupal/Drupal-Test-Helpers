@@ -44,6 +44,13 @@ class AssertSequence {
   private $nextItemDelta;
 
   /**
+   * A pointer to the next expected element in the sequence in human variable.
+   *
+   * @var int
+   */
+  private $nextItemDeltaHuman;
+
+  /**
    * A flag that an exception is thrown, to not exception again on __destruct.
    *
    * @var bool

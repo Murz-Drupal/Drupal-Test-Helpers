@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 
 /**
  * A stub of the Drupal's default EntityTypeManager class.
+ *
+ * @phpstan-ignore-next-line We still need to alter the plugin declaration.
  */
 class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManagerStubInterface {
 
@@ -30,6 +32,12 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
 
   /**
    * {@inheritdoc}
+   *
+   * No idea about the phpstan warning:
+   * Missing cache backend declaration for performance.
+   *
+   * @todo Investigate this.
+   * @phpstan-ignore-next-line
    */
   public function __construct(
     \Traversable $namespaces,

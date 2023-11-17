@@ -10,6 +10,8 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 
 /**
  * A stub of the Drupal's default TypedDataManager class.
+ *
+ * @phpstan-ignore-next-line We still need to alter the plugin declaration.
  */
 class TypedDataManagerStub extends TypedDataManager {
 

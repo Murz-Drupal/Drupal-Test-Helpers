@@ -193,27 +193,39 @@ class EntityStubFactory {
           /**
            * @var \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface $this
            */
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->entityTypeId = $entityTypeId;
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->entityKeys['bundle'] = $bundle ? $bundle : $this->entityTypeId;
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           foreach ($this->getEntityType()->getKeys() as $key => $field) {
             if (isset($values[$field])) {
+              // @phpstan-ignore-next-line `$this` will be available in the runtime.
               $this->entityKeys[$key] = $values[$field];
             }
           }
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->langcodeKey = $this->getEntityType()->getKey('langcode');
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->defaultLangcodeKey = $this->getEntityType()->getKey('default_langcode');
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->revisionTranslationAffectedKey = $this->getEntityType()->getKey('revision_translation_affected');
 
           if ($entityTypeDefinition->entityClassImplements(FieldableEntityInterface::class)) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             $this->fieldDefinitions = TestHelpers::service('entity_field.manager')->getFieldDefinitions($entityTypeId, $bundle);
           }
 
           // Filling common values.
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->translations[LanguageInterface::LANGCODE_DEFAULT] = [
             'status' => TRUE,
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             'entity' => $this,
           ];
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           if ($this->defaultLangcodeKey) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             $values[$this->defaultLangcodeKey] = $values[$this->defaultLangcodeKey] ?? 1;
           }
 
@@ -279,10 +291,12 @@ class EntityStubFactory {
             // We have no overrides, so checking the created definition or
             // create an item stub.
             $newDefinition->setName($name);
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             $this->fieldDefinitions[$name] = $newDefinition;
             TestHelpers::service('entity_field.manager')->stubAddFieldDefiniton($entityTypeId, $bundle, $name, $newDefinition);
           }
           /** @var \Drupal\Core\Field\BaseFieldDefinition $definition */
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $definition = $this->fieldDefinitions[$name];
           if (is_array($fieldTypeConfiguration)) {
             // We should apply the 'settings' item in a special way.
@@ -309,15 +323,19 @@ class EntityStubFactory {
                 break;
             }
           }
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $field = TestHelpers::createFieldStub($value, $definition, $name, $this->typedData);
           if ($entityTypeDefinition->getGroup() == 'configuration') {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             $this->$name = $value;
           }
           else {
             if (is_object($value)) {
+              // @phpstan-ignore-next-line `$this` will be available in the runtime.
               $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $value;
             }
             else {
+              // @phpstan-ignore-next-line `$this` will be available in the runtime.
               $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
             }
           }
@@ -338,8 +356,11 @@ class EntityStubFactory {
         /**
          * @var \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
          */
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
         $this->fieldDefinitions[$fieldName] = $fieldObject;
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
         $langCode ??= $this->activeLangCode;
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
         $this->fields[$fieldName][$langCode] = $fieldObject;
       }
     );
@@ -350,6 +371,7 @@ class EntityStubFactory {
           /**
            * @var \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
            */
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           if (!$this->fields) {
             // Phpcs shows an error here: Function return type is not void, but
             // function is returning void here.
@@ -358,16 +380,21 @@ class EntityStubFactory {
             return;
             // @codingStandardsIgnoreEnd
           }
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           foreach ($this->getFieldDefinitions() as $name => $definition) {
             if (!$definition->isComputed() && !empty($this->fields[$name])) {
+              // @phpstan-ignore-next-line `$this` will be available in the runtime.
               foreach ($this->fields[$name] as $langcode => $item) {
                 $item->filterEmptyItems();
                 // @todo Remove these crunches and use original function.
                 // Crunches start.
+                // @phpstan-ignore-next-line `$this` will be available in the runtime.
                 if (isset($this->values[$name]) && !is_array($this->values[$name])) {
+                  // @phpstan-ignore-next-line `$this` will be available in the runtime.
                   $this->values[$name] = [];
                 }
                 // Crunches end.
+                // @phpstan-ignore-next-line `$this` will be available in the runtime.
                 $this->values[$name][$langcode] = $item->getValue();
               }
             }

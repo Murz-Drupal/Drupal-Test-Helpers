@@ -44,7 +44,7 @@ class TestHelpersExampleController extends ControllerBase {
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
    *   The date formatter.
    */
-  public function __construct(
+  final public function __construct(
     ConfigFactoryInterface $configFactory,
     EntityTypeManagerInterface $entityTypeManager,
     DateFormatterInterface $dateFormatter

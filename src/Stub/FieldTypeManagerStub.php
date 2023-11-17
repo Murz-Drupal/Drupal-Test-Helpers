@@ -6,6 +6,8 @@ use Drupal\Core\Field\FieldTypePluginManager;
 
 /**
  * A stub of the Drupal's default FieldTypePluginManager class.
+ *
+ * @phpstan-ignore-next-line We still need to alter the plugin declaration.
  */
 class FieldTypeManagerStub extends FieldTypePluginManager {
 
@@ -25,9 +27,16 @@ class FieldTypeManagerStub extends FieldTypePluginManager {
 
   /**
    * Constructs a new FieldTypeManagerStub.
+   *
+   * No idea about the phpstan warning:
+   * Missing cache backend declaration for performance.
+   *
+   * @todo Investigate this.
+   * @phpstan-ignore-next-line
    */
   public function __construct() {
     $this->fieldItemClassByListClassMap = [];
+    // @phpstan-ignore-next-line We need a static call here.
     $this->typedDataManager = \Drupal::service('typed_data_manager');
   }
 

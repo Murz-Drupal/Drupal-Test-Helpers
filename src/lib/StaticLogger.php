@@ -2,6 +2,7 @@
 
 namespace Drupal\test_helpers\lib;
 
+use Drupal\Core\Logger\RfcLogLevel;
 use Psr\Log\LoggerInterface;
 
 /**

@@ -138,11 +138,13 @@ class ServicesTest extends UnitTestCase {
         // Using the setMockedClassMethod() we can get access to `$this` keyword
         // with any private and protected properties and methods.
         /** @var \Drupal\Core\Render\Renderer $this */
+        // @phpstan-ignore-next-line This will be executed in the class context.
         $this->replacePlaceholders($element);
         return [
           '#markup' => TestHelpers::callPrivateMethod($testClass, 't', [
             'Root for @title with @theme', [
               '@title' => $element['#title'],
+              // @phpstan-ignore-next-line This will be executed in the class context.
               '@theme' => $this->theme,
             ],
           ]),

@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\test_helpers\Unit;
 
+use Drupal\Core\Database\Query\ConditionInterface;
 use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\Tests\UnitTestCase;
 
@@ -12,6 +13,13 @@ use Drupal\Tests\UnitTestCase;
  * @group test_helpers
  */
 class DatabaseServiceStubTest extends UnitTestCase {
+
+  /**
+   * A condition.
+   *
+   * @var \Drupal\Core\Database\Query\ConditionInterface
+   */
+  protected ConditionInterface $condition;
 
   /**
    * Tests Select function.

@@ -19,7 +19,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    * @covers ::get
    */
   public function testMatchingConditions() {
-    /** @var \Drupal\test_helpers\EntityTypeManagerStubInterface $entityTypeManager */
+    /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager */
     $entityTypeManager = TestHelpers::service('entity_type.manager');
     $entityTypeManager->stubGetOrCreateStorage(Node::class);
 
@@ -31,7 +31,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     /** @var \Drupal\test_helpers\Stub\EntityQueryServiceStub $entityQuerySql */
     $entityQuerySql = \Drupal::service('entity.query.sql');
     $entityQuerySql->stubSetExecuteHandler(function () use ($entityQueryTestResult, $titleValues, $testClass) {
-      /** @var \Drupal\Core\Database\Query\SelectInterface|\Drupal\test_helpers\QueryStubItemInterface $this */
+      /** @var \Drupal\Core\Database\Query\SelectInterface|\Drupal\test_helpers\Stub\EntityQueryServiceStub $this */
       // Checking that mandatory conditions are present in the query.
       $conditionsMandatory = $this->andConditionGroup();
       $conditionsMandatory->condition('title', $titleValues, 'IN');
@@ -84,7 +84,8 @@ class EntityQueryServiceStubTest extends UnitTestCase {
 
     $entityQuery = \Drupal::service('entity_type.manager')
       ->getStorage('node')
-      ->getQuery();
+      ->getQuery()
+      ->accessCheck(FALSE);
     $entityQuery->condition('title', $titleValues, 'IN');
     $entityQuery->condition('field_category', 2);
     $orConditionGroup = $entityQuery->orConditionGroup();
@@ -124,46 +125,57 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     ])->save();
 
     $this->assertSame(self::genId([2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('title', 'Node 2')
       ->execute());
 
     $this->assertSame(self::genId([1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('title', ['Node 2', 'Node 1'], 'IN')
       ->execute());
 
     $this->assertSame(self::genId([1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('title', ['Node 2', 'Node 1'], 'In')
       ->execute());
 
     $this->assertSame(self::genId([100, 101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('title', ['Node 2', 'Node 1'], 'NOT IN')
       ->execute());
 
     $this->assertSame(self::genId([100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('bundle', 200, '<')
       ->execute());
 
     $this->assertSame(self::genId([100, 101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('bundle', 200, '<=')
       ->execute());
 
     $this->assertSame(self::genId([1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('bundle', 200, '>')
       ->execute());
 
     $this->assertSame(self::genId([1, 2, 101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('bundle', 200, '>=')
       ->execute());
 
     $this->assertSame(self::genId([1, 2, 100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('bundle', 200, '<>')
       ->execute());
 
     $this->assertSame(self::genId([101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('title', NULL, 'IS NULL')
       ->execute());
 
     $this->assertSame(self::genId([1, 2, 100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('title', NULL, 'IS NOT NULL')
       ->execute());
   }
@@ -195,10 +207,12 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     ])->save();
 
     $this->assertSame(self::genId([2, 100]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->range(1, 2)
       ->execute());
 
     $this->assertSame(self::genId([101]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('nid', 100, '>=')
       ->range(1, 1)
       ->execute());
@@ -246,19 +260,23 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     ])->save();
 
     $this->assertSame(self::genId([6, 5, 4, 3, 1, 2]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->sort('field_integer1')
       ->execute());
 
     $this->assertSame(self::genId([2, 1, 3, 4, 5, 6]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->sort('field_integer1', 'DESC')
       ->execute());
 
     $this->assertSame(self::genId([2, 1, 3, 4, 6, 5]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->sort('field_integer2', 'DESC')
       ->sort('field_integer1', 'DESC')
       ->execute());
 
     $this->assertSame(self::genId([6, 2, 3, 1, 4, 5]), \Drupal::service('entity_type.manager')->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
       ->sort('field_string1')
       ->execute());
   }
@@ -280,6 +298,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
 
     $query = \Drupal::service('entity_type.manager')->getStorage('node')
       ->getQuery()
+      ->accessCheck(FALSE)
       ->condition('status', 1)
       ->condition('type', 'article')
       ->sort('created', 'DESC')

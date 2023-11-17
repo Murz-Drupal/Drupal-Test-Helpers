@@ -2,27 +2,29 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\Core\Database\Transaction;
 use Drupal\sqlite\Driver\Database\sqlite\Connection;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * A stub of the Drupal's default Connection class.
  */
 class DatabaseStub extends Connection {
-  /**
-   * The UnitsTestHelpers.
-   *
-   * @var Drupal\test_helpers\UnitTestHelpers
-   */
-  protected $unitTestHelpers;
 
   /**
    * The static storage for execute functions.
    *
    * @var array
    */
-  protected $stubExecuteHandlers;
+  protected array $stubExecuteHandlers = [];
+  /**
+   * The static storage for execute functions.
+   *
+   * @var \PHPUnit\Framework\MockObject\MockObject
+   */
+  protected MockObject $pdoMock;
 
   /**
    * Constructs a new object.
@@ -73,6 +75,7 @@ class DatabaseStub extends Connection {
         };
 
       TestHelpers::setMockedClassMethod($this, 'stubExecute', $function);
+      // @phpstan-ignore-next-line
       return $this->stubExecute();
     };
     TestHelpers::setMockedClassMethod($mockedMethod, 'execute', $executeFunction);
@@ -128,6 +131,7 @@ class DatabaseStub extends Connection {
    * {@inheritdoc}
    */
   public function startTransaction($name = '') {
+    return TestHelpers::createMock(Transaction::class);
   }
 
   /**

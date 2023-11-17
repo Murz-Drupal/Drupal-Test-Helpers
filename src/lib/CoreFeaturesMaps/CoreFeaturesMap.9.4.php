@@ -771,7 +771,6 @@ const TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP = [
   'plugin.manager.aggregator.processor' => 'core/modules/aggregator/aggregator.services.yml',
   'aggregator.items.importer' => 'core/modules/aggregator/aggregator.services.yml',
   'logger.channel.aggregator' => 'core/modules/aggregator/aggregator.services.yml',
-  'feed.bridge.reader' => 'core/modules/aggregator/aggregator.services.yml',
   'field.uninstall_validator' => 'core/modules/field/field.services.yml',
   'help.breadcrumb' => 'core/modules/help_topics/help_topics.services.yml',
   'plugin.manager.help_topic' => 'core/modules/help_topics/help_topics.services.yml',
