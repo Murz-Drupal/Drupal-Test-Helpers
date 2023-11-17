@@ -490,7 +490,7 @@ class TestHelpers {
   private static function resolveServiceArguments(array $arguments = []): array {
     $container = self::getContainer();
     if (!$container->hasParameter('app.root')) {
-      self::loadParametersFromYamlFile(self::getDrupalRoot() . '/' . 'core/core.services.yml');
+      self::loadParametersFromYamlFile(self::getDrupalRoot() . DIRECTORY_SEPARATOR . 'core/core.services.yml');
     }
     $classArguments = [];
     foreach ($arguments as $argument) {
@@ -1394,7 +1394,7 @@ class TestHelpers {
         // Assuming that the service name is related to a called module.
         // Using there jumping to one level upper when detecting module info,
         // because current call adds a new step already.
-        $servicesYamlFile = self::getModuleRoot(1) . '/' . self::getModuleName(1) . '.services.yml';
+        $servicesYamlFile = self::getModuleRoot(1) . DIRECTORY_SEPARATOR . self::getModuleName(1) . '.services.yml';
         $serviceName = $service;
       }
       else {
@@ -1623,26 +1623,22 @@ class TestHelpers {
       $file = $pathOrClassOrLevel;
     }
     $parts = explode(DIRECTORY_SEPARATOR, $file);
-    $partsReversed = array_reverse($parts);
-    if ($moduleName == 'core') {
-      $modulesIndex = array_search('core', $partsReversed);
-    }
-    else {
-      $modulesIndex = array_search('modules', $partsReversed);
-      if ($modulesIndex === FALSE) {
-        $modulesIndex = array_search('themes', $partsReversed);
+
+    // Trying to scan all upper directories and find module info file.
+    $moduleInfoFile = $moduleName . '.info.yml';
+    $coreRootInfoFile = 'core.services.yml';
+    $index = count($parts);
+    while ($index > 0) {
+      $directory = implode(DIRECTORY_SEPARATOR, array_slice($parts, 0, $index));
+      if (
+        file_exists($directory . DIRECTORY_SEPARATOR . $moduleInfoFile)
+        || file_exists($directory . DIRECTORY_SEPARATOR . $coreRootInfoFile)
+      ) {
+        return $directory;
       }
+      $index--;
     }
-    if (!$modulesIndex) {
-      return NULL;
-    }
-    if ($moduleName) {
-      $index = $modulesIndex;
-      while ($partsReversed[$index] !== $moduleName && $index > 0) {
-        $index--;
-      }
-      return $index > 0 ? implode(DIRECTORY_SEPARATOR, array_reverse(array_slice($partsReversed, $index))) : NULL;
-    }
+    return NULL;
   }
 
   /**
@@ -1669,7 +1665,7 @@ class TestHelpers {
     $parentCallsLevel ??= 0;
     $parentCallsLevel++;
     $modulePath = TestHelpers::getModuleRoot($parentCallsLevel);
-    return $modulePath . '/' . $relativePath;
+    return $modulePath . DIRECTORY_SEPARATOR . $relativePath;
   }
 
   /**
@@ -1880,7 +1876,7 @@ EOT;
    * Gets a service info from a YAML file.
    */
   private static function getServiceInfoFromYaml(string $serviceName, string $servicesYamlFile, bool $skipLoadingParams = FALSE): array {
-    $filePath = (str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile;
+    $filePath = (str_starts_with($servicesYamlFile, DIRECTORY_SEPARATOR) ? '' : self::getDrupalRoot()) . DIRECTORY_SEPARATOR . $servicesYamlFile;
     $info = self::getServiceInfo($serviceName, $filePath);
     if (!$skipLoadingParams) {
       self::loadParametersFromYamlFile($filePath);
@@ -1915,7 +1911,7 @@ EOT;
     if ($servicesYamlFile === NULL) {
       self::requireCoreFeaturesMap();
       if (isset(TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName])) {
-        $file = self::getDrupalRoot() . '/' . TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName];
+        $file = self::getDrupalRoot() . DIRECTORY_SEPARATOR . TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP[$serviceName];
       }
       // If we have a path to a Drupal class.
       else {
@@ -1926,7 +1922,7 @@ EOT;
       }
     }
     else {
-      $file = (str_starts_with($servicesYamlFile, '/') ? '' : self::getDrupalRoot()) . '/' . $servicesYamlFile;
+      $file = (str_starts_with($servicesYamlFile, DIRECTORY_SEPARATOR) ? '' : self::getDrupalRoot()) . DIRECTORY_SEPARATOR . $servicesYamlFile;
     }
     $serviceYaml = self::parseYamlFile($file);
     if (isset($serviceYaml['services'][$serviceName])) {

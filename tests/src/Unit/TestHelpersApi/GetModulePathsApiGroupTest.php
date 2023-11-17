@@ -4,7 +4,6 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Component\Transliteration\PhpTransliteration;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -25,46 +24,6 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
     $corePath = str_replace('/lib/Drupal.php', '', $coreFilePath);
     $testSets = [
       [
-        '/var/www/html/docroot/modules/contrib/my_module',
-        '/var/www/html/docroot/modules/contrib/my_module/src/TestHelpers.php',
-        'my_module',
-      ],
-      [
-        '/projects/test_helpers/modules/contrib/helpers/test_helpers',
-        '/projects/test_helpers/modules/contrib/helpers/test_helpers/src/TestHelpers.php',
-        'test_helpers',
-      ],
-      [
-        '/projects/test_helpers/themes/contrib/some_theme',
-        '/projects/test_helpers/themes/contrib/some_theme/src/SomeTheme.php',
-        'some_theme',
-      ],
-      [
-        NULL,
-        '/projects/test_helpers/no_themes/contrib/some_theme/src/SomeTheme.php',
-        'some_theme',
-      ],
-      [
-        NULL,
-        '/projects/test_helpers/themes/contrib/some_theme/src/SomeTheme.php',
-        'some_another_theme',
-      ],
-      [
-        str_replace('/src/Controller/TestHelpersExampleController.php', '', TestHelpers::getClassFile(TestHelpersExampleController::class)),
-        TestHelpersExampleController::class,
-        'test_helpers_example',
-      ],
-      [
-        str_replace('/src/Controller/TestHelpersExampleController.php', '', TestHelpers::getClassFile(TestHelpersExampleController::class)),
-        TestHelpersExampleController::class,
-        NULL,
-      ],
-      [
-        '/sites/test_helpers/www/modules/contrib/helpers/test_helpers/modules/examples/test_helpers_example',
-        '/sites/test_helpers/www/modules/contrib/helpers/test_helpers/modules/examples/test_helpers_example/tests/Unit/test.php',
-        'test_helpers_example',
-      ],
-      [
         $corePath,
         PhpTransliteration::class,
         'core',
@@ -73,6 +32,21 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
         $currentModulePath,
         NULL,
         NULL,
+      ],
+      [
+        $currentModulePath . '/tests/src/Unit/Assets/test_helpers_test1_module',
+        $currentModulePath . '/tests/src/Unit/Assets/test_helpers_test1_module/src/Lib/MyLib.php',
+        'test_helpers_test1_module',
+      ],
+      [
+        $currentModulePath . '/tests/src/Unit/Assets/test_helpers_test1_module_0',
+        $currentModulePath . '/tests/src/Unit/Assets/test_helpers_test1_module_0/MyLib.php',
+        'test_helpers_test1_module',
+      ],
+      [
+        NULL,
+        $currentModulePath . '/tests/src/Unit/Assets/test_helpers_test1_module_0/src/lib.inc',
+        'test_helpers_test1_module_0',
       ],
     ];
 

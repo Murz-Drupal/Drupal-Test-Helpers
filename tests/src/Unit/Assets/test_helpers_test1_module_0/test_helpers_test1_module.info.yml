@@ -1,0 +1,5 @@
+name: Test Helpers Test1 module
+type: module
+description: A test module for help unit testing.
+package: Development
+core_version_requirement: ^9.4 || ^10
