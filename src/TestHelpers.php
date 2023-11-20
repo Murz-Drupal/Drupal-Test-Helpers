@@ -34,6 +34,7 @@ use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
+use Drupal\test_helpers\Stub\PermissionHandlerStub;
 use Drupal\test_helpers\Stub\RendererStub;
 use Drupal\test_helpers\Stub\RequestStackStub;
 use Drupal\test_helpers\Stub\RouteProviderStub;
@@ -109,6 +110,7 @@ class TestHelpers {
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'typed_data_manager' => TypedDataManagerStub::class,
     'url_generator.non_bubbling' => UrlGeneratorStub::class,
+    'user.permissions' => PermissionHandlerStub::class,
   ];
 
   /**
