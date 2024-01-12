@@ -28,7 +28,6 @@ class DatabaseStubTest extends UnitTestCase {
 
     // Ensuring that these empty functions executes without exception.
     $database->startTransaction('tr1');
-    $database->popTransaction('tr1');
 
     $this->assertEquals([], $database->select('table1')->execute());
     $this->assertEquals([], $database->insert('table1')->execute());

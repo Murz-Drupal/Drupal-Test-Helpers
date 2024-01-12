@@ -64,7 +64,7 @@ DrupalKernel::createFromRequest($request, $autoloader, 'prod')->boot();
 
 \Drupal::service('request_stack')->push($request);
 
-$drupalVersionArray = explode('.', \Drupal::VERSION);
+$drupalVersionArray = explode('.', str_replace('-dev', '', \Drupal::VERSION));
 $drupalVersionMinor = $drupalVersionArray[0] . '.' . $drupalVersionArray[1];
 
 $filename = dirname(__DIR__) . '/src/lib/CoreFeaturesMaps/CoreFeaturesMap.' . $drupalVersionMinor . '.php';
@@ -90,7 +90,10 @@ foreach ($files as $file) {
   $data = Yaml::parseFile($file);
   $fileRelative = ltrim(str_replace($drupalRoot, '', $file), '/');
   foreach (array_keys($data['services'] ?? []) as $service) {
-    if (strpos($service, '\\') !== FALSE) {
+    if (
+      strpos($service, '\\') !== FALSE
+      || $service == '_defaults'
+    ) {
       continue;
     }
     $contents .= <<<EOT
@@ -118,6 +121,15 @@ foreach ($entityTypeManager->getDefinitions() as $type => $definition) {
 }
 $contents .= <<<EOT
 ];
+
+EOT;
+
+// Generating default parameters.
+$data = Yaml::parseFile($drupalRoot . '/core/core.services.yml');
+$parametersJson = json_encode($data['parameters']);
+$contents .= <<<EOT
+
+const TEST_HELPERS_DRUPAL_CORE_PARAMETERS = '$parametersJson';
 
 EOT;
 

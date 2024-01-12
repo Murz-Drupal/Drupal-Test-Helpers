@@ -491,8 +491,20 @@ class TestHelpers {
    */
   private static function resolveServiceArguments(array $arguments = []): array {
     $container = self::getContainer();
+    // If we have no default parameters in the container, fill them.
     if (!$container->hasParameter('app.root')) {
-      self::loadParametersFromYamlFile(self::getDrupalRoot() . DIRECTORY_SEPARATOR . 'core/core.services.yml');
+      if (defined('TEST_HELPERS_DRUPAL_CORE_PARAMETERS')) {
+        // Use prefilled values to speed up the parsing.
+        self::loadParametersFromJson(TEST_HELPERS_DRUPAL_CORE_PARAMETERS);
+      }
+      else {
+        self::loadParametersFromYamlFile(self::getDrupalRoot() . DIRECTORY_SEPARATOR . 'core/core.services.yml');
+      }
+    }
+    // The `memory_cache_bins` is required to init some services, but missing
+    // in `core.services.yml`, so setting it manually.
+    if (!$container->hasParameter('memory_cache_bins')) {
+      $container->setParameter('memory_cache_bins', []);
     }
     $classArguments = [];
     foreach ($arguments as $argument) {
@@ -1875,6 +1887,24 @@ EOT;
   }
 
   /**
+   * Load params from a JSON string.
+   *
+   * @param string $json
+   *   A JSON string.
+   * @param bool $override
+   *   A flag to override the current parameters.
+   */
+  private static function loadParametersFromJson(string $json, bool $override = TRUE): void {
+    $container = self::getContainer();
+    $content = json_decode($json, JSON_OBJECT_AS_ARRAY);
+    foreach ($content ?? [] as $key => $value) {
+      if ($override || !$container->hasParameter($key)) {
+        $container->setParameter($key, $value);
+      }
+    }
+  }
+
+  /**
    * Gets a service info from a YAML file.
    */
   private static function getServiceInfoFromYaml(string $serviceName, string $servicesYamlFile, bool $skipLoadingParams = FALSE): array {
@@ -1966,8 +1996,17 @@ EOT;
     }
     $mapDirectory = dirname(__FILE__) . '/lib/CoreFeaturesMaps';
     $filePrefix = 'CoreFeaturesMap';
-    [$major, $minor, $patch] = explode('.', \Drupal::VERSION);
-    unset($patch);
+    $parts = explode('.', \Drupal::VERSION);
+    if (isset($parts[2])) {
+      // We have a Semantic Version number.
+      [$major, $minor, $patch] = $parts;
+      unset($patch);
+    }
+    else {
+      // We have a Dev version.
+      $major = $parts[0];
+      [$minor] = explode('-', $parts[1]);
+    }
     while ($major >= 8) {
       $path = "$mapDirectory/$filePrefix.$major.$minor.php";
       if (file_exists($path)) {

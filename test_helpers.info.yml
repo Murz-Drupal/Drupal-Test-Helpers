@@ -2,4 +2,4 @@ name: Test Helpers
 type: module
 description: An API to simplify writing Drupal unit tests. Using the API can significantly reduce the amount of code in your unit tests to cover all the logic of tested functions, using provided stubs of Drupal services.
 package: Development
-core_version_requirement: ^9.4 || ^10
+core_version_requirement: ^9.4 || ^10 || ^11

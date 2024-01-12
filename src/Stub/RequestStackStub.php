@@ -29,7 +29,7 @@ class RequestStackStub extends RequestStack {
   /**
    * {@inheritdoc}
    */
-  public function push(Request $request) {
+  public function push(Request $request): void {
     if ($this->isStubPushed) {
       $this->pop();
       $this->isStubPushed = FALSE;
