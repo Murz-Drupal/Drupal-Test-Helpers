@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * A stub of the Drupal's default ConfigurableLanguageManager class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
 

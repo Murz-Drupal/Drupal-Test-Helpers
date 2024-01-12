@@ -4,6 +4,8 @@ namespace Drupal\test_helpers\Stub;
 
 /**
  * The Entity Stub interface.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 interface EntityStubInterface {
 

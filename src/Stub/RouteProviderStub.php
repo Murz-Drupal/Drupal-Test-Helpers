@@ -10,6 +10,8 @@ use Symfony\Component\Routing\RouteCollection;
 
 /**
  * A stub for the request_stack service.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class RouteProviderStub extends RouteProvider {
 

@@ -14,6 +14,8 @@ use Drupal\Tests\Core\Database\Stub\StubPDO;
 
 /**
  * The EntityQueryStub factory.
+ *
+ * @package TestHelpers\DrupalServiceStubFactories
  */
 class EntityQueryStubFactory {
 

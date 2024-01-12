@@ -21,6 +21,8 @@ even need to install it in Drupal, adding it via composer as a dev dependency
 composer require --dev 'drupal/test_helpers'
 ```
 
+API Documentation is available here: https://murz-drupal.gitlab.io/test_helpers/
+
 See the `\Drupal\test_helpers\TestHelpers` class for the main API functions.
 
 See usage examples in the submodule `test_helpers_example`.

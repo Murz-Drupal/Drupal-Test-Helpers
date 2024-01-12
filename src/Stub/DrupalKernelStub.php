@@ -7,6 +7,8 @@ use Drupal\Core\DrupalKernel;
 
 /**
  * A stub of the Drupal's default ConfigurableLanguageManager class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class DrupalKernelStub extends DrupalKernel {
 

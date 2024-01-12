@@ -6,6 +6,8 @@ use Drupal\Core\Config\DatabaseStorage;
 
 /**
  * A stub of the Drupal's default Connection class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class DatabaseStorageStub extends DatabaseStorage {
 

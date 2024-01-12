@@ -13,6 +13,8 @@ use Drupal\test_helpers\TestHelpers;
 
 /**
  * The FieldItemListStubFactory class.
+ *
+ * @package TestHelpers\DrupalServiceStubFactories
  */
 class FieldItemListStubFactory {
 

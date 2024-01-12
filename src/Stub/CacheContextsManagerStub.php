@@ -10,6 +10,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * Validates any context names by default, until they are not defined by the
  * function stubAddContext().
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class CacheContextsManagerStub extends CacheContextsManager {
 

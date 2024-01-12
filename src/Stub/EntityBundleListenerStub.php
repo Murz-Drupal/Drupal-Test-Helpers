@@ -6,6 +6,8 @@ use Drupal\Core\Entity\EntityBundleListener;
 
 /**
  * A stub of the Drupal's default DateFormatter class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class EntityBundleListenerStub extends EntityBundleListener {
 

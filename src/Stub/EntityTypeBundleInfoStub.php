@@ -9,6 +9,8 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * A stub of the Drupal's default EntityTypeBundleInfo class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class EntityTypeBundleInfoStub extends EntityTypeBundleInfo {
 

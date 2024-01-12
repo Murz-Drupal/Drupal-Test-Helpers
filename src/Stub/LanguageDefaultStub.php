@@ -10,6 +10,8 @@ use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default ConfigurableLanguageManager class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class LanguageDefaultStub extends LanguageDefault {
 

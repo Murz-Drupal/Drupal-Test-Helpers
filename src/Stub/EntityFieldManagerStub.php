@@ -9,6 +9,8 @@ use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default EntityFieldManager class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class EntityFieldManagerStub extends EntityFieldManager {
 

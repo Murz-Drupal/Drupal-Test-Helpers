@@ -12,6 +12,8 @@ use Drupal\user\Entity\User;
 
 /**
  * A factory for creating stubs of entities.
+ *
+ * @package TestHelpers\DrupalServiceStubFactories
  */
 class EntityStubFactory {
 

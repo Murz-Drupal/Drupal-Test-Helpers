@@ -7,6 +7,8 @@ use Drupal\Core\Field\FieldTypePluginManager;
 /**
  * A stub of the Drupal's default FieldTypePluginManager class.
  *
+ *  @package TestHelpers\DrupalServiceStubs
+ *
  * @phpstan-ignore-next-line We still need to alter the plugin declaration.
  */
 class FieldTypeManagerStub extends FieldTypePluginManager {

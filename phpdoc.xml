@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdocumentor
+        configVersion="3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="https://www.phpdoc.org"
+>
+    <title>Drupal Test Helpers module API documentation</title>
+    <version number="3.0.0">
+        <api>
+            <source dsn=".">
+                <path>src/TestHelpers.php</path>
+                <path>src/Stub</path>
+                <path>src/StubFactory</path>
+                <path>src/utils</path>
+            </source>
+        </api>
+    </version>
+</phpdocumentor>

@@ -72,7 +72,11 @@ defined('SAVED_NEW') || define('SAVED_NEW', 1);
 defined('SAVED_UPDATED') || define('SAVED_UPDATED', 2);
 
 /**
- * Helper functions to simplify writing of Unit Tests.
+ * The main API functions for Test Helpers.
+ *
+ * Use only static calls like `TestHelpers::method()`.
+ *
+ * @package TestHelpers
  */
 class TestHelpers {
 
@@ -82,8 +86,10 @@ class TestHelpers {
    * Key: a service name.
    * Value: a service class, or a callback function to initialize an instance
    * as array in format "[className, functionName]".
+   *
+   * @internal For internal usage only.
    */
-  public const SERVICES_CUSTOM_STUBS = [
+  private const SERVICES_CUSTOM_STUBS = [
     // @todo Get rid of this service.
     'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
 
@@ -115,8 +121,10 @@ class TestHelpers {
 
   /**
    * A list of core services that can be initialized automatically.
+   *
+   * @internal For internal usage only.
    */
-  public const SERVICES_CORE_INIT = [
+  private const SERVICES_CORE_INIT = [
     'cache_tags.invalidator',
     'cache.backend.memory',
     'cache.config',
@@ -488,6 +496,8 @@ class TestHelpers {
    *
    * @return array
    *   A list of resolved arguments.
+   *
+   * @internal For internal usage only.
    */
   private static function resolveServiceArguments(array $arguments = []): array {
     $container = self::getContainer();
@@ -785,6 +795,8 @@ class TestHelpers {
    *
    * @return object
    *   The service instance.
+   *
+   * @internal For internal usage only.
    */
   private static function initServiceFromInfo(array $info, array $mockMethods = NULL) {
     $info['arguments'] ??= [];
@@ -1799,6 +1811,8 @@ EOT;
 
   /**
    * An internal callback helper function for array_uintersect.
+   *
+   * @internal For internal usage only.
    */
   private static function isValueSubsetOfCallback($expected, $value): int {
     // The callback function for array_uintersect should return
@@ -1817,6 +1831,8 @@ EOT;
    *
    * @return array
    *   A copy of the array with replaced objects to strings.
+   *
+   * @internal For internal usage only.
    */
   private static function arrayObjectsToStrings(array $array): array {
     $arrayCopy = $array;
@@ -1832,6 +1848,8 @@ EOT;
    *
    * @param mixed $item
    *   An array item value.
+   *
+   * @internal For internal usage only.
    */
   private static function arrayObjectsToStringsCallback(&$item) {
     if (is_object($item)) {
@@ -1850,6 +1868,8 @@ EOT;
    *
    * @return string|null
    *   A string representation of the value, if $return is true.
+   *
+   * @internal For internal usage only.
    */
   private static function shorthandVarExport($value, $return = FALSE) {
     $export = var_export($value, TRUE);
@@ -1893,6 +1913,8 @@ EOT;
    *   A JSON string.
    * @param bool $override
    *   A flag to override the current parameters.
+   *
+   * @internal For internal usage only.
    */
   private static function loadParametersFromJson(string $json, bool $override = TRUE): void {
     $container = self::getContainer();
@@ -1906,6 +1928,8 @@ EOT;
 
   /**
    * Gets a service info from a YAML file.
+   *
+   * @internal For internal usage only.
    */
   private static function getServiceInfoFromYaml(string $serviceName, string $servicesYamlFile, bool $skipLoadingParams = FALSE): array {
     $filePath = (str_starts_with($servicesYamlFile, DIRECTORY_SEPARATOR) ? '' : self::getDrupalRoot()) . DIRECTORY_SEPARATOR . $servicesYamlFile;
@@ -1918,6 +1942,8 @@ EOT;
 
   /**
    * Converts a condition in Search API format to the associative array.
+   *
+   * @internal For internal usage only.
    */
   private static function conditionsSearchApiObjectsToArray(array $conditionsAsObjects): array {
     foreach ($conditionsAsObjects as $delta => $conditionAsObject) {
@@ -1932,6 +1958,8 @@ EOT;
 
   /**
    * Gets a service class by name, using Drupal defaults or a custom YAML file.
+   *
+   * @internal For internal usage only.
    */
   private static function getServiceInfo(string $serviceName, string $servicesYamlFile = NULL): array {
     if ($serviceName == 'kernel') {
@@ -2035,6 +2063,8 @@ EOT;
    *   - [['methodName1', $priority], ['methodName2']].
    * @param array $arguments
    *   Arguments to pass to the method.
+   *
+   * @internal For internal usage only.
    */
   private static function callClassMethods(object $class, $methods, array $arguments = []) {
     $methodsToCall = [];
@@ -2109,6 +2139,8 @@ EOT;
    *
    * @return mixed
    *   A result of file parsing.
+   *
+   * @internal For internal usage only.
    */
   private static function parseYamlFile(string $servicesFile) {
     static $cache;
@@ -2126,6 +2158,8 @@ EOT;
    * Disables a construtor calls to allow only static calls.
    *
    * @codeCoverageIgnore
+   *
+   * @internal For internal usage only.
    */
   private function __construct() {
   }
@@ -2139,6 +2173,8 @@ EOT;
    *   The expected value.
    * @param mixed $actual
    *   The actual value.
+   *
+   * @internal For internal usage only.
    */
   private static function throwMatchError(string $subject, $expected, $actual) {
     trigger_error(

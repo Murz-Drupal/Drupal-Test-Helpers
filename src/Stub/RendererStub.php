@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * A stub for the renderer service.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class RendererStub extends Renderer {
 

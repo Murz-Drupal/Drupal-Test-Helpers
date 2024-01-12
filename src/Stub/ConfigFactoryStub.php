@@ -12,6 +12,8 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * A stub of the Drupal's default ConfigFactory class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class ConfigFactoryStub extends ConfigFactory {
 

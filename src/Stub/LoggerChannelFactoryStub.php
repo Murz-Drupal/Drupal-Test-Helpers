@@ -8,6 +8,8 @@ use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default LoggerChannelFactory class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class LoggerChannelFactoryStub extends LoggerChannelFactory {
 

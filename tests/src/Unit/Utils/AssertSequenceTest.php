@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\test_helpers\Unit\utils;
+namespace Drupal\Tests\test_helpers\Unit\Utils;
 
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers\utils\AssertSequence;
@@ -17,7 +17,7 @@ class AssertSequenceTest extends UnitTestCase {
    *
    * @var \Drupal\test_helpers\utils\AssertSequence
    */
-  static protected $assertSequence;
+  protected static $assertSequence;
 
   /**
    * @covers ::callEventSubscriber

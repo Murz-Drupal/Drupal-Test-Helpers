@@ -19,6 +19,8 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 /**
  * A stub of the Drupal's default EntityTypeManager class.
  *
+ *  @package TestHelpers\DrupalServiceStubs
+ *
  * @phpstan-ignore-next-line We still need to alter the plugin declaration.
  */
 class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManagerStubInterface {

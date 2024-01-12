@@ -19,6 +19,8 @@ namespace Drupal\test_helpers\utils;
  * $controller->articleList();
  * $assertSequence->finalize();
  * ```
+ *
+ * @package TestHelpers\Utils
  */
 class AssertSequence {
 

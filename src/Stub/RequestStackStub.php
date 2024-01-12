@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * A stub for the request_stack service.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class RequestStackStub extends RequestStack {
 

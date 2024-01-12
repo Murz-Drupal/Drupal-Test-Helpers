@@ -10,6 +10,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * A stub of the Drupal's default Connection class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class DatabaseStub extends Connection {
 

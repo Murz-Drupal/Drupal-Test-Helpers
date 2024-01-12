@@ -6,6 +6,8 @@ use Drupal\user\PermissionHandler;
 
 /**
  * A stub for the request_stack service.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class PermissionHandlerStub extends PermissionHandler {
 

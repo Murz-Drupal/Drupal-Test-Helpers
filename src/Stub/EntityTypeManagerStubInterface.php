@@ -6,6 +6,8 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * The EntityTypeManagerStubFactory class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
 

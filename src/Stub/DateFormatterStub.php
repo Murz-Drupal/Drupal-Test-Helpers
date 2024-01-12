@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * A stub of the Drupal's default DateFormatter class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class DateFormatterStub extends DateFormatter {
 

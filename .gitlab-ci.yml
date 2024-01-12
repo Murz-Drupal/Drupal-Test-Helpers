@@ -38,6 +38,10 @@ include:
       - '/includes/include.drupalci.main.yml'
       - '/includes/include.drupalci.variables.yml'
       - '/includes/include.drupalci.workflows.yml'
+    rules:
+      # Process only if we're on the Drupal.org Gitlab instance.
+      - if: '$_GITLAB_TEMPLATES_REPO == "project/gitlab_templates"'
+
 ################
 # Pipeline configuration variables
 #
@@ -62,3 +66,18 @@ variables:
   _PHPUNIT_EXTRA: --verbose
   # Convenient, and we have no secrets.
   _SHOW_ENVIRONMENT_VARIABLES: 1
+
+docs-gitlab-pages:
+  image:
+    name: phpdoc/phpdoc
+    entrypoint: [""] # force an empty entrypoint
+  script:
+    - phpdoc -t public --title "Drupal Test Helpers module API documentation - branch $CI_COMMIT_REF_NAME"
+  artifacts:
+    paths:
+      - public
+  rules:
+    # Process only if we're on the Gitlab.org instance with the right repo and only for release branches.
+    - if: '$CI_PROJECT_PATH == "murz-drupal/test_helpers"'
+    - if: '$CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.x$/"'
+    - if: '$CI_JOB_STAGE == "deploy"'

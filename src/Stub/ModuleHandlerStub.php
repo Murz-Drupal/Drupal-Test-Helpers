@@ -8,6 +8,8 @@ use Drupal\test_helpers\TestHelpers;
 
 /**
  * A stub of the Drupal's default ModuleHandler class.
+ *
+ *  @package TestHelpers\DrupalServiceStubs
  */
 class ModuleHandlerStub extends ModuleHandler {
 
