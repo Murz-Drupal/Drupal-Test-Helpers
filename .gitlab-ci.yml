@@ -71,6 +71,7 @@ docs-gitlab-pages:
   image:
     name: phpdoc/phpdoc
     entrypoint: [""] # force an empty entrypoint
+  environment: production
   script:
     - phpdoc -t public --title "Drupal Test Helpers module API documentation - branch $CI_COMMIT_REF_NAME"
   artifacts:
