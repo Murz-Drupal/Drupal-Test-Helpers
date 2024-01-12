@@ -7,6 +7,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * A helper class to mock UploadedFile objects.
+ *
+ * @deprecated in test_helpers:1.3.0 and is removed from test_helpers:1.4.0.
+ *   Use the `mikey179/vfsstream` package instead.
+ *
+ * @see https://www.drupal.org/project/test_helpers/issues/3400489
  */
 class UploadedFileStub extends UploadedFile {
   /**
