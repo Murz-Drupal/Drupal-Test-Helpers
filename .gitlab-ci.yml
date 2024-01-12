@@ -80,4 +80,4 @@ docs-gitlab-pages:
     # Process only if we're on the Gitlab.org instance with the right repo and only for release branches.
     - if: '$CI_PROJECT_PATH == "murz-drupal/test_helpers"'
     - if: '$CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.x$/"'
-    - if: '$CI_JOB_STAGE == "deploy"'
+    - if: '$CI_JOB_STAGE == "deploy" || $CI_JOB_STAGE == "test"'
