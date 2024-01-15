@@ -67,53 +67,13 @@ variables:
   # Convenient, and we have no secrets.
   _SHOW_ENVIRONMENT_VARIABLES: 1
 
-test-env:
-  script:
-    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
-
-test-env2:
-  script:
-    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
-  rules:
-    - if: |
-        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
-        && (
-          ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
-          || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
-        )
-
 pages:
   image:
     name: phpdoc/phpdoc
-    entrypoint: [""] # force an empty entrypoint
+    entrypoint: [""] # A workaround to force an empty entrypoint
   script:
     - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"'
-    - phpdoc -t public --title "Drupal Test Helpers module API documentation - branch $CI_COMMIT_REF_NAME"
-  # artifacts:
-  #   paths:
-  #     - public
+    - phpdoc -t public --title "Drupal Test Helpers module API documentation - release $CI_COMMIT_REF_NAME"
   rules:
-  - if: "$CI_COMMIT_REF_NAME == $CI_COMMIT_REF_NAME"
-
-pages-gitlab-com:
-  image:
-    name: phpdoc/phpdoc
-    entrypoint: [""] # force an empty entrypoint
-  script:
-    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"'
-    - phpdoc -t public --title "Drupal Test Helpers module API documentation - branch $CI_COMMIT_REF_NAME"
-  artifacts:
-    paths:
-      - public
-  rules:
-    # Process only for stable release tags.
-    # On gitlab.com we have "murz-drupal/test_helpers" project name and should
-    # use the "deploy" step".
-    # On git.drupalcode.org "project/test_helpers" project name and should
-    # use the "test" step.
-    - if: |
-        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
-        && (
-          ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
-          || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
-        )
+  # Generate documentation only for stable releases tags.
+  - if: $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
