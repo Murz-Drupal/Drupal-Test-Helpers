@@ -67,6 +67,21 @@ variables:
   # Convenient, and we have no secrets.
   _SHOW_ENVIRONMENT_VARIABLES: 1
 
+test-env:
+  script:
+    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
+
+test-env2:
+  script:
+    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
+  rules:
+    - if: |
+        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
+        && (
+          ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
+          || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
+        )
+
 pages:
   image:
     name: phpdoc/phpdoc
