@@ -692,6 +692,8 @@ class TestHelpers {
    *   The list of new methods to make them mokable.
    * @param bool $initService
    *   Initializes core service with constructor and passing all dependencies.
+   * @param string $servicesYamlFile
+   *   A path to the services.yaml file when it can't be properly autodetected.
    *
    * @return object
    *   The initialised service object.
@@ -702,7 +704,8 @@ class TestHelpers {
     bool $forceOverride = NULL,
     array $mockMethods = NULL,
     array $addMockableMethods = NULL,
-    bool $initService = NULL
+    bool $initService = NULL,
+    string $servicesYamlFile = NULL
   ): object {
     $addMockableMethods ??= [];
     $container = self::getContainer();
@@ -743,7 +746,7 @@ class TestHelpers {
       }
     }
     elseif ($class === NULL) {
-      $serviceInfo = self::getServiceInfo($serviceName);
+      $serviceInfo = self::getServiceInfo($serviceName, $servicesYamlFile);
 
       if ($initService) {
         if (is_array($serviceStub)) {
@@ -1978,6 +1981,21 @@ EOT;
         // Trying to auto detect the location of the services file.
         $calledModulePath = self::getModuleRoot();
         $calledModuleName = self::getModuleName();
+
+        // For cases when we have an intermediate call from the test_helpers
+        // itself.
+        if ($calledModuleName == 'test_helpers') {
+          $depth = 2;
+          do {
+            $calledModulePath2 = self::getModuleRoot($depth);
+            $calledModuleName2 = self::getModuleName($depth);
+            $depth++;
+          } while (
+            $calledModuleName2 == 'test_helpers'
+            && $depth < 10
+          );
+          $fileParentModule = "$calledModulePath2/$calledModuleName2.services.yml";
+        }
         $file = "$calledModulePath/$calledModuleName.services.yml";
       }
     }
@@ -1985,6 +2003,12 @@ EOT;
       $file = (str_starts_with($servicesYamlFile, DIRECTORY_SEPARATOR) ? '' : self::getDrupalRoot()) . DIRECTORY_SEPARATOR . $servicesYamlFile;
     }
     $serviceYaml = self::parseYamlFile($file);
+    if (
+      !isset($serviceYaml['services'][$serviceName])
+      && isset($fileParentModule)
+    ) {
+      $serviceYaml = self::parseYamlFile($fileParentModule);
+    }
     if (isset($serviceYaml['services'][$serviceName])) {
       $info = $serviceYaml['services'][$serviceName];
     }
@@ -1994,7 +2018,12 @@ EOT;
       ];
     }
     else {
-      throw new \Exception("Service '$serviceName' is not found in the list of core services and in the current module file ($file).");
+      if (!file_exists($file)) {
+        throw new \Exception("The services file '$file' is not found.");
+      }
+      else {
+        throw new \Exception("The service '$serviceName' is not found in the list of core services and in the current module file ($file).");
+      }
     }
     if (isset($info['parent'])) {
       $infoParent = self::getServiceInfo($info['parent']);
@@ -2008,6 +2037,9 @@ EOT;
       if (isset($infoParent['factory'])) {
         $info['factory'] = $infoParent['factory'];
       }
+    }
+    if (!isset($info['class'])) {
+      $info['class'] = $serviceName;
     }
     return $info;
   }

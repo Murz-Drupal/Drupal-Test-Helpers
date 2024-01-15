@@ -78,7 +78,14 @@ docs-gitlab-pages:
     paths:
       - public
   rules:
-    # Process only if we're on the Gitlab.org instance with the right repo and only for release branches.
-    - if: '$CI_PROJECT_PATH == "murz-drupal/test_helpers"'
-    - if: '$CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.x$/"'
-    - if: '$CI_JOB_STAGE == "deploy" || $CI_JOB_STAGE == "test"'
+    # Process only for release branches and:
+    # On gitlab.com we have "murz-drupal/test_helpers" project name and should
+    # use the "deploy" step".
+    # On git.drupalcode.org "project/test_helpers" project name and should
+    # use the "test" step.
+    - if: |
+        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.x$/"
+        && (
+          ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
+          || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
+        )

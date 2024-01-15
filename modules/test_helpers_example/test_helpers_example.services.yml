@@ -9,3 +9,7 @@ services:
       - '@messenger'
     tags:
       - { name: 'event_subscriber' }
+
+  # A helper service to test the funciton initService().
+  Symfony\Component\Yaml\Parser:
+    arguments: []
