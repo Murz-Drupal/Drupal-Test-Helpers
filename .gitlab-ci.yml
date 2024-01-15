@@ -82,35 +82,6 @@ test-env2:
           || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
         )
 
-test-env3:
-  image:
-    entrypoint: [""] # force an empty entrypoint
-  script:
-    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
-  rules:
-    - if: |
-        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
-        && (
-          ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
-          || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
-        )
-
-test-env4:
-  image:
-    entrypoint: [""] # force an empty entrypoint
-  script:
-    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
-  rules:
-    - if: |
-        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
-        && (
-          ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
-          || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
-        )
-  artifacts:
-    paths:
-      - public
-
 pages:
   image:
     name: phpdoc/phpdoc
