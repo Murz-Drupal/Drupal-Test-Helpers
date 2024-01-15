@@ -69,7 +69,7 @@ variables:
 
 test-env:
   script:
-    - echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"
+    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"'
 
 pages:
   image:
