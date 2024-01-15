@@ -67,7 +67,7 @@ variables:
   # Convenient, and we have no secrets.
   _SHOW_ENVIRONMENT_VARIABLES: 1
 
-docs-gitlab-pages:
+pages:
   image:
     name: phpdoc/phpdoc
     entrypoint: [""] # force an empty entrypoint
