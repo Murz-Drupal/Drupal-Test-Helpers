@@ -93,7 +93,7 @@ pages:
   #   paths:
   #     - public
   rules:
-  - if: "1 == 1"
+  - if: "$CI_COMMIT_REF_NAME == $CI_COMMIT_REF_NAME"
 
 pages-gitlab-com:
   image:
