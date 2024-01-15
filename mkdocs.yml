@@ -1,3 +1,6 @@
 # This is a placeholder file to enable the 'pages' job in Drupal Gitlab.
 # The project actually uses phpdoc to generate documentation.
 # The configuration file: `phpdoc.xml`.
+
+# A placeholder value to pass eslint error.
+foo: bar
