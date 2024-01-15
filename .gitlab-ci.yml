@@ -69,7 +69,23 @@ variables:
 
 test-env:
   script:
-    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"'
+    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
+
+test-env2:
+  script:
+    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH CI_PROJECT_PATH $CI_PROJECT_PATH"'
+  rules:
+    # Process only for stable release tags.
+    # On gitlab.com we have "murz-drupal/test_helpers" project name and should
+    # use the "deploy" step".
+    # On git.drupalcode.org "project/test_helpers" project name and should
+    # use the "test" step.
+    - if: |
+        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.(x|\d+)$/"
+        && (
+          ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
+          || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
+        )
 
 pages:
   image:
@@ -82,13 +98,13 @@ pages:
     paths:
       - public
   rules:
-    # Process only for release tags.
+    # Process only for stable release tags.
     # On gitlab.com we have "murz-drupal/test_helpers" project name and should
     # use the "deploy" step".
     # On git.drupalcode.org "project/test_helpers" project name and should
     # use the "test" step.
     - if: |
-        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+)$/"
+        $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
         && (
           ($CI_PROJECT_PATH == "murz-drupal/test_helpers" && $CI_JOB_STAGE == "deploy")
           || ($CI_PROJECT_PATH == "project/test_helpers" && $CI_JOB_STAGE == "test")
