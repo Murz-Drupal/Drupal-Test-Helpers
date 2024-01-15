@@ -76,7 +76,7 @@ pages:
     name: phpdoc/phpdoc
     entrypoint: [""] # force an empty entrypoint
   script:
-    - echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"
+    - 'echo "Environment: CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"'
     - phpdoc -t public --title "Drupal Test Helpers module API documentation - branch $CI_COMMIT_REF_NAME"
   artifacts:
     paths:
