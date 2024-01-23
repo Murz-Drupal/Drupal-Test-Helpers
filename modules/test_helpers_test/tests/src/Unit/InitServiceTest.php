@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\test_helpers_example\Unit\InternalTests;
+namespace Drupal\Tests\test_helpers_test\Unit;
 
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
@@ -24,7 +24,7 @@ class InitServiceTest extends UnitTestCase {
       NULL,
       NULL,
       NULL,
-      dirname(__FILE__) . '/../../../../test_helpers_example.services.yml'
+      dirname(__FILE__) . '/../../../test_helpers_test.services.yml'
     );
     $this->assertInstanceOf(Parser::class, $service);
 

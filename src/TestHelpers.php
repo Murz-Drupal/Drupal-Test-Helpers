@@ -2018,7 +2018,7 @@ EOT;
       ];
     }
     else {
-      if (!file_exists($file)) {
+      if ($servicesYamlFile !== NULL && !file_exists($file)) {
         throw new \Exception("The services file '$file' is not found.");
       }
       else {
