@@ -1,0 +1,4 @@
+services:
+  # A helper service to test the function initService().
+  Symfony\Component\Yaml\Parser:
+    arguments: []

@@ -23,12 +23,25 @@ class PermissionHandlerStubTest extends UnitTestCase {
     $this->assertEquals([], $service->getPermissions());
 
     $permissionsBundle1 = [
-      'create any block content' => ['title' => 'T1', 'description' => 'D1', 'dependencies' => [], 'provider' => 'p1'],
-      'delete any block content' => ['title' => 'T2', 'description' => 'D2'],
+      'create any block content' => [
+        'title' => 'T1',
+        'description' => 'D1',
+        'dependencies' => [],
+        'provider' => 'p1',
+      ],
+      'delete any block content' => [
+        'title' => 'T2',
+        'description' => 'D2',
+      ],
     ];
     $permissionsBundle2 = [
-      'delete any block content' => ['title' => 'T2v2', 'description' => 'D2v2'],
-      'view restricted block content' => ['title' => 'T3'],
+      'delete any block content' => [
+        'title' => 'T2v2',
+        'description' => 'D2v2',
+      ],
+      'view restricted block content' => [
+        'title' => 'T3',
+      ],
     ];
 
     $service->stubAddPermissions($permissionsBundle1);

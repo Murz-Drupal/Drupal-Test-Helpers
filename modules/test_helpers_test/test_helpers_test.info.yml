@@ -1,0 +1,7 @@
+name: Test Helpers Test
+type: module
+description: A test module to help testing the main functionality.
+package: Custom
+core: 8.x
+core_version_requirement: ^8 || ^9 || ^10
+hidden: true
