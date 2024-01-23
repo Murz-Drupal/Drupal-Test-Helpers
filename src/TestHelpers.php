@@ -23,8 +23,8 @@ use Drupal\test_helpers\lib\MockedFunctionStorage;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
+use Drupal\test_helpers\Stub\ConnectionStub;
 use Drupal\test_helpers\Stub\DatabaseStorageStub;
-use Drupal\test_helpers\Stub\DatabaseStub;
 use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\test_helpers\Stub\DrupalKernelStub;
 use Drupal\test_helpers\Stub\EntityBundleListenerStub;
@@ -99,7 +99,7 @@ class TestHelpers {
     'config.factory' => ConfigFactoryStub::class,
     'config.storage.active' => DatabaseStorageStub::class,
     'config.storage.snapshot' => DatabaseStorageStub::class,
-    'database' => DatabaseStub::class,
+    'database' => ConnectionStub::class,
     'date.formatter' => DateFormatterStub::class,
     'entity_bundle.listener' => EntityBundleListenerStub::class,
     'entity_field.manager' => EntityFieldManagerStub::class,

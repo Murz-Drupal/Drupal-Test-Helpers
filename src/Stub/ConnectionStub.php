@@ -13,7 +13,7 @@ use PHPUnit\Framework\MockObject\MockObject;
  *
  *  @package TestHelpers\DrupalServiceStubs
  */
-class DatabaseStub extends Connection {
+class ConnectionStub extends Connection {
 
   /**
    * The static storage for execute functions.
