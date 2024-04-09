@@ -50,8 +50,8 @@ class PrivateMethodsPropertiesTest extends UnitTestCase {
    */
   public function testProtectedUtilitiesWithStaticClass() {
     $this->assertSame('propertyOneValue', TestHelpers::getPrivateProperty(StaticClassWithProtectedItemsStub::class, 'propertyOne'));
-    TestHelpers::setPrivateProperty(StaticClassWithProtectedItemsStub::class, 'propertyOne', 'propertyOneOverrided');
-    $this->assertSame('propertyOneOverrided', TestHelpers::getPrivateProperty(StaticClassWithProtectedItemsStub::class, 'propertyOne'));
+    TestHelpers::setPrivateProperty(StaticClassWithProtectedItemsStub::class, 'propertyOne', 'propertyOneOverridden');
+    $this->assertSame('propertyOneOverridden', TestHelpers::getPrivateProperty(StaticClassWithProtectedItemsStub::class, 'propertyOne'));
     $this->assertSame('functionOneResult', TestHelpers::callPrivateMethod(StaticClassWithProtectedItemsStub::class, 'functionOne'));
   }
 

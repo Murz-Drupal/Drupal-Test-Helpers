@@ -180,7 +180,7 @@ class EntityStubFactory {
         $entity,
         'bundleFieldDefinitions',
         function (EntityTypeInterface $entity_type, $bundle, array $base_field_definitions) {
-          return TestHelpers::service('entity_field.manager')->stubGetFieldDefinitons($entity_type, $bundle);
+          return TestHelpers::service('entity_field.manager')->stubGetFieldDefinitions($entity_type, $bundle);
         }
       );
     }
@@ -295,7 +295,7 @@ class EntityStubFactory {
             $newDefinition->setName($name);
             // @phpstan-ignore-next-line `$this` will be available in the runtime.
             $this->fieldDefinitions[$name] = $newDefinition;
-            TestHelpers::service('entity_field.manager')->stubAddFieldDefiniton($entityTypeId, $bundle, $name, $newDefinition);
+            TestHelpers::service('entity_field.manager')->stubAddFieldDefinition($entityTypeId, $bundle, $name, $newDefinition);
           }
           /** @var \Drupal\Core\Field\BaseFieldDefinition $definition */
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
@@ -345,7 +345,7 @@ class EntityStubFactory {
       }
     );
     $entity->stubInitValues($values);
-    // Applying tranlsations manually after all our initializations applied.
+    // Applying translations manually after all our initializations applied.
     if ($translations) {
       foreach ($translations as $langcode => $translation) {
         $entity->addTranslation($langcode, $translation);

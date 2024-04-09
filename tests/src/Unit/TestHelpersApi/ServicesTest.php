@@ -202,7 +202,7 @@ class ServicesTest extends UnitTestCase {
 
     // The case with the service name as an argument is tested in the
     // Drupal\Tests\test_helpers_example\Unit\ConfigEventsSubscriberTest()
-    // because it requires a 'services.yml' file to be presend, but for this
+    // because it requires a 'services.yml' file to be pre-send, but for this
     // module it is not needed.
   }
 

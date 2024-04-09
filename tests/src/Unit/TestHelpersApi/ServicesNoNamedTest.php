@@ -10,7 +10,7 @@ use Symfony\Component\Yaml\Parser;
  * @coversDefaultClass \Drupal\test_helpers\TestHelpers
  * @group test_helpers
  */
-class ServicesNonamedTest extends UnitTestCase {
+class ServicesNoNamedTest extends UnitTestCase {
 
   /**
    * @covers ::service

@@ -62,7 +62,7 @@ class UploadedFileStub extends UploadedFile {
    *
    * The '#[\ReturnTypeWillChange]' attribute is used to suppress the
    * "Return type of _ the should either be compatible" warning to keep the
-   * compatibiltiy with PHP 7.4 and 8.1 together.
+   * compatibility with PHP 7.4 and 8.1 together.
    */
   #[\ReturnTypeWillChange]
   public function getRealPath() {
@@ -74,7 +74,7 @@ class UploadedFileStub extends UploadedFile {
    *
    * The '#[\ReturnTypeWillChange]' attribute is used to suppress the
    * "Return type of _ the should either be compatible" warning to keep the
-   * compatibiltiy with PHP 7.4 and 8.1 together.
+   * compatibility with PHP 7.4 and 8.1 together.
    */
   #[\ReturnTypeWillChange]
   public function getSize() {

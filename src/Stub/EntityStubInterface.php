@@ -15,7 +15,7 @@ interface EntityStubInterface {
   public function stubInitValues(array $values): void;
 
   /**
-   * Sets an object directluy to an entity field.
+   * Sets an object directly to an entity field.
    *
    * @param string $fieldName
    *   A field name.

@@ -38,7 +38,7 @@ class CacheContextsManagerStubTest extends UnitTestCase {
     $this->assertFalse($cacheContextsManagerStub->assertValidTokens(['custom_context3']));
 
     $cacheContextsManagerStub->stubSetContexts(['custom_context2']);
-    // Should return FALSE because the context should be overriten as missing.
+    // Should return FALSE because the context should be overridden as missing.
     $this->assertFalse($cacheContextsManagerStub->assertValidTokens(['custom_context1:group1']));
 
   }

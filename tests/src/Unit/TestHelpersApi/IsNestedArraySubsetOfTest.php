@@ -49,7 +49,7 @@ class IsNestedArraySubsetOfTest extends UnitTestCase {
 
     $this->assertFalse(TestHelpers::isNestedArraySubsetOf(
       ['foo', ['bar', 'key' => 'baz']],
-      ['key' => ['bazz']],
+      ['key' => ['bar']],
     ));
 
     $this->assertTrue(TestHelpers::isNestedArraySubsetOf(

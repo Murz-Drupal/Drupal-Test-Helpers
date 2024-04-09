@@ -50,13 +50,13 @@ class EntityStubFactoryTest extends UnitTestCase {
       'field_custom_field1' => 'Value 1',
       'field_custom_field2' => NULL,
     ]);
-    $node1->title = 'Node 1 overriden';
-    $node1->field_custom_field1 = 'Overriden value 1';
-    $node1->field_custom_field2 = 'Overriden value 2';
-    $this->assertEquals('Node 1 overriden', $node1->label());
-    $this->assertEquals('Node 1 overriden', $node1->title->value);
-    $this->assertEquals('Overriden value 1', $node1->field_custom_field1->value);
-    $this->assertEquals('Overriden value 2', $node1->field_custom_field2->value);
+    $node1->title = 'Node 1 overridden';
+    $node1->field_custom_field1 = 'Overridden value 1';
+    $node1->field_custom_field2 = 'Overridden value 2';
+    $this->assertEquals('Node 1 overridden', $node1->label());
+    $this->assertEquals('Node 1 overridden', $node1->title->value);
+    $this->assertEquals('Overridden value 1', $node1->field_custom_field1->value);
+    $this->assertEquals('Overridden value 2', $node1->field_custom_field2->value);
     $this->assertEquals('Bob', $node1->uid->entity->label());
     $this->assertEquals('Bob', $node1->uid->entity->label());
     $node1->save();
@@ -70,7 +70,7 @@ class EntityStubFactoryTest extends UnitTestCase {
 
     $node1Loaded = \Drupal::service('entity_type.manager')->getStorage('node')->load(1);
     $this->assertEquals($node1Loaded->label(), $node1->label());
-    $this->assertEquals('Overriden value 2', $node1Loaded->field_custom_field2->value);
+    $this->assertEquals('Overridden value 2', $node1Loaded->field_custom_field2->value);
     $this->assertEquals('Article', $node1Loaded->type->entity->label());
 
     $node2Loaded = \Drupal::service('entity_type.manager')->getStorage('node')->load(42);

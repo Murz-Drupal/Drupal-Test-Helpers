@@ -55,7 +55,7 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
    * @param string $code
    *   A language code.
    * @param string|null $label
-   *   A label for the language, if NULL - getted from standart list.
+   *   A label for the language, if NULL - get from standard list.
    */
   public function stubAddLanguage(string $code, string $label = NULL) {
     $values = $this->languageValuesFromCode($code, $label);
@@ -70,13 +70,13 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
   /**
    * Adds languages to the stub.
    *
-   * @param array $languagecodes
+   * @param array $languageCodes
    *   A list of languages codes.
    */
-  public function stubAddLanguages(array $languagecodes) {
-    foreach ($languagecodes as $languagecode) {
+  public function stubAddLanguages(array $languageCodes) {
+    foreach ($languageCodes as $languageCode) {
       // @todo Add support for arrays with language code and name.
-      $this->stubAddLanguage($languagecode);
+      $this->stubAddLanguage($languageCode);
     }
   }
 

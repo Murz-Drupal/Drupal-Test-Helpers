@@ -66,6 +66,7 @@ variables:
   _PHPUNIT_EXTRA: --verbose
   # Convenient, and we have no secrets.
   _SHOW_ENVIRONMENT_VARIABLES: 1
+  _CSPELL_IGNORE_PATHS: "src/lib/CoreFeaturesMaps/**"
 
 pages:
   image:

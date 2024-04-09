@@ -5,7 +5,7 @@
  * @file
  * Generates list of services and entities from the current Drupal Core.
  *
- * Requres a clean installation of Drupal, without any contrib modules.
+ * Requires a clean installation of Drupal, without any contrib modules.
  */
 
 use Drupal\Core\DrupalKernel;
@@ -19,7 +19,7 @@ use Symfony\Component\Yaml\Yaml;
 // drush/drush:^8.
 // For versions less than 9.3 - use PHP < 8.1.
 // @codingStandardsIgnoreLine
-const ONELINER = '
+const ONE_LINER = '
 export DRUPAL_VERSION=9.4
 export ISSUE_ID=3388492
 export ISSUE_BRANCH=3388492-parent-services

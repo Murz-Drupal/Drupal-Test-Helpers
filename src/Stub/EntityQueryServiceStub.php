@@ -66,7 +66,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
         foreach ($this->condition->conditions() as $condition) {
           // SqlContentEntityStorage::buildPropertyQuery() adds a strange
           // condition to check that default_langcode = 1, here we just skip it.
-          // @todo Investiage it deeper.
+          // @todo Investigate it deeper.
           if ($condition['field'] == 'default_langcode' && $condition['value'] === [1]) {
             continue 1;
           }
@@ -176,7 +176,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
    *   what exactly doesn't match.
    *
    * @return bool
-   *   TRUE if matchs, FALSE if not matchs.
+   *   TRUE if matches, FALSE if not matches.
    */
   public function stubCheckConditionsMatch(ConditionInterface $conditionsExpected, bool $onlyListed = FALSE, bool $throwErrors = TRUE) {
     // @phpstan-ignore-next-line `$this` will be available in the runtime.

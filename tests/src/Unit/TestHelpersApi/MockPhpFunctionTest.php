@@ -112,7 +112,7 @@ class MockPhpFunctionTest extends UnitTestCase {
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi\TestStubNamespace;
 
 /**
- * A helper class to test PHP funcitons mocking.
+ * A helper class to test PHP functions mocking.
  */
 class TestStub {
 

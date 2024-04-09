@@ -24,7 +24,7 @@ class EntityTypeBundleInfoStub extends EntityTypeBundleInfo {
    * @param \Drupal\Core\Entity\EntityInterface|null $bundleEntity
    *   The bundle info.
    * @param mixed $force
-   *   Override already setted info.
+   *   Override already set info.
    */
   public function stubSetBundleInfo(string $entityTypeId, string $bundleName, EntityInterface $bundleEntity = NULL, $force = FALSE): void {
     if ($bundleEntity) {

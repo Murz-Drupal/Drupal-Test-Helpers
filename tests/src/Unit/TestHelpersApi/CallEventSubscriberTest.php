@@ -59,7 +59,7 @@ class CallEventSubscriberTest extends UnitTestCase {
 
     // The case with just the service name as an argument is tested in the
     // Drupal\Tests\test_helpers_example\Unit\ConfigEventsSubscriberTest()
-    // because it requires a 'services.yml' file to be presend, but for this
+    // because it requires a 'services.yml' file to be present, but for this
     // module it is not needed.
   }
 
@@ -78,7 +78,7 @@ class CallEventSubscriberTest extends UnitTestCase {
         'event3',
         $event,
       );
-      $this->fail('An exception should be thown.');
+      $this->fail('An exception should be thrown.');
     }
     catch (\Exception $e) {
       $this->assertTrue(TRUE);

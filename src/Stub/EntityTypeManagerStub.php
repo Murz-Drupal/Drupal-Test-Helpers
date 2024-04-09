@@ -78,7 +78,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       'database.replica_kill_switch' => TestHelpers::createMock(ReplicaKillSwitch::class),
     ]);
 
-    // Calling original costructor with mocked services.
+    // Calling original constructor with mocked services.
     parent::__construct(
       $namespaces,
       $module_handler,

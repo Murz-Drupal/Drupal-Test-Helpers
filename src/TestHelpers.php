@@ -200,7 +200,7 @@ class TestHelpers {
    * @param string $methodName
    *   The name of the method to get.
    * @param array $arguments
-   *   The list of aruments for the calling method.
+   *   The list of arguments for the calling method.
    *
    * @return mixed
    *   The return value of the executed function.
@@ -282,7 +282,7 @@ class TestHelpers {
    * `$mockedMethod->willReturn('New Value')`.
    *
    * It's not possible with PHPUnit API, but here is a feature request about it:
-   * https://github.com/sebastianbergmann/phpunit/issues/5070 - please vote!
+   * https://github.com/sebastianbergmann/phpunit/issues/5070 - vote!
    *
    * @param \PHPUnit\Framework\MockObject\MockObject $mock
    *   A mocked object.
@@ -393,7 +393,7 @@ class TestHelpers {
    *   The name of an annotation to use.
    *
    * @return mixed
-   *   The definitoin from the plugin.
+   *   The definition from the plugin.
    */
   public static function getPluginDefinition(string $class, string $plugin = 'TypedData', string $annotationName = NULL) {
     $rc = new \ReflectionClass($class);
@@ -401,7 +401,7 @@ class TestHelpers {
     $reader = new SimpleAnnotationReader();
     $reader->addNamespace('Drupal\Core\Annotation');
     $reader->addNamespace('Drupal\Core\\' . $plugin . '\Annotation');
-    // If no annotation name is passed, just getting the first anotation.
+    // If no annotation name is passed, just getting the first annotation.
     if (!$annotationName) {
       $annotation = current($reader->getClassAnnotations($rc));
     }
@@ -679,24 +679,24 @@ class TestHelpers {
    *   The service name.
    * @param object|string|null $class
    *   The class to use in service, allowed different types:
-   *   - object: attachs the initialized object to the service.
+   *   - object: attaches the initialized object to the service.
    *   - string: creates a mock of the class by passed name.
-   *   - null: use stub from Test Heleprs of default class from Drupal Core.
+   *   - null: use stub from Test Helpers of default class from Drupal Core.
    * @param bool $forceOverride
    *   Control overriding the service:
    *   - FALSE on NULL: overrides only if the class names are different.
    *   - TRUE: always overrides the class by a new instance.
    * @param array $mockMethods
-   *   The list of exist methods to make mokable.
+   *   The list of exist methods to make mockable.
    * @param array $addMockableMethods
-   *   The list of new methods to make them mokable.
+   *   The list of new methods to make them mockable.
    * @param bool $initService
    *   Initializes core service with constructor and passing all dependencies.
    * @param string $servicesYamlFile
-   *   A path to the services.yaml file when it can't be properly autodetected.
+   *   A path to the services.yaml file when it can't be properly autodetect.
    *
    * @return object
-   *   The initialised service object.
+   *   The initialized service object.
    */
   public static function service(
     string $serviceName,
@@ -1129,7 +1129,7 @@ class TestHelpers {
    *   A flag to return all matches as a list, not only the first match.
    *
    * @return array|null
-   *   The first matched condition, or NULL if no matcheds.
+   *   The first matched condition, or NULL if no matches.
    */
   public static function findQueryCondition(object $query, $requiredCondition, bool $returnAllMatches = FALSE): ?array {
     $conditionsProperty = self::getPrivateProperty($query, 'condition');
@@ -1268,7 +1268,7 @@ class TestHelpers {
   }
 
   /**
-   * Matches a EntityQuery conditon to entity.
+   * Matches a EntityQuery condition to entity.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity to use.
@@ -1279,7 +1279,7 @@ class TestHelpers {
    *   True if matches, false if not.
    */
   public static function matchEntityCondition(EntityInterface $entity, array $condition): bool {
-    $exceptionSuffix = ' Please use function stubSetExecuteHandler() to stub the results.';
+    $exceptionSuffix = ' Use function stubSetExecuteHandler() to stub the results.';
     if (strpos($condition['field'], '.')) {
       $parts = explode('.', $condition['field']);
       if (count($parts) > 2) {
@@ -1320,7 +1320,7 @@ class TestHelpers {
         }
         return TRUE;
 
-      // NULL is treated as `=` condition for EntityQery queries.
+      // NULL is treated as `=` condition for EntityQuery queries.
       case NULL:
       case '=':
         if (is_array($value)) {
@@ -1346,7 +1346,7 @@ class TestHelpers {
         foreach ($value as $valueItem) {
           // To suppress `The use of function eval() is discouraged` warning.
           // @codingStandardsIgnoreStart
-          if (eval("return '" . addslashes($valueItem[$propertyName] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
+          if (eval ("return '" . addslashes($valueItem[$propertyName] ?? NULL) . "' " . $condition['operator'] . " '" . addslashes($condition['value']) . "';")) {
             // @codingStandardsIgnoreEnd
             return TRUE;
           }
@@ -1359,7 +1359,7 @@ class TestHelpers {
   }
 
   /**
-   * Performs a check if the actial array is a subset of expected.
+   * Performs a check if the actual array is a subset of expected.
    *
    * @param mixed $array
    *   The array to check. Returns false if passed variable is not an array.
@@ -1673,7 +1673,7 @@ class TestHelpers {
   /**
    * Gets the absolute path to a file in the called module by a relative path.
    *
-   * Usually used for woring with module's YAML files, like
+   * Usually used for working with module's YAML files, like
    * `config/install/my_module.settings.yml` or `my_module.links.menu.yml`.
    *
    * The module root is detected by the location of the file, from which this
@@ -1681,7 +1681,7 @@ class TestHelpers {
    * function from an intermediate class.
    *
    * @param string $relativePath
-   *   A realative path to a file, from the module root directory.
+   *   A relative path to a file, from the module root directory.
    * @param int|null $parentCallsLevel
    *   An optional level to skip some parent calls, if you need to detect the
    *   module from a parent function, not from which you call this function.
@@ -1752,7 +1752,7 @@ class TestHelpers {
     $storage->callback = $callback;
     $storage->calls = new MockedFunctionCalls();
 
-    // If the mocked function is not defined yet, evaulating the dynamic
+    // If the mocked function is not defined yet, evaluating the dynamic
     // definition of it.
     if (!function_exists($functionPath)) {
       $code = <<<EOT
@@ -1775,7 +1775,7 @@ function $name() {
 EOT;
       // To suppress `The use of function eval() is discouraged` warning.
       // @codingStandardsIgnoreStart
-      eval($code);
+      eval ($code);
       // @codingStandardsIgnoreEnd
     }
     return $storage->calls;
@@ -2109,7 +2109,7 @@ EOT;
       $methodsToCall[$methods[1]] = $methods[0];
     }
     else {
-      // When a list of methids is passed as array.
+      // When a list of methods is passed as array.
       foreach ($methods as $method) {
         if (is_string($method)) {
           $methodsToCall[] = $method;
@@ -2134,7 +2134,7 @@ EOT;
    * Gets a filename of a caller (parent) function.
    *
    * @param int $level
-   *   The level to use when getting a filename. By defualt '2' to get parent of
+   *   The level to use when getting a filename. By default '2' to get parent of
    *   parent caller, because for parent caller it's easier to use __FILE__
    *   construction.
    *
@@ -2187,7 +2187,7 @@ EOT;
   }
 
   /**
-   * Disables a construtor calls to allow only static calls.
+   * Disables a constructor calls to allow only static calls.
    *
    * @codeCoverageIgnore
    *

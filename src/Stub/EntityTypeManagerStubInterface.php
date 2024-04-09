@@ -19,7 +19,7 @@ interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
    * @param object|null $definition
    *   The definition.
    * @param mixed $forceOverride
-   *   Forces override of already setted definition.
+   *   Forces override of already set definition.
    *
    * @return mixed
    *   The definition.
@@ -27,14 +27,14 @@ interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
   public function stubSetDefinition(string $pluginId, object $definition = NULL, $forceOverride = FALSE);
 
   /**
-   * Creates a new hanlder, or return exists one.
+   * Creates a new handler, or return exists one.
    *
    * @param string $handlerType
    *   The handler type.
    * @param string $entityTypeId
    *   The entity type id.
    * @param object|null $handler
-   *   The hanlder object.
+   *   The handler object.
    * @param mixed $forceOverride
    *   Forces overriding of already existed one.
    *

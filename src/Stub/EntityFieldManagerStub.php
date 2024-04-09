@@ -22,7 +22,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
    * @param mixed $baseFieldDefinitions
    *   The definitions.
    */
-  public function stubSetBaseFieldDefinitons(string $entityTypeId, $baseFieldDefinitions): void {
+  public function stubSetBaseFieldDefinitions(string $entityTypeId, $baseFieldDefinitions): void {
     $this->baseFieldDefinitions[$entityTypeId] = $baseFieldDefinitions;
   }
 
@@ -38,7 +38,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
    * @param string $langcode
    *   The langcode, gets the current language if NULL.
    */
-  public function stubSetFieldDefinitons(string $entityTypeId, string $bundle, array $fieldDefinitions, string $langcode = NULL): void {
+  public function stubSetFieldDefinitions(string $entityTypeId, string $bundle, array $fieldDefinitions, string $langcode = NULL): void {
     $langcode ??= TestHelpers::service('language_manager')->getCurrentLanguage()->getId();
     $this->fieldDefinitions[$entityTypeId][$bundle][$langcode] = $fieldDefinitions;
   }
@@ -49,7 +49,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
    * @param string $entityTypeId
    *   The entity type id.
    */
-  public function stubClearFieldDefinitons(string $entityTypeId): void {
+  public function stubClearFieldDefinitions(string $entityTypeId): void {
     $this->fieldDefinitions[$entityTypeId] = [];
   }
 
@@ -67,7 +67,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
    * @param string $langcode
    *   The langcode, gets the current language if NULL.
    */
-  public function stubAddFieldDefiniton(string $entityTypeId, string $bundle, string $fieldName, FieldDefinitionInterface $fieldDefinition, string $langcode = NULL): void {
+  public function stubAddFieldDefinition(string $entityTypeId, string $bundle, string $fieldName, FieldDefinitionInterface $fieldDefinition, string $langcode = NULL): void {
     $langcode ??= TestHelpers::service('language_manager')->getCurrentLanguage()->getId();
     $this->fieldDefinitions[$entityTypeId][$bundle][$langcode][$fieldName] = $fieldDefinition;
   }

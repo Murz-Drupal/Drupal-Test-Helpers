@@ -18,7 +18,7 @@ use Drupal\test_helpers\TestHelpers;
  */
 class EntityStorageStubFactory {
   /**
-   * A static storge for entity data per entity type.
+   * A static storage for entity data per entity type.
    *
    * @var array
    */
@@ -115,7 +115,7 @@ class EntityStorageStubFactory {
     $entitiesMaxIdStorage = 0;
     $entitiesMaxRevisionIdStorage = &self::$entityDataStorage['maxRevisionId'][$entityTypeId];
     $entitiesMaxRevisionIdStorage = 0;
-    TestHelpers::service('entity_field.manager')->stubClearFieldDefinitons($entityTypeId);
+    TestHelpers::service('entity_field.manager')->stubClearFieldDefinitions($entityTypeId);
     TestHelpers::service('entity_type.manager')->stubSetDefinition($entityTypeId, $entityTypeDefinition);
 
     $constructArguments = NULL;
@@ -123,7 +123,7 @@ class EntityStorageStubFactory {
     if ($storageOptions['constructorArguments'] ?? NULL) {
       $constructArguments = $storageOptions['constructorArguments'];
     }
-    $overridedMethods = [];
+    $overriddenMethods = [];
     switch ($annotation) {
       case '\Drupal\Core\Entity\Annotation\ContentEntityType':
         $constructArguments ??= [
@@ -136,10 +136,10 @@ class EntityStorageStubFactory {
           TestHelpers::service('entity_type.bundle.info'),
           TestHelpers::service('entity_type.manager'),
         ];
-        $overridedMethods[] = 'loadMultiple';
-        $overridedMethods[] = 'loadRevision';
-        $overridedMethods[] = 'delete';
-        $overridedMethods[] = ($storageOptions['skipPrePostSave'] ?? NULL) ? 'save' : 'doSaveFieldItems';
+        $overriddenMethods[] = 'loadMultiple';
+        $overriddenMethods[] = 'loadRevision';
+        $overriddenMethods[] = 'delete';
+        $overriddenMethods[] = ($storageOptions['skipPrePostSave'] ?? NULL) ? 'save' : 'doSaveFieldItems';
 
         break;
 
@@ -150,10 +150,10 @@ class EntityStorageStubFactory {
 
           default:
             if ($storageOptions['skipPrePostSave'] ?? NULL) {
-              $overridedMethods[] = 'loadMultiple';
-              $overridedMethods[] = 'loadRevision';
-              $overridedMethods[] = 'delete';
-              $overridedMethods[] = 'save';
+              $overriddenMethods[] = 'loadMultiple';
+              $overriddenMethods[] = 'loadRevision';
+              $overriddenMethods[] = 'delete';
+              $overriddenMethods[] = 'save';
             }
             TestHelpers::service('test_helpers.keyvalue.memory');
             TestHelpers::service('module_handler');
@@ -186,11 +186,11 @@ class EntityStorageStubFactory {
       ]
     );
 
-    $mockMethods = array_unique(array_merge($overridedMethods, $storageOptions['mockMethods'] ?? []));
+    $mockMethods = array_unique(array_merge($overriddenMethods, $storageOptions['mockMethods'] ?? []));
 
     // Removing requested mocked methods from mocking by the current class.
-    $overridedMethods = array_diff(
-      $overridedMethods,
+    $overriddenMethods = array_diff(
+      $overriddenMethods,
       [...$storageOptions['mockMethods'] ?? [], ...$addMethods]
     );
     /** @var \Drupal\Core\Entity\EntityStorageInterface|\PHPUnit\Framework\MockObject\MockObject $entityStorage */
@@ -262,7 +262,7 @@ class EntityStorageStubFactory {
       $idProperty = $this->entityType->getKey('id') ?? NULL;
       if ($idProperty) {
         // The `id` value for even integer autoincrement is stored as string in
-        // Drupal, so we should follow this behaviour too.
+        // Drupal, so we should follow this behavior too.
         // @todo Make detection of id field type, and calculate only for integers.
         $id = (string) EntityStorageStubFactory::processAutoincrementId($entitiesMaxIdStorage, $entity->id());
         if (isset($entity->$idProperty)) {
@@ -353,14 +353,14 @@ class EntityStorageStubFactory {
       }
     };
 
-    if (in_array('doSaveFieldItems', $overridedMethods)) {
+    if (in_array('doSaveFieldItems', $overriddenMethods)) {
       TestHelpers::setMockedClassMethod($entityStorage, 'doSaveFieldItems', $saveFunction);
     }
-    elseif (in_array('save', $overridedMethods)) {
+    elseif (in_array('save', $overriddenMethods)) {
       TestHelpers::setMockedClassMethod($entityStorage, 'save', $saveFunction);
     }
 
-    if (in_array('delete', $overridedMethods)) {
+    if (in_array('delete', $overriddenMethods)) {
       TestHelpers::setMockedClassMethod(
         $entityStorage, 'delete', function (array $entities) use (&$entitiesStorage) {
           foreach ($entities as $entity) {
@@ -373,7 +373,7 @@ class EntityStorageStubFactory {
       );
     }
 
-    if (in_array('loadMultiple', $overridedMethods)) {
+    if (in_array('loadMultiple', $overriddenMethods)) {
       TestHelpers::setMockedClassMethod(
         $entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$entitiesStorage) {
           if ($ids === NULL) {
@@ -404,7 +404,7 @@ class EntityStorageStubFactory {
       );
     }
 
-    if (in_array('loadRevision', $overridedMethods)) {
+    if (in_array('loadRevision', $overriddenMethods)) {
       TestHelpers::setMockedClassMethod(
         $entityStorage, 'loadRevision', function ($id) use (&$entitiesStorage) {
           if (!$values = $entitiesStorage['byRevisionId'][$id] ?? NULL) {
@@ -513,10 +513,10 @@ class EntityStorageStubFactory {
    * @param mixed $storage
    *   A static storage to use.
    * @param int|string $currentId
-   *   The current id to use, or NULL to get the next autoincremented value.
+   *   The current id to use, or NULL to get the next autoincrement value.
    *
    * @return int|string
-   *   The passed value or autoincremented, if passed is NULL.
+   *   The passed value or autoincrement, if passed is NULL.
    */
   public static function processAutoincrementId(&$storage, $currentId = NULL) {
     if ($currentId) {

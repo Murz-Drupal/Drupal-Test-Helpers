@@ -97,13 +97,13 @@ class CreateEntityStubTest extends UnitTestCase {
     $this->assertEquals($node2Values['body'], $node2LoadedById->body->value);
 
     // Testing function EntityTypeManagerInterface::loadMultiple().
-    $nodeLoadedMultuple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple([
+    $nodeLoadedMultiple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple([
       $node1EntityId,
       $node2EntityId,
     ]);
-    $this->assertCount(2, $nodeLoadedMultuple);
-    $nodeLoadedMultuple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
-    $this->assertCount(3, $nodeLoadedMultuple);
+    $this->assertCount(2, $nodeLoadedMultiple);
+    $nodeLoadedMultiple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
+    $this->assertCount(3, $nodeLoadedMultiple);
 
     // Testing function EntityTypeManagerInterface::loadByProperties().
     $entities = \Drupal::service('entity_type.manager')->getStorage('node')->loadByProperties(['field_sign' => 'Alice']);
@@ -117,13 +117,13 @@ class CreateEntityStubTest extends UnitTestCase {
 
     // Testing function EntityRepositoryInterface::delete().
     $node2Entity->delete();
-    $nodeLoadedMultuple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
-    $this->assertCount(2, $nodeLoadedMultuple);
+    $nodeLoadedMultiple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
+    $this->assertCount(2, $nodeLoadedMultiple);
 
   }
 
   /**
-   * Tests creating and saving entitites.
+   * Tests creating and saving entities.
    *
    * @covers ::createEntity
    * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
