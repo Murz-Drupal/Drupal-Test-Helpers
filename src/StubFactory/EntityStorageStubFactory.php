@@ -222,16 +222,31 @@ class EntityStorageStubFactory {
           $this->entityTypeId = $this->entityType->id();
 
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $this->baseEntityClass = $this->entityType->getClass();
+          if (property_exists($this, 'baseEntityClass')) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $this->baseEntityClass = $this->entityType->getClass();
+          }
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $this->entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
+          if (property_exists($this, 'entityTypeBundleInfo')) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $this->entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
+          }
 
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $this->database = TestHelpers::service('database');
+          if (property_exists($this, 'database')) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $this->database = TestHelpers::service('database');
+          }
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $this->memoryCache = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
+          if (property_exists($this, 'memoryCache')) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $this->memoryCache = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.memory_cache.' . $this->entityTypeId);
+          }
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $this->cacheBackend = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
+          if (property_exists($this, 'cacheBackend')) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $this->cacheBackend = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
+          }
 
         }, $entityStorage, 'stubInit'
       );

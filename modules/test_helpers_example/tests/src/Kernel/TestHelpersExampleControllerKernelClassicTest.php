@@ -38,7 +38,7 @@ class TestHelpersExampleControllerKernelClassicTest extends FieldKernelTestBase 
     DateFormat::load('medium')->setPattern('d.m.Y')->save();
     $user1 = User::create(['name' => 'Alice']);
     $user1->save();
-    NodeType::create(['type' => 'article'])->save();
+    NodeType::create(['type' => 'article', 'name' => 'Article'])->save();
     // Putting coding standards ignore flag to suppress warnings until the
     // https://www.drupal.org/project/coder/issues/3185082 is fixed.
     // @codingStandardsIgnoreStart

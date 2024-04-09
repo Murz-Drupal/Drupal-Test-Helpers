@@ -30,6 +30,13 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
   protected array $namespaces;
 
   /**
+   * A list of execute functions per entity type.
+   *
+   * @var array
+   */
+  protected array $executeFunctions;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct() {
@@ -154,7 +161,6 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
    *   The entity type to attach, all entity types by default.
    */
   public function stubSetExecuteHandler(callable $function, string $entityTypeId = 'all') {
-    // @phpstan-ignore-next-line `$this` will be available in the runtime.
     $this->executeFunctions[$entityTypeId] = $function;
   }
 
