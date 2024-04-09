@@ -2,6 +2,10 @@
 
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
+use Drupal\Core\Field\EntityReferenceFieldItemList;
+use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
+use Drupal\Core\Field\FieldItemList;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
@@ -50,10 +54,10 @@ class EntityStubFactoryEntityReferenceTest extends UnitTestCase {
       [
         'fields' => [
           'field_node_reference1' =>
-          [
-            'type' => 'entity_reference',
-            'settings' => ['target_type' => 'node'],
-          ],
+            [
+              'type' => 'entity_reference',
+              'settings' => ['target_type' => 'node'],
+            ],
           'field_user_reference1' => $entityReferenceUserFieldDefinition,
           'field_node_reference2' => $entityReferenceNodeFieldDefinition,
         ],
@@ -64,6 +68,10 @@ class EntityStubFactoryEntityReferenceTest extends UnitTestCase {
     $this->assertEquals('Bob', $node2->field_user_reference1->entity->label());
     $this->assertEquals('Entity reference test 1', $node2->field_node_reference1->entity->label());
     $this->assertEquals('Entity reference test 1', $node2->field_node_reference2->entity->label());
+    $this->assertInstanceOf(FieldItemList::class, $node2->uid);
+    $this->assertInstanceOf(FieldItemListInterface::class, $node2->title);
+    $this->assertInstanceOf(EntityReferenceFieldItemList::class, $node2->field_node_reference1);
+    $this->assertInstanceOf(EntityReferenceFieldItemListInterface::class, $node2->field_node_reference2);
   }
 
 }

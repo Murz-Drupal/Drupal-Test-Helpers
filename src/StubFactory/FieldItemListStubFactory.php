@@ -4,7 +4,6 @@ namespace Drupal\test_helpers\StubFactory;
 
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldDefinitionInterface;
-use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\entity_test\FieldStorageDefinition;
@@ -110,12 +109,13 @@ class FieldItemListStubFactory {
     if ($name) {
       $definition->setName($name);
     }
+    $class = $definition->getClass();
     if (empty($mockMethods)) {
-      $field = new FieldItemList($definition, $name, $parent);
+      $field = new $class($definition, $name, $parent);
     }
     else {
       $field = TestHelpers::createPartialMockWithConstructor(
-        FieldItemList::class,
+        $class,
         $mockMethods,
         [$definition, $name, $parent],
       );
