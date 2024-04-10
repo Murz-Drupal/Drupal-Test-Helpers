@@ -70,9 +70,15 @@ class FieldItemListStubFactoryTest extends UnitTestCase {
     $definition2 = FieldItemListStubFactory::createFieldItemDefinitionStub(MapItem::class, NULL, TRUE);
     $this->assertTrue($definition2->isBaseField());
 
+    $type = 'map';
     $field = TestHelpers::createFieldStub([], 'map');
-    $this->assertEquals('field_item:map', $field->getItemDefinition()->getDataType());
+    $this->assertEquals("field_item:$type", $field->getItemDefinition()->getDataType());
     $this->assertEquals([], $field->getValue());
+
+    $type = 'list_string';
+    $field = TestHelpers::createFieldStub(['foo', 'bar'], $type);
+    $this->assertEquals("field_item:$type", $field->getItemDefinition()->getDataType());
+    $this->assertEquals([['value' => 'foo'], ['value' => 'bar']], $field->getValue());
 
     // Testing mocked methods.
     $field = TestHelpers::createFieldStub([], 'map', NULL, NULL, NULL,

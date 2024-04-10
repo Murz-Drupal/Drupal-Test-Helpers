@@ -54,6 +54,7 @@ class TypedDataManagerStub extends TypedDataManager {
           'Drupal\text\Plugin\Field\FieldType',
           'Drupal\image\Plugin\Field\FieldType',
           'Drupal\link\Plugin\Field\FieldType',
+          'Drupal\options\Plugin\Field\FieldType',
           'Drupal\test_helpers\Plugin\Field\FieldType',
         ];
         break;
