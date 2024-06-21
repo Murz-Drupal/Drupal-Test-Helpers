@@ -24,6 +24,7 @@ use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\Stub\ConnectionStub;
+use Drupal\test_helpers\Stub\ContainerAwareEventDispatcherStub;
 use Drupal\test_helpers\Stub\DatabaseStorageStub;
 use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\test_helpers\Stub\DrupalKernelStub;
@@ -105,6 +106,7 @@ class TestHelpers {
     'entity_field.manager' => EntityFieldManagerStub::class,
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
+    'event_dispatcher' => ContainerAwareEventDispatcherStub::class,
     'kernel' => DrupalKernelStub::class,
     'language_manager' => ConfigurableLanguageManagerStub::class,
     'language.default' => LanguageDefaultStub::class,
