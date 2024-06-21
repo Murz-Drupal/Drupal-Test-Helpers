@@ -62,8 +62,6 @@ variables:
   OPT_IN_TEST_PREVIOUS_MAJOR: 1
   OPT_IN_TEST_MAX_PHP: 1
   OPT_IN_TEST_NEXT_MAJOR: 1
-  # Show more log output
-  _PHPUNIT_EXTRA: --verbose
   # Convenient, and we have no secrets.
   _SHOW_ENVIRONMENT_VARIABLES: 1
   _CSPELL_IGNORE_PATHS: "src/lib/CoreFeaturesMaps/**"

@@ -2185,7 +2185,7 @@ EOT;
       return $cache[$servicesFile];
     }
     if (file_exists($servicesFile)) {
-      $cache[$servicesFile] = Yaml::parseFile($servicesFile);
+      $cache[$servicesFile] = Yaml::parseFile($servicesFile, Yaml::PARSE_CUSTOM_TAGS);
     }
     return $cache[$servicesFile] ?? NULL;
   }

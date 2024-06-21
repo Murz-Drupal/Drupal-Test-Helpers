@@ -24,13 +24,21 @@ class ContainerAwareEventDispatcherStubTest extends UnitTestCase {
     $event = new MyCustomEvent($param = 'my_param');
     $service->dispatch($event);
     $service->dispatch($event);
-    $service->dispatch($event, $name = 'my_custom_name');
+    if (version_compare(\Drupal::VERSION, '10.0', '>=')) {
+      $service->dispatch($event, $name = 'my_custom_name');
+    }
 
     $events = $service->stubGetDispatchedEvents();
-    $this->assertCount(2, $events);
     $this->assertCount(2, $events[MyCustomEvent::class]);
-    $this->assertCount(1, $events[$name]);
-    $this->assertEquals($param, $events[$name][0]->myParam);
+    $this->assertEquals($param, $events[MyCustomEvent::class][0]->myParam);
+    if (version_compare(\Drupal::VERSION, '10.0', '>=')) {
+      $this->assertCount(2, $events);
+      $this->assertCount(1, $events[$name]);
+      $this->assertEquals($param, $events[$name][0]->myParam);
+    }
+    else {
+      $this->assertCount(1, $events);
+    }
   }
 
 }
