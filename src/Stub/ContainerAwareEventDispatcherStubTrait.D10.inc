@@ -3,7 +3,7 @@
 namespace Drupal\test_helpers\Stub;
 
 /**
- * A trait to workaround D10 breaking changes in the interface
+ * A trait to workaround D10 breaking changes in the interface.
  */
 trait ContainerAwareEventDispatcherStubTrait {
 

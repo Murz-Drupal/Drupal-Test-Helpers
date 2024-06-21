@@ -4,7 +4,6 @@ namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -34,6 +33,7 @@ use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
+use Drupal\test_helpers\Stub\MemoryBackendStub;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\Stub\PermissionHandlerStub;
 use Drupal\test_helpers\Stub\RendererStub;
@@ -95,7 +95,7 @@ class TestHelpers {
     'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
 
     'cache_contexts_manager' => CacheContextsManagerStub::class,
-    'cache.config' => MemoryBackend::class,
+    'cache.config' => MemoryBackendStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'config.factory' => ConfigFactoryStub::class,
     'config.storage.active' => DatabaseStorageStub::class,
@@ -129,7 +129,6 @@ class TestHelpers {
   private const SERVICES_CORE_INIT = [
     'cache_tags.invalidator',
     'cache.backend.memory',
-    'cache.config',
     'config.storage',
     'path.current',
     'database.replica_kill_switch',
