@@ -2,5 +2,4 @@ name: Test Helpers Example
 type: module
 description: Demonstrates the benefits of using the "Test Helpers" Drupal module.
 package: Custom
-core: 8.x
-core_version_requirement: ^8 || ^9 || ^10
+core_version_requirement: ^8 || ^9 || ^10 || ^11
