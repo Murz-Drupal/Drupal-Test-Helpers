@@ -24,7 +24,7 @@ class UrlGeneratorStub extends UrlGenerator {
     OutboundPathProcessorInterface $path_processor,
     OutboundRouteProcessorInterface $route_processor,
     RequestStack $request_stack,
-    array $filter_protocols = ['http', 'https'],
+    array $filter_protocols = ['http', 'https']
   ) {
     TestHelpers::service('unrouted_url_assembler');
     TestHelpers::service('path.validator');

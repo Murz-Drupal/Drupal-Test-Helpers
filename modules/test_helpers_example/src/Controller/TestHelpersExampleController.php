@@ -47,7 +47,7 @@ class TestHelpersExampleController extends ControllerBase {
   final public function __construct(
     ConfigFactoryInterface $configFactory,
     EntityTypeManagerInterface $entityTypeManager,
-    DateFormatterInterface $dateFormatter,
+    DateFormatterInterface $dateFormatter
   ) {
     $this->configFactory = $configFactory;
     $this->entityTypeManager = $entityTypeManager;

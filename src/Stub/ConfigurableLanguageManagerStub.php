@@ -37,7 +37,7 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
     ConfigFactoryInterface $config_factory = NULL,
     ModuleHandlerInterface $module_handler = NULL,
     LanguageConfigFactoryOverrideInterface $config_override = NULL,
-    RequestStack $request_stack = NULL,
+    RequestStack $request_stack = NULL
   ) {
     $default_language ??= TestHelpers::service('language.default');
     $config_factory ??= TestHelpers::service('config.factory');
