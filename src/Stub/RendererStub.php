@@ -29,7 +29,7 @@ class RendererStub extends Renderer {
     PlaceholderGeneratorInterface $placeholder_generator,
     RenderCacheInterface $render_cache,
     RequestStack $request_stack,
-    array $renderer_config
+    array $renderer_config,
   ) {
     parent::__construct($controller_resolver, $theme, $element_info, $placeholder_generator, $render_cache, $request_stack, $renderer_config);
     $context = new RenderContext();

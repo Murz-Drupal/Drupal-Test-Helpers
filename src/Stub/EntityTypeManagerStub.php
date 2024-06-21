@@ -47,7 +47,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     CacheBackendInterface $cache,
     TranslationInterface $string_translation,
     ClassResolverInterface $class_resolver,
-    EntityLastInstalledSchemaRepositoryInterface $entity_last_installed_schema_repository
+    EntityLastInstalledSchemaRepositoryInterface $entity_last_installed_schema_repository,
   ) {
 
     // @todo Rework this workaround.

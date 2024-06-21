@@ -68,7 +68,7 @@ class EntityStubFactory {
     array $values = NULL,
     array $translations = NULL,
     array $options = NULL,
-    array $storageOptions = NULL
+    array $storageOptions = NULL,
   ) {
     $values ??= [];
     $options ??= [];

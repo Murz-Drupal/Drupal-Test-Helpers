@@ -473,7 +473,7 @@ class TestHelpers {
     $servicesYamlFileOrData,
     string $name,
     array $mockMethods = NULL,
-    string $overrideClass = NULL
+    string $overrideClass = NULL,
   ): object {
     if (is_string($servicesYamlFileOrData)) {
       $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFileOrData);
@@ -580,7 +580,7 @@ class TestHelpers {
     string $serviceNameOrClass,
     string $serviceNameToCheck = NULL,
     array $mockMethods = NULL,
-    string $overrideClass = NULL
+    string $overrideClass = NULL,
   ): object {
     // If we have just a service name, not a class.
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
@@ -705,7 +705,7 @@ class TestHelpers {
     array $mockMethods = NULL,
     array $addMockableMethods = NULL,
     bool $initService = NULL,
-    string $servicesYamlFile = NULL
+    string $servicesYamlFile = NULL,
   ): object {
     $addMockableMethods ??= [];
     $container = self::getContainer();
@@ -853,7 +853,7 @@ class TestHelpers {
     array $services,
     bool $clearContainer = NULL,
     bool $forceOverride = NULL,
-    bool $initServices = NULL
+    bool $initServices = NULL,
   ): void {
     if ($clearContainer) {
       TestHelpers::getContainer(TRUE);
@@ -1015,7 +1015,7 @@ class TestHelpers {
     string $name = NULL,
     TypedDataInterface $parent = NULL,
     $isBaseField = NULL,
-    array $mockMethods = NULL
+    array $mockMethods = NULL,
   ): FieldItemListInterface {
     return FieldItemListStubFactory::create($name, $values, $typeOrDefinition, $parent, $isBaseField, $mockMethods);
   }

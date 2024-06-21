@@ -23,7 +23,7 @@ class ConfigFactoryStub extends ConfigFactory {
   public function __construct(
     StorageInterface $storage,
     EventDispatcherInterface $event_dispatcher,
-    TypedConfigManagerInterface $typed_config
+    TypedConfigManagerInterface $typed_config,
   ) {
     // Workaround for the issue
     // https://www.drupal.org/project/drupal/issues/3325571.

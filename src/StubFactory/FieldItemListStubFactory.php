@@ -80,7 +80,7 @@ class FieldItemListStubFactory {
     $typeOrDefinition = NULL,
     TypedDataInterface $parent = NULL,
     bool $isBaseField = NULL,
-    array $mockMethods = NULL
+    array $mockMethods = NULL,
   ): FieldItemListInterface {
     TestHelpers::initEntityTypeManagerStubs();
     if (is_string($typeOrDefinition)) {
