@@ -137,6 +137,8 @@ class TestHelpers {
     'link_generator',
     'logger.factory',
     'messenger',
+    'pager.manager',
+    'pager.parameters',
     'path_processor_manager',
     'request_stack',
     'router.no_access_checks',
