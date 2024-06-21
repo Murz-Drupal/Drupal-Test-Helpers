@@ -3,8 +3,8 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Database\Transaction;
-use Drupal\sqlite\Driver\Database\sqlite\Connection;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -13,7 +13,13 @@ use PHPUnit\Framework\MockObject\MockObject;
  *
  *  @package TestHelpers\DrupalServiceStubs
  */
-class ConnectionStub extends Connection {
+/**
+ * Class ConnectionStub extends Connection {.
+ */
+class ConnectionStub extends StubConnection {
+
+  const STUB_RESULT_INSERTS = 1;
+  const STUB_RESULT_DELETE = 1;
 
   /**
    * The static storage for execute functions.
@@ -72,8 +78,23 @@ class ConnectionStub extends Connection {
       $function =
         $stubExecuteHandlers[$method]
         ?? $stubExecuteHandlers['all']
-        ?? function () {
-          return [];
+        ?? function () use ($method) {
+          switch ($method) {
+            case 'select':
+              $pdoStatement = TestHelpers::createMock(\PDOStatement::class);
+              return $pdoStatement;
+
+            case 'merge':
+            case 'upsert':
+            case 'insert':
+              return ConnectionStub::STUB_RESULT_INSERTS;
+
+            case 'delete':
+              return ConnectionStub::STUB_RESULT_DELETE;
+
+            default:
+              return NULL;
+          }
         };
 
       TestHelpers::setMockedClassMethod($this, 'stubExecute', $function);

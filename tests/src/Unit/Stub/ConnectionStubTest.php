@@ -4,6 +4,7 @@ namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\Core\Database\Query\ConditionInterface;
 use Drupal\test_helpers\Stub\ConnectionStub;
+use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -32,14 +33,19 @@ class ConnectionStubTest extends UnitTestCase {
    * @covers ::mockExecuteForMethod
    */
   public function testStubSetFormat() {
-    $database = new ConnectionStub();
+    $database = TestHelpers::service('database');
 
     // Ensuring that these empty functions executes without exception.
     $database->startTransaction('tr1');
 
-    $this->assertEquals([], $database->select('table1')->execute());
-    $this->assertEquals([], $database->insert('table1')->execute());
-    $this->assertEquals([], $database->delete('table1')->execute());
+    $this->assertInstanceOf(
+      \PDOStatement::class,
+      $database->select('table1')->execute()
+    );
+
+    $this->assertEquals([], $database->select('table1')->execute()->fetchAll());
+    $this->assertEquals(ConnectionStub::STUB_RESULT_INSERTS, $database->insert('table1')->execute());
+    $this->assertEquals(ConnectionStub::STUB_RESULT_DELETE, $database->delete('table1')->execute());
 
     $database->stubSetExecuteHandler(function () {
       return ['mockedResult'];

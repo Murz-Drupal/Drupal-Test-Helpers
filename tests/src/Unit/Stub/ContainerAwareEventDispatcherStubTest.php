@@ -20,6 +20,10 @@ class ContainerAwareEventDispatcherStubTest extends UnitTestCase {
    * @covers ::stubGetDispatchedEvents
    */
   public function testStubGetDispatchedEvents() {
+    if (version_compare(\Drupal::VERSION, '10.0', '<')) {
+      $this->markTestSkipped('This test is skipped for Drupal versions lower than 10.0.');
+    }
+
     $service = TestHelpers::service('event_dispatcher');
     $event = new MyCustomEvent($param = 'my_param');
     $service->dispatch($event);
