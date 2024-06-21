@@ -16,6 +16,9 @@ class ServicesNoNamedTest extends UnitTestCase {
    * @covers ::service
    */
   public function testInitServiceOtherNamespace() {
+    if (version_compare(\Drupal::VERSION, '10.0', '<')) {
+      $this->markTestSkipped('This test is skipped for Drupal versions lower than 10.0.');
+    }
     // Explicitly pass the services file.
     $service = TestHelpers::service(
       Parser::class,

@@ -3,8 +3,8 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Database\Transaction;
+use Drupal\sqlite\Driver\Database\sqlite\Connection;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -12,11 +12,10 @@ use PHPUnit\Framework\MockObject\MockObject;
  * A stub of the Drupal's default Connection class.
  *
  *  @package TestHelpers\DrupalServiceStubs
+ *
+ *  @todo Consider extending the StubConnection instead of Connection.
  */
-/**
- * Class ConnectionStub extends Connection {.
- */
-class ConnectionStub extends StubConnection {
+class ConnectionStub extends Connection {
 
   const STUB_RESULT_INSERTS = 1;
   const STUB_RESULT_DELETE = 1;
