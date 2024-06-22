@@ -1,9 +1,10 @@
 <?php
 
-namespace Drupal\test_helpers\Stub;
+namespace Drupal\test_helpers\Stub\DatabaseConnectionStub;
 
+use Drupal\Core\Database\Connection as CoreDatabaseConnection;
+use Drupal\Core\Database\Database;
 use Drupal\Core\Database\Transaction;
-use Drupal\sqlite\Driver\Database\sqlite\Connection;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -15,7 +16,7 @@ use PHPUnit\Framework\MockObject\MockObject;
  *
  *  @todo Consider extending the StubConnection instead of Connection.
  */
-class ConnectionStub extends Connection {
+class Connection extends CoreDatabaseConnection {
 
   const STUB_RESULT_INSERTS = 1;
   const STUB_RESULT_DELETE = 1;
@@ -34,14 +35,111 @@ class ConnectionStub extends Connection {
   protected MockObject $pdoMock;
 
   /**
-   * Constructs a new object.
+   * {@inheritdoc}
    */
-  public function __construct() {
-    $this->pdoMock = TestHelpers::createMock(StubPDO::class);
-    $this->connectionOptions = [
-      'namespace' => 'Drupal\sqlite\Driver\Database\sqlite',
-    ];
-    parent::__construct($this->pdoMock, $this->connectionOptions);
+  public function __construct(\PDO $connection = NULL, array $connection_options = []) {
+    $this->pdoMock = $connection;
+    $this->connectionOptions = $connection_options;
+    $this->connectionOptions['namespace'] ??= self::getNamespace(self::class);
+    TestHelpers::service('database', $this);
+  }
+
+  /**
+   * Gets a database connection and initiates a new stub if missing.
+   *
+   * @param string $target
+   *   (optional) The target connection.
+   * @param string|null $key
+   *   (optional) The key for the connection.
+   *
+   * @return \Drupal\Core\Database\Connection
+   *   The database connection.
+   */
+  public static function stubGetConnection($target = 'default', $key = NULL): CoreDatabaseConnection {
+    $key ??= 'default';
+    if (empty(Database::getConnectionInfo($key))) {
+      $className = Connection::class;
+      $namespace = substr($className, 0, strrpos($className, '\\'));
+
+      Database::addConnectionInfo($key, $target, [
+        'driver' => 'test_helpers',
+        'namespace' => $namespace,
+      ]);
+    }
+
+    return Database::getConnection($target, $key);
+  }
+
+  /**
+   * Adds a new database connection with auto-generated info for the stub.
+   *
+   * @param string|null $key
+   *   (optional) The key for the connection.
+   * @param string $target
+   *   (optional) The target connection.
+   * @param array|null $connectionInfo
+   *   (optional) The connection info.
+   */
+  public static function stubAddConnection(?string $key = NULL, string $target = 'default', ?array $connectionInfo = NULL): void {
+    if (!$connectionInfo) {
+      $connectionInfo = [
+        'driver' => 'test_helpers',
+        'namespace' => self::getNamespace(self::class),
+      ];
+    }
+    Database::addConnectionInfo($key, $target, $connectionInfo);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function open(array &$connection_options = []) {
+    $pdoMock = TestHelpers::createMock(StubPDO::class);
+    return $pdoMock;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function createDatabase($database) {
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function databaseType() {
+    return 'test_helpers';
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function driver() {
+    return 'test_helpers';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function mapConditionOperator($operator) {
+    return NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function nextId($existing_id = 0) {
+    return $existing_id + 1;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function queryRange($query, $from, $count, array $args = [], array $options = []) {
+    return $this->query($query . ' LIMIT ' . (int) $from . ', ' . (int) $count, $args, $options);
+
   }
 
   /**
@@ -86,10 +184,10 @@ class ConnectionStub extends Connection {
             case 'merge':
             case 'upsert':
             case 'insert':
-              return ConnectionStub::STUB_RESULT_INSERTS;
+              return Connection::STUB_RESULT_INSERTS;
 
             case 'delete':
-              return ConnectionStub::STUB_RESULT_DELETE;
+              return Connection::STUB_RESULT_DELETE;
 
             default:
               return NULL;
@@ -143,7 +241,7 @@ class ConnectionStub extends Connection {
    * @param string $method
    *   The exact method to set (insert, select, delete), all methods by default.
    */
-  public function stubSetExecuteHandler(\Closure $executeFunction, string $method = 'all') {
+  public function stubSetExecuteHandler(\Closure $executeFunction, string $method = 'all'): void {
     $this->stubExecuteHandlers[$method] = $executeFunction;
   }
 
@@ -162,6 +260,28 @@ class ConnectionStub extends Connection {
    * {@inheritdoc}
    */
   public function popTransaction($name) {
+  }
+
+  /**
+   * Returns the namespace of the class.
+   *
+   * @param string $fqcn
+   *   The full qualified class name.
+   *
+   * @return string
+   *   The namespace of the class.
+   */
+  private static function getNamespace(string $fqcn) {
+    return substr($fqcn, 0, strrpos($fqcn, '\\'));
+  }
+
+  /**
+   * A stub of original function to do nothing.
+   *
+   * {@inheritdoc}
+   */
+  public function queryTemporary($query, array $args = [], array $options = []) {
+    return $query;
   }
 
 }
