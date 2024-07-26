@@ -6,7 +6,6 @@ use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\UrlGenerator;
-use Drupal\Core\Site\Settings;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\language\ConfigurableLanguageManagerInterface;
 use Drupal\language\LanguageNegotiationMethodManager;
@@ -167,7 +166,7 @@ class ServicesTest extends UnitTestCase {
     TestHelpers::setServices([
       'config.factory' => NULL,
       'language_manager' => $this->createMock(ConfigurableLanguageManagerInterface::class),
-      'settings' => new Settings([]),
+      'settings',
       'request_stack' => NULL,
     ]);
     $service = TestHelpers::initServiceFromYaml(

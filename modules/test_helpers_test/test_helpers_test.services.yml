@@ -2,3 +2,11 @@ services:
   # A helper service to test the function initService().
   Symfony\Component\Yaml\Parser:
     arguments: []
+
+  # A helper service to test the services with factories.
+  test_helpers_test.service_with_factory:
+    class: Drupal\test_helpers_test\ServiceWithFactory
+    arguments:
+      - '@messenger'
+    tags:
+      - { name: 'event_subscriber' }

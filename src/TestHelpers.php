@@ -20,6 +20,7 @@ use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\lib\MockedFunctionCalls;
 use Drupal\test_helpers\lib\MockedFunctionStorage;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
+use Drupal\test_helpers\Stub\CacheFactoryStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\Stub\ContainerAwareEventDispatcherStub;
@@ -39,6 +40,7 @@ use Drupal\test_helpers\Stub\PermissionHandlerStub;
 use Drupal\test_helpers\Stub\RendererStub;
 use Drupal\test_helpers\Stub\RequestStackStub;
 use Drupal\test_helpers\Stub\RouteProviderStub;
+use Drupal\test_helpers\Stub\SettingsStubFactory;
 use Drupal\test_helpers\Stub\TypedDataManagerStub;
 use Drupal\test_helpers\Stub\UrlGeneratorStub;
 use Drupal\test_helpers\StubFactory\EntityStubFactory;
@@ -96,6 +98,7 @@ class TestHelpers {
 
     'cache_contexts_manager' => CacheContextsManagerStub::class,
     'cache.config' => MemoryBackendStub::class,
+    'cache_factory' => CacheFactoryStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
     'config.factory' => ConfigFactoryStub::class,
     'config.storage.active' => DatabaseStorageStub::class,
@@ -115,6 +118,7 @@ class TestHelpers {
     'renderer' => RendererStub::class,
     'request_stack' => RequestStackStub::class,
     'router.route_provider' => RouteProviderStub::class,
+    'settings' => [SettingsStubFactory::class, 'get'],
     'string_translation' => [self::class, 'getStringTranslationStub'],
     'typed_data_manager' => TypedDataManagerStub::class,
     'url_generator.non_bubbling' => UrlGeneratorStub::class,
@@ -129,6 +133,16 @@ class TestHelpers {
   private const SERVICES_CORE_INIT = [
     'cache_tags.invalidator',
     'cache.backend.memory',
+    'cache.backend.database',
+    'cache.bootstrap',
+    'cache.config',
+    'cache.data',
+    'cache.default',
+    'cache.discovery',
+    'cache.entity',
+    'cache.menu',
+    'cache.render',
+    'cache.static',
     'config.storage',
     'path.current',
     'database.replica_kill_switch',
@@ -519,6 +533,11 @@ class TestHelpers {
     if (!$container->hasParameter('memory_cache_bins')) {
       $container->setParameter('memory_cache_bins', []);
     }
+    // The `cache_default_bin_backends` is required to init some services, but missing
+    // in `core.services.yml`, so setting it manually.
+    if (!$container->hasParameter('cache_default_bin_backends')) {
+      $container->setParameter('cache_default_bin_backends', []);
+    }
     $classArguments = [];
     foreach ($arguments as $argument) {
       $firstCharacter = substr($argument ?? '', 0, 1);
@@ -818,9 +837,26 @@ class TestHelpers {
     }
     else {
       if (isset($info['factory'])) {
-        // @todo Add call a factory instead of initializing a stub.
-        // $service = call_user_func($info['factory'], $info['arguments']);
-        $service = new $info['class'](...$info['arguments']);
+        // // @todo Add call a factory instead of initializing a stub.
+        // // $service = call_user_func($info['factory'], $info['arguments']);
+        // $service = new $info['class'](...$info['arguments']);
+
+        if (is_string($info['factory'])) {
+          $service = new $info['class'](...$info['arguments']);
+        }
+        elseif (is_array($info['factory'])) {
+          $factoryParams = $info['factory'];
+          $factoryClass = array_shift($factoryParams);
+          if (str_starts_with($factoryClass, '@')) {
+            $factory = self::service(substr($factoryClass, 1), NULL, NULL, NULL, NULL, TRUE);
+          }
+          else {
+            $factory = new $factoryClass();
+          }
+          $factoryMethod = array_shift($factoryParams);
+          $arguments = self::resolveServiceArguments($info['arguments']);
+          $service = $factory->$factoryMethod(...$arguments);
+        }
       }
       else {
         $service = new $info['class'](...$info['arguments']);
