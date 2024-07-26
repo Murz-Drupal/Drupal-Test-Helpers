@@ -29,7 +29,7 @@ class ServicesNoNamedTest extends UnitTestCase {
       NULL,
       NULL,
       NULL,
-      dirname(__FILE__) . '/../../../../modules/test_helpers_test/test_helpers_test.services.yml'
+      dirname(__FILE__) . '/../../../../tests/modules/test_helpers_test/test_helpers_test.services.yml'
     );
     $this->assertInstanceOf(Parser::class, $service);
 

@@ -26,7 +26,7 @@ https://project.pages.drupalcode.org/test_helpers/
 
 See the `\Drupal\test_helpers\TestHelpers` class for the main API functions.
 
-See usage examples in the submodule `test_helpers_example`.
+See usage examples in the submodule `tests/modules/test_helpers_example`.
 
 For a full description of the module, visit the
 [project page](https://www.drupal.org/project/test_helpers).
