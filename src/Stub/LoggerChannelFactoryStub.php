@@ -27,7 +27,7 @@ class LoggerChannelFactoryStub extends LoggerChannelFactory {
    */
   public function __construct(
     ?RequestStack $requestStack = NULL,
-    ?AccountInterface $currentUser = NULL
+    ?AccountInterface $currentUser = NULL,
   ) {
     $requestStack ??= TestHelpers::service('request_stack');
     $currentUser ??= TestHelpers::service('current_user');

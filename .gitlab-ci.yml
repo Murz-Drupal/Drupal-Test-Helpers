@@ -59,7 +59,9 @@ include:
 
 variables:
   # Broaden test coverage.
-  OPT_IN_TEST_PREVIOUS_MAJOR: 1
+  # Temporary disable previous major because of dropping Drupal 9.x support.
+  # @todo Enable this when Drupal 11 is released.
+  # OPT_IN_TEST_PREVIOUS_MAJOR: 1
   OPT_IN_TEST_MAX_PHP: 1
   OPT_IN_TEST_NEXT_MAJOR: 1
   # Convenient, and we have no secrets.

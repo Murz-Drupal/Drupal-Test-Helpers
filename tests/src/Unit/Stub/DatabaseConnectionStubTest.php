@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers\Unit;
 
 use Drupal\Core\Database\ConnectionNotDefinedException;

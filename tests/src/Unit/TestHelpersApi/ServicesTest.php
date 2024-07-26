@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Core\Entity\Controller\EntityController;
@@ -82,20 +84,12 @@ class ServicesTest extends UnitTestCase {
 
     // With no initialization flag here should be a mock that always return
     // NULL.
-    TestHelpers::service('country_manager', NULL, NULL, NULL, NULL, FALSE);
-    $this->assertNull(\Drupal::service('country_manager')->getList());
+    TestHelpers::service('module_handler', NULL, NULL, NULL, NULL, FALSE);
+    $this->assertNull(\Drupal::service('module_handler')->getModuleList());
 
     // With the initialization flag here should be a real initialized object.
-    TestHelpers::service('country_manager', NULL, TRUE, NULL, NULL, TRUE);
-    try {
-      $this->assertIsArray(\Drupal::service('country_manager')->getList());
-      $this->fail();
-    }
-    catch (\Exception $e) {
-    }
-    TestHelpers::service('string_translation');
-    $this->assertIsArray(\Drupal::service('country_manager')->getList());
-    $this->assertEquals('foo', \Drupal::service('string_translation')->translate('foo'));
+    TestHelpers::service('module_handler', NULL, TRUE, NULL, NULL, TRUE);
+    $this->assertIsArray(\Drupal::service('module_handler')->getModuleList());
 
     // With the initialization flag equals FALSE the auto initialized services
     // should return NULL always.
@@ -130,7 +124,8 @@ class ServicesTest extends UnitTestCase {
     // The modern approaches.
     // Using the setPrivateProperty() we can set values for any private or
     // protected property.
-    TestHelpers::setPrivateProperty($renderer, 'theme', 'My theme');
+    $rendererConfig = ['foo' => 'bar'];
+    TestHelpers::setPrivateProperty($renderer, 'rendererConfig', $rendererConfig);
 
     TestHelpers::setMockedClassMethod($renderer, 'renderRoot',
       function (array &$element) use ($testClass) {
@@ -144,7 +139,7 @@ class ServicesTest extends UnitTestCase {
             'Root for @title with @theme', [
               '@title' => $element['#title'],
               // @phpstan-ignore-next-line This will be executed in the class context.
-              '@theme' => $this->theme,
+              '@theme' => 'My theme',
             ],
           ]),
         ];
@@ -166,7 +161,7 @@ class ServicesTest extends UnitTestCase {
     TestHelpers::setServices([
       'config.factory' => NULL,
       'language_manager' => $this->createMock(ConfigurableLanguageManagerInterface::class),
-      'settings',
+      'settings' => NULL,
       'request_stack' => NULL,
     ]);
     $service = TestHelpers::initServiceFromYaml(

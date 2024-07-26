@@ -3,8 +3,6 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
-use Drupal\Component\Annotation\Doctrine\StaticReflectionParser;
-use Drupal\Component\Annotation\Reflection\MockFileFinder;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
@@ -277,7 +275,13 @@ class TestHelpers {
       ->getProperty($propertyName);
     $property
       ->setAccessible(TRUE);
-    $property->setValue($class, $value);
+    if (is_object($class)) {
+      $property->setValue($class, $value);
+    }
+    else {
+      // For static not initialized classes.
+      $property->setValue(NULL, $value);
+    }
   }
 
   /**
@@ -502,7 +506,7 @@ class TestHelpers {
     $servicesYamlFileOrData,
     string $name,
     array $mockMethods = NULL,
-    string $overrideClass = NULL
+    string $overrideClass = NULL,
   ): object {
     if (is_string($servicesYamlFileOrData)) {
       $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFileOrData);
@@ -545,13 +549,13 @@ class TestHelpers {
     if (!$container->hasParameter('memory_cache_bins')) {
       $container->setParameter('memory_cache_bins', []);
     }
-    // The `cache_default_bin_backends` is required to init some services, but missing
-    // in `core.services.yml`, so setting it manually.
+    // The `cache_default_bin_backends` is required to init some services, but
+    // missing in `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('cache_default_bin_backends')) {
       $container->setParameter('cache_default_bin_backends', []);
     }
-    // The `memory_cache_default_bin_backends` is required to init some services, but missing
-    // in `core.services.yml`, so setting it manually.
+    // The `memory_cache_default_bin_backends` is required to init some
+    // services, but missing in `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('memory_cache_default_bin_backends')) {
       $container->setParameter('memory_cache_default_bin_backends', []);
     }
@@ -619,7 +623,7 @@ class TestHelpers {
     string $serviceNameOrClass,
     string $serviceNameToCheck = NULL,
     array $mockMethods = NULL,
-    string $overrideClass = NULL
+    string $overrideClass = NULL,
   ): object {
     // If we have just a service name, not a class.
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
@@ -744,7 +748,7 @@ class TestHelpers {
     array $mockMethods = NULL,
     array $addMockableMethods = NULL,
     bool $initService = NULL,
-    string $servicesYamlFile = NULL
+    string $servicesYamlFile = NULL,
   ): object {
     $addMockableMethods ??= [];
     $container = self::getContainer();
@@ -857,7 +861,6 @@ class TestHelpers {
         // // @todo Add call a factory instead of initializing a stub.
         // // $service = call_user_func($info['factory'], $info['arguments']);
         // $service = new $info['class'](...$info['arguments']);
-
         if (is_string($info['factory'])) {
           $service = new $info['class'](...$info['arguments']);
         }
@@ -914,7 +917,7 @@ class TestHelpers {
     array $services,
     bool $clearContainer = NULL,
     bool $forceOverride = NULL,
-    bool $initServices = NULL
+    bool $initServices = NULL,
   ): void {
     if ($clearContainer) {
       TestHelpers::getContainer(TRUE);
@@ -1076,7 +1079,7 @@ class TestHelpers {
     string $name = NULL,
     TypedDataInterface $parent = NULL,
     $isBaseField = NULL,
-    array $mockMethods = NULL
+    array $mockMethods = NULL,
   ): FieldItemListInterface {
     return FieldItemListStubFactory::create($name, $values, $typeOrDefinition, $parent, $isBaseField, $mockMethods);
   }
@@ -1479,6 +1482,9 @@ class TestHelpers {
     if (!is_object($service)) {
       if (is_array($service)) {
         [$servicesYamlFile, $serviceName] = $service;
+        if (empty($serviceName)) {
+          throw new \Exception("No service name is present in the service '$service'.");
+        }
       }
       elseif (is_string($service)) {
         // Assuming that the service name is related to a called module.
@@ -1494,7 +1500,7 @@ class TestHelpers {
 
       // Checking the presence of the 'event_subscriber' tag.
       $tagFound = FALSE;
-      foreach ($serviceInfo['tags'] as $tag) {
+      foreach ($serviceInfo['tags'] ?? [] as $tag) {
         if ($tag['name'] == 'event_subscriber') {
           $tagFound = TRUE;
           break;

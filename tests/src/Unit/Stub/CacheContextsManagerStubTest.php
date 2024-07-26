@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;

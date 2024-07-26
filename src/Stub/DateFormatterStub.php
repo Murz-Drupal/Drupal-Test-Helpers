@@ -26,7 +26,7 @@ class DateFormatterStub extends DateFormatter {
     LanguageManagerInterface $language_manager,
     TranslationInterface $translation,
     ConfigFactoryInterface $config_factory,
-    RequestStack $request_stack
+    RequestStack $request_stack,
   ) {
     // Creating default fallback format.
     $entity_type_manager->stubGetOrCreateStorage(DateFormat::class);

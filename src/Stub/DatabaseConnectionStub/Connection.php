@@ -4,7 +4,10 @@ namespace Drupal\test_helpers\Stub\DatabaseConnectionStub;
 
 use Drupal\Core\Database\Connection as CoreDatabaseConnection;
 use Drupal\Core\Database\Database;
-use Drupal\Core\Database\Transaction;
+use Drupal\Core\Database\Query\Upsert;
+use Drupal\Core\Database\Schema;
+use Drupal\Core\Database\Transaction\TransactionManagerInterface;
+use Drupal\test_helpers\Stub\TransactionManagerStub;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -41,7 +44,7 @@ class Connection extends CoreDatabaseConnection {
     $this->pdoMock = $connection;
     $this->connectionOptions = $connection_options;
     $this->connectionOptions['namespace'] ??= self::getNamespace(self::class);
-    TestHelpers::service('database', $this);
+    $this->connection = $connection;
   }
 
   /**
@@ -102,7 +105,20 @@ class Connection extends CoreDatabaseConnection {
    * {@inheritdoc}
    */
   public function createDatabase($database) {
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function upsert($table, array $options = []) {
+    return TestHelpers::createMock(Upsert::class);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function schema() {
+    return TestHelpers::createMock(Schema::class);
   }
 
   /**
@@ -246,12 +262,11 @@ class Connection extends CoreDatabaseConnection {
   }
 
   /**
-   * A stub of original function to do nothing.
-   *
    * {@inheritdoc}
    */
-  public function startTransaction($name = '') {
-    return TestHelpers::createMock(Transaction::class);
+  protected function driverTransactionManager(): TransactionManagerInterface {
+    $transactionManager = new TransactionManagerStub($this);
+    return $transactionManager;
   }
 
   /**

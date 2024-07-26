@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Core\Field\FieldItemListInterface;

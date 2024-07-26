@@ -150,7 +150,6 @@ class EntityStorageStubFactory {
           default:
             if ($storageOptions['skipPrePostSave'] ?? NULL) {
               $overriddenMethods[] = 'loadMultiple';
-              $overriddenMethods[] = 'loadRevision';
               $overriddenMethods[] = 'delete';
               $overriddenMethods[] = 'save';
             }
@@ -203,10 +202,10 @@ class EntityStorageStubFactory {
     }
     else {
       // Custom constructor.
-      $entityStorage = TestHelpers::createPartialMock(
+      $entityStorage = TestHelpers::createPartialMockWithCustomMethods(
         $entityTypeStorageClass,
+        $mockMethods,
         [
-          ...$mockMethods,
           ...$addMethods,
           'stubInit',
         ],

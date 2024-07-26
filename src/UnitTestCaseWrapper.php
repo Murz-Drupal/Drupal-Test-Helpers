@@ -3,7 +3,6 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Drupal\test_helpers\lib\SingletonTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -11,7 +10,11 @@ use PHPUnit\Framework\MockObject\MockObject;
  * A singleton class to provide UnitTestCase private functions as public.
  */
 class UnitTestCaseWrapper extends UnitTestCase {
-  use SingletonTrait;
+
+  public function __construct(string $name = NULL) {
+    $name ??= 'UnitTestCaseWrapper';
+    parent::__construct($name);
+  }
 
   /**
    * {@inheritdoc}
@@ -81,9 +84,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
   public function createPartialMockWithConstructor(string $originalClassName, array $methods = NULL, array $constructorArgs = NULL, array $addMethods = NULL): MockObject {
     $mockBuilder = $this->getMockBuilder($originalClassName)
       ->setConstructorArgs($constructorArgs ?? [])
-      ->disableOriginalClone()
-      ->disableArgumentCloning()
-      ->disallowMockingUnknownTypes();
+      ->disableOriginalClone();
     if (!empty($methods)) {
       $mockBuilder->onlyMethods($methods);
     }
@@ -110,10 +111,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
   public function createPartialMockWithCustomMethods(string $originalClassName, array $methods = NULL, array $addMethods = NULL): MockObject {
     $mockBuilder = $this->getMockBuilder($originalClassName)
       ->disableOriginalConstructor()
-      ->disableOriginalClone()
-      ->disableArgumentCloning()
-      ->disallowMockingUnknownTypes()
-      ->allowMockingUnknownTypes();
+      ->disableOriginalClone();
     if (!empty($methods)) {
       $mockBuilder->onlyMethods($methods);
     }
@@ -122,6 +120,27 @@ class UnitTestCaseWrapper extends UnitTestCase {
     }
     // @todo Try to add enableProxyingToOriginalMethods() function.
     return $mockBuilder->getMock();
+  }
+
+  /**
+   * The class instance.
+   *
+   * @var static
+   */
+  private static $instance = NULL;
+
+  /**
+   * Gets the instance via lazy initialization (created on first usage).
+   *
+   * @return static
+   */
+  public static function getInstance() {
+    if (!self::$instance) {
+      $c = get_called_class();
+      self::$instance = new $c(...func_get_args());
+    }
+
+    return self::$instance;
   }
 
 }

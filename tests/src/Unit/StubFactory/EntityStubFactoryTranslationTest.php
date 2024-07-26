@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
 use Drupal\node\Entity\Node;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -69,8 +71,8 @@ class CallEventSubscriberTest extends UnitTestCase {
   public function testCallEventSubscriberWithNoTag() {
     $event = new EventStub();
     $serviceInfo = [
-      'yml' => dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
-      'service' => 'test_helpers.event_subscriber_stub_no_tag',
+      dirname(__FILE__) . '/CallEventSubscriberTestServiceStub.yml',
+      'test_helpers.event_subscriber_stub_no_tag',
     ];
     try {
       TestHelpers::callEventSubscriber(
@@ -80,7 +82,7 @@ class CallEventSubscriberTest extends UnitTestCase {
       );
       $this->fail('An exception should be thrown.');
     }
-    catch (\Exception $e) {
+    catch (\Exception) {
       $this->assertTrue(TRUE);
     }
   }

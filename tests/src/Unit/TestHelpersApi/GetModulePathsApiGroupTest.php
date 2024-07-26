@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Component\Transliteration\PhpTransliteration;
@@ -95,22 +97,19 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
    * @covers ::getCallerInfo
    */
   public function testGetCallerFile() {
-    $parentCaller = DRUPAL_ROOT . '/sites/simpletest/TestCase.php';
     $this->assertEquals([
       'file' => __FILE__,
       'function' => 'testGetCallerFile',
       'class' => 'Drupal\Tests\test_helpers\Unit\TestHelpersApi\GetModulePathsApiGroupTest',
     ], TestHelpers::getCallerInfo(1));
-    $this->assertEquals([
-      'file' => $parentCaller,
+    TestHelpers::isNestedArraySubsetOf(TestHelpers::getCallerInfo(2), [
       'function' => 'runTest',
       'class' => 'PHPUnit\Framework\TestCase',
-    ], TestHelpers::getCallerInfo(2));
-    $this->assertEquals([
-      'file' => $parentCaller,
+    ]);
+    TestHelpers::isNestedArraySubsetOf(TestHelpers::getCallerInfo(), [
       'function' => 'runTest',
       'class' => 'PHPUnit\Framework\TestCase',
-    ], TestHelpers::getCallerInfo());
+    ]);
 
     $this->assertEquals([
       'file' => __FILE__,

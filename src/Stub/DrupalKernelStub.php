@@ -19,7 +19,7 @@ class DrupalKernelStub extends DrupalKernel {
     $environment = NULL,
     $class_loader = NULL,
     $allow_dumping = TRUE,
-    $app_root = NULL
+    $app_root = NULL,
   ) {
     $environment ??= 'dev';
     $class_loader ??= new ClassLoader();
