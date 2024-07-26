@@ -3,6 +3,8 @@
 namespace Drupal\test_helpers;
 
 use Drupal\Component\Annotation\Doctrine\SimpleAnnotationReader;
+use Drupal\Component\Annotation\Doctrine\StaticReflectionParser;
+use Drupal\Component\Annotation\Reflection\MockFileFinder;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Database\Query\ConditionInterface as DatabaseQueryConditionInterface;
 use Drupal\Core\Database\Query\SelectInterface as DatabaseSelectInterface;
@@ -10,11 +12,13 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DrupalKernel;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\Query\ConditionInterface as EntityQueryConditionInterface;
 use Drupal\Core\Entity\Query\QueryInterface as EntityQueryInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
 use Drupal\Core\Language\Language;
+use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\lib\MockedFunctionCalls;
@@ -32,6 +36,7 @@ use Drupal\test_helpers\Stub\EntityBundleListenerStub;
 use Drupal\test_helpers\Stub\EntityFieldManagerStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
+use Drupal\test_helpers\Stub\KeyValueFactoryStub;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
 use Drupal\test_helpers\Stub\MemoryBackendStub;
@@ -93,9 +98,6 @@ class TestHelpers {
    * @internal For internal usage only.
    */
   private const SERVICES_CUSTOM_STUBS = [
-    // @todo Get rid of this service.
-    'test_helpers.keyvalue.memory' => KeyValueMemoryFactory::class,
-
     'cache_contexts_manager' => CacheContextsManagerStub::class,
     'cache.config' => MemoryBackendStub::class,
     'cache_factory' => CacheFactoryStub::class,
@@ -110,6 +112,8 @@ class TestHelpers {
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
     'event_dispatcher' => ContainerAwareEventDispatcherStub::class,
+    'keyvalue' => KeyValueFactoryStub::class,
+    'keyvalue.database' => KeyValueMemoryFactory::class,
     'kernel' => DrupalKernelStub::class,
     'language_manager' => ConfigurableLanguageManagerStub::class,
     'language.default' => LanguageDefaultStub::class,
@@ -144,6 +148,7 @@ class TestHelpers {
     'cache.render',
     'cache.static',
     'config.storage',
+    'current_user',
     'path.current',
     'database.replica_kill_switch',
     'datetime.time',
@@ -439,6 +444,13 @@ class TestHelpers {
 
       return $definition;
     }
+    // If no definition, try to read attributes.
+    elseif ($attributes = $rc->getAttributes()) {
+      $attribute = $attributes[0]->newInstance();
+      $attribute->setClass($class);
+      $definition = $attribute->get();
+      return $definition;
+    }
     else {
       // Throw new \Exception('Definition not found in annotation.');.
       return FALSE;
@@ -537,6 +549,11 @@ class TestHelpers {
     // in `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('cache_default_bin_backends')) {
       $container->setParameter('cache_default_bin_backends', []);
+    }
+    // The `memory_cache_default_bin_backends` is required to init some services, but missing
+    // in `core.services.yml`, so setting it manually.
+    if (!$container->hasParameter('memory_cache_default_bin_backends')) {
+      $container->setParameter('memory_cache_default_bin_backends', []);
     }
     $classArguments = [];
     foreach ($arguments as $argument) {
@@ -864,7 +881,12 @@ class TestHelpers {
     }
     // @todo Implement all calls.
     // if ($instance instanceof ContainerAwareInterface) {
-    if (method_exists($service, 'setContainer')) {
+    if (
+      method_exists($service, 'setContainer')
+      // The `setContainer()` is deprecated for some services in Drupal 10.3.x.
+      && !$service instanceof LoggerChannelFactory
+      && !$service instanceof EntityTypeManager
+    ) {
       $service->setContainer(self::getContainer());
     }
     return $service;

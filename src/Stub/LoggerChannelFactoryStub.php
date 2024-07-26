@@ -3,8 +3,10 @@
 namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\test_helpers\lib\StaticLogger;
 use Drupal\test_helpers\TestHelpers;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * A stub of the Drupal's default LoggerChannelFactory class.
@@ -23,12 +25,15 @@ class LoggerChannelFactoryStub extends LoggerChannelFactory {
   /**
    * Constructs a new LoggerChannelFactory class.
    */
-  public function __construct() {
-    TestHelpers::service('request_stack');
-    TestHelpers::service('current_user');
-
+  public function __construct(
+    ?RequestStack $requestStack = NULL,
+    ?AccountInterface $currentUser = NULL
+  ) {
+    $requestStack ??= TestHelpers::service('request_stack');
+    $currentUser ??= TestHelpers::service('current_user');
     $this->staticLogger = new StaticLogger();
     $this->addLogger($this->staticLogger);
+    parent::__construct($requestStack, $currentUser);
   }
 
   /**

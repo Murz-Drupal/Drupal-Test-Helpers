@@ -62,8 +62,10 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       'current_user' => NULL,
       'entity_bundle.listener' => NULL,
       'entity.repository' => NULL,
-      'entity_type.repository' => new EntityTypeRepository($this),
       'entity_type.bundle.info' => NULL,
+    ]);
+    TestHelpers::setServices([
+      'entity_type.repository' => new EntityTypeRepository($this, TestHelpers::service('entity_type.bundle.info')),
       'entity.memory_cache' => NULL,
       'language_manager' => NULL,
       'entity.query.sql' => new EntityQueryServiceStub(),
@@ -85,7 +87,8 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       $cache,
       $string_translation,
       $class_resolver,
-      $entity_last_installed_schema_repository
+      $entity_last_installed_schema_repository,
+      $container
     );
 
   }

@@ -7,7 +7,6 @@ use Drupal\Core\Entity\ContentEntityTypeInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\TranslatableInterface;
-use Drupal\Core\KeyValueStore\KeyValueFactory;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\test_helpers\TestHelpers;
 
@@ -155,14 +154,13 @@ class EntityStorageStubFactory {
               $overriddenMethods[] = 'delete';
               $overriddenMethods[] = 'save';
             }
-            TestHelpers::service('test_helpers.keyvalue.memory');
             TestHelpers::service('module_handler');
 
             TestHelpers::service(
               'entity.query.config',
               new QueryFactory(
                 TestHelpers::service('config.factory'),
-                new KeyValueFactory(TestHelpers::getContainer(), ['default' => 'test_helpers.keyvalue.memory']),
+                TestHelpers::service('keyvalue'),
                 TestHelpers::service('config.manager')
               )
             );
