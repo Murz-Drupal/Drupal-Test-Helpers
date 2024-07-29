@@ -29,11 +29,10 @@ class LoggerChannelFactoryStub extends LoggerChannelFactory {
     ?RequestStack $requestStack = NULL,
     ?AccountInterface $currentUser = NULL,
   ) {
-    $requestStack ??= TestHelpers::service('request_stack');
-    $currentUser ??= TestHelpers::service('current_user');
+    $this->requestStack ??= TestHelpers::service('request_stack');
+    $this->currentUser ??= TestHelpers::service('current_user');
     $this->staticLogger = new StaticLogger();
     $this->addLogger($this->staticLogger);
-    parent::__construct($requestStack, $currentUser);
   }
 
   /**

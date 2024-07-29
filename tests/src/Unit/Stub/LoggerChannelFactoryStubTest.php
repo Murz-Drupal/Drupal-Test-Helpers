@@ -9,7 +9,7 @@ use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Tests ConfigFactoryStub class.
+ * Tests LoggerChannelFactoryStub class.
  *
  * @coversDefaultClass \Drupal\test_helpers\Stub\LoggerChannelFactoryStub
  * @group test_helpers
@@ -42,43 +42,87 @@ class LoggerChannelFactoryStubTest extends UnitTestCase {
 
     $logs = $factory->stubGetLogs();
 
-    $this->assertTrue(TestHelpers::isNestedArraySubsetOf($logs[0], [
-      'uid' => 0,
-      'type' => 'my_channel1',
-      'message' => 'My message',
-      'severity' => 4,
-      'link' => '',
-      'location' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
-      'referer' => '',
-      'hostname' => '127.0.0.1',
-      '_context' => [
+    // Seems the logger returns different results for Drupal 10.3 and earlier.
+    $log0Expected = version_compare(\Drupal::VERSION, '10.3', '>=')
+      ? [
         'uid' => 0,
-        'uid_custom' => '42',
-        'channel' => 'my_channel1',
+        'type' => 'my_channel1',
+        'message' => 'My message',
+        'severity' => 4,
         'link' => '',
-        'request_uri' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
+        'location' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
         'referer' => '',
-        'ip' => '127.0.0.1',
-      ],
-    ]));
-    $this->assertTrue(TestHelpers::isNestedArraySubsetOf($logs[1], [
-      'uid' => 2,
-      'type' => 'my_channel2',
-      'message' => 'My error',
-      'severity' => 3,
-      'link' => '',
-      'location' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
-      'referer' => '',
-      'hostname' => '127.0.0.1',
-      '_context' => [
+        'hostname' => '127.0.0.1',
+        '_context' => [
+          'uid' => 0,
+          'uid_custom' => '42',
+          'channel' => 'my_channel1',
+          'link' => '',
+          'request_uri' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
+          'referer' => '',
+          'ip' => '127.0.0.1',
+        ],
+      ]
+      : [
+        'uid' => '41',
+        'type' => 'my_channel1',
+        'message' => 'My message',
+        'severity' => 4,
+        'link' => '',
+        'location' => '',
+        'referer' => '',
+        'hostname' => '',
+        '_context' => [
+          'uid' => '41',
+          'uid_custom' => '42',
+          'channel' => 'my_channel1',
+          'link' => '',
+          'request_uri' => '',
+          'referer' => '',
+          'ip' => '',
+        ],
+      ];
+
+    // Seems the logger returns different results for Drupal 10.3 and earlier.
+    $this->assertTrue(TestHelpers::isNestedArraySubsetOf($logs[0], $log0Expected));
+    $log1Expected = version_compare(\Drupal::VERSION, '10.3', '>=')
+      ? [
         'uid' => 2,
-        'channel' => 'my_channel2',
+        'type' => 'my_channel2',
+        'message' => 'My error',
+        'severity' => 3,
         'link' => '',
-        'request_uri' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
+        'location' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
         'referer' => '',
-        'ip' => '127.0.0.1',
-      ],
-    ]));
+        'hostname' => '127.0.0.1',
+        '_context' => [
+          'uid' => 2,
+          'channel' => 'my_channel2',
+          'link' => '',
+          'request_uri' => TestHelpers::REQUEST_STUB_DEFAULT_URI,
+          'referer' => '',
+          'ip' => '127.0.0.1',
+        ],
+      ]
+      : [
+        'uid' => '53',
+        'type' => 'my_channel2',
+        'message' => 'My error',
+        'severity' => 3,
+        'link' => '',
+        'location' => '',
+        'referer' => '',
+        'hostname' => '',
+        '_context' => [
+          'uid' => '53',
+          'channel' => 'my_channel2',
+          'link' => '',
+          'request_uri' => '',
+          'referer' => '',
+          'ip' => '',
+        ],
+      ];
+    $this->assertTrue(TestHelpers::isNestedArraySubsetOf($logs[1], $log1Expected));
     $this->assertIsNumeric($logs[0]["timestamp"]);
     $this->assertIsNumeric($logs[1]["_context"]["timestamp"]);
     $this->assertGreaterThan($logs[0]["_microtime"], $logs[1]["_microtime"]);

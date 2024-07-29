@@ -11,11 +11,6 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 class UnitTestCaseWrapper extends UnitTestCase {
 
-  public function __construct(string $name = NULL) {
-    $name ??= 'UnitTestCaseWrapper';
-    parent::__construct($name);
-  }
-
   /**
    * {@inheritdoc}
    */
@@ -137,7 +132,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
   public static function getInstance() {
     if (!self::$instance) {
       $c = get_called_class();
-      self::$instance = new $c(...func_get_args());
+      self::$instance = new $c('UnitTestCaseWrapper');
     }
 
     return self::$instance;

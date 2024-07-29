@@ -62,10 +62,25 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
       'current_user' => NULL,
       'entity_bundle.listener' => NULL,
       'entity.repository' => NULL,
-      'entity_type.bundle.info' => NULL,
     ]);
+    $entityTypeBundleInfo = TestHelpers::service('entity_type.bundle.info');
+    $entityTypeRepositoryParams = [
+      $this,
+    ];
+    if (version_compare(\Drupal::VERSION, '10.2', '>=')) {
+      $entityTypeRepositoryParams[] = $entityTypeBundleInfo;
+    }
+    TestHelpers::service('typed_data_manager');
     TestHelpers::setServices([
-      'entity_type.repository' => new EntityTypeRepository($this, TestHelpers::service('entity_type.bundle.info')),
+      // PHPStan shows an error:
+      // ```
+      // Class Drupal\Core\Entity\EntityTypeRepository constructor invoked
+      // with 1 parameter, 2 required.
+      // ```
+      // But here we have a workaround for this to keep the module compatible
+      // with different Drupal versions together.
+      // @phpstan-ignore-next-line
+      'entity_type.repository' => new EntityTypeRepository(...$entityTypeRepositoryParams),
       'entity.memory_cache' => NULL,
       'language_manager' => NULL,
       'entity.query.sql' => new EntityQueryServiceStub(),
@@ -81,16 +96,46 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
     ]);
 
     // Calling original constructor with mocked services.
-    parent::__construct(
-      $namespaces,
-      $module_handler,
-      $cache,
-      $string_translation,
-      $class_resolver,
-      $entity_last_installed_schema_repository,
-      $container
-    );
+    if (version_compare(\Drupal::VERSION, '10.3.0', '<')) {
+      // PHPStan shows an error:
+      // ```
+      // Method Drupal\Core\Entity\EntityTypeManager::__construct() invoked
+      // with 6 parameters, 7 required.
+      // ```
+      // But here we have a workaround for this to keep the module compatible
+      // with different Drupal versions together.
+      // @phpstan-ignore-next-line
+      parent::__construct(
+        $namespaces,
+        $module_handler,
+        $cache,
+        $string_translation,
+        $class_resolver,
+        $entity_last_installed_schema_repository,
+      );
+      if (method_exists($this, 'setContainer')) {
+        // PHPStan shows an error:
+        // ```
+        // Call to deprecated method setContainer()
+        // ```
+        // But here we have a workaround for this to keep the module compatible
+        // with different Drupal versions together.
+        // @phpstan-ignore-next-line
+        $this->setContainer($container);
+      }
+    }
+    else {
+      parent::__construct(
+        $namespaces,
+        $module_handler,
+        $cache,
+        $string_translation,
+        $class_resolver,
+        $entity_last_installed_schema_repository,
+        $container,
+      );
 
+    }
   }
 
   /**
