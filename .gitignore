@@ -2,3 +2,4 @@
 .phive
 .phpdoc
 docs
+/vendor/
