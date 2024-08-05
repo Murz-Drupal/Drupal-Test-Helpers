@@ -34,6 +34,10 @@ For a full description of the module, visit the
 Submit bug reports and feature suggestions, or track changes in the
 [issue queue](https://www.drupal.org/project/issues/test_helpers).
 
+Project repository mirrors:
+[GitHub](https://github.com/Murz-Drupal/Drupal-Test-Helpers),
+[GitLab](https://gitlab.com/murz-drupal/test_helpers).
+
 
 ## Requirements
 
