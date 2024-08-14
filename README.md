@@ -26,7 +26,14 @@ https://project.pages.drupalcode.org/test_helpers/
 
 See the `\Drupal\test_helpers\TestHelpers` class for the main API functions.
 
-See usage examples in the submodule `tests/modules/test_helpers_example`.
+See the `TestHelpers::SERVICES_CUSTOM_STUBS` for the list of the implemented
+Drupal core services stubs
+
+See the `TestHelpers::SERVICES_CORE_INIT` for the list of the Drupal core
+services that can be initiated automatically in the unit test context.
+
+See usage examples in the submodule `tests/modules/test_helpers_example` and
+in the unit tests in the `tests/src/Unit` directory.
 
 The module also contains submodules to simplify functional and browser testing:
 

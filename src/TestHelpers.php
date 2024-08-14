@@ -165,6 +165,7 @@ class TestHelpers {
     'router.no_access_checks',
     'session.flash_bag',
     'settings',
+    'state',
     'token',
     'transliteration',
     'unrouted_url_assembler',
