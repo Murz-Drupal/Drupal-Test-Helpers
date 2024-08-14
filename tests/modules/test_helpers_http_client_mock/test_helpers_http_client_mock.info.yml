@@ -1,0 +1,9 @@
+name: Test Helpers HTTP Client Mock
+type: module
+description: |
+  Makes a stub for http_client and http_client_factory services to mock responses for outgoing HTTP requests.
+  Allows automatic capturing and saving real HTTP responses to reuse them in tests.
+package: Testing
+core_version_requirement: ^10 || ^11
+dependencies:
+  - test_helpers:test_helpers

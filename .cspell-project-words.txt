@@ -2,10 +2,12 @@ Alexey
 Korepov
 Murz
 
+# Tests specific vocabulary.
 autoincrement
 unmock
 unmocks
 remocking
+todos
 
 # Non english words to test translations.
 histoire
@@ -16,7 +18,7 @@ geschichte
 eine
 über
 
-# Placeholders
+# Placeholders.
 foo
 bar
 baz
@@ -30,4 +32,3 @@ fred
 plugh
 xyzzy
 thud
-

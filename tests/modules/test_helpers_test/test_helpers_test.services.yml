@@ -8,5 +8,3 @@ services:
     class: Drupal\test_helpers_test\ServiceWithFactory
     arguments:
       - '@messenger'
-    tags:
-      - { name: 'event_subscriber' }

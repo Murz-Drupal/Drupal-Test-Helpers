@@ -28,7 +28,19 @@ See the `\Drupal\test_helpers\TestHelpers` class for the main API functions.
 
 See usage examples in the submodule `tests/modules/test_helpers_example`.
 
-For a full description of the module, visit the
+The module also contains submodules to simplify functional and browser testing:
+
+- `test_helpers_http_client_mock` to store the real HTTP responses and mock them
+  in tests without doing real outgoing HTTP calls. Useful when you use
+  authorized API calls and don't want to store any credentials in tests.
+
+To make all the test modules available for installing, put this into the
+`settings.php` file:
+```php
+$settings['extension_discovery_scan_tests'] = TRUE;
+```
+
+For the full description of the module, visit the
 [project page](https://www.drupal.org/project/test_helpers).
 
 Submit bug reports and feature suggestions, or track changes in the

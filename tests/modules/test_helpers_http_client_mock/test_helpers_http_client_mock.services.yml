@@ -1,0 +1,8 @@
+services:
+  http_client_factory:
+    class: Drupal\test_helpers_http_client_mock\HttpClientFactoryMock
+    arguments:
+      - '@http_handler_stack'
+      - '@state'
+    tags:
+      - { name: event_subscriber }

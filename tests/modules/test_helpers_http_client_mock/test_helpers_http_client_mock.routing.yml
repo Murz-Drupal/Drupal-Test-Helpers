@@ -1,0 +1,15 @@
+test_helpers_http_client_mock.set_test_name:
+  path: '/test-helpers-http-client-mock/set-settings'
+  defaults:
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::setSettings'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'
+
+test_helpers_http_client_mock.get_stored_response:
+  path: '/test-helpers-http-client-mock/get-stored-response/{hash}'
+  defaults:
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::getStoredResponse'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'

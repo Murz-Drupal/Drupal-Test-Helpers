@@ -34,6 +34,7 @@ use Drupal\test_helpers\Stub\EntityBundleListenerStub;
 use Drupal\test_helpers\Stub\EntityFieldManagerStub;
 use Drupal\test_helpers\Stub\EntityTypeBundleInfoStub;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
+use Drupal\test_helpers\Stub\HttpClientFactoryStub;
 use Drupal\test_helpers\Stub\KeyValueFactoryStub;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
@@ -110,6 +111,7 @@ class TestHelpers {
     'entity_type.bundle.info' => EntityTypeBundleInfoStub::class,
     'entity_type.manager' => EntityTypeManagerStub::class,
     'event_dispatcher' => ContainerAwareEventDispatcherStub::class,
+    'http_client_factory' => HttpClientFactoryStub::class,
     'keyvalue' => KeyValueFactoryStub::class,
     'keyvalue.database' => KeyValueMemoryFactory::class,
     'kernel' => DrupalKernelStub::class,
@@ -152,6 +154,7 @@ class TestHelpers {
     'datetime.time',
     'entity.memory_cache',
     'entity.repository',
+    'http_handler_stack',
     'link_generator',
     'logger.factory',
     'messenger',
@@ -498,6 +501,9 @@ class TestHelpers {
    *   A list of method to mock when creating the instance.
    * @param string|null $overrideClass
    *   A class to override the default service class.
+   * @param array|null $customArguments
+   *   An array of arguments to pass to the service constructor, overriding
+   *   the default values from the YAML file.
    *
    * @return object
    *   The initialized class instance.
@@ -507,6 +513,7 @@ class TestHelpers {
     string $name,
     array $mockMethods = NULL,
     string $overrideClass = NULL,
+    array $customArguments = NULL,
   ): object {
     if (is_string($servicesYamlFileOrData)) {
       $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFileOrData);
@@ -518,7 +525,7 @@ class TestHelpers {
     else {
       throw new \Error('The first argument should be a path to a YAML file, or array with data.');
     }
-    return self::initServiceFromInfo($serviceInfo, $mockMethods);
+    return self::initServiceFromInfo($serviceInfo, $mockMethods, $customArguments);
   }
 
   /**
@@ -615,6 +622,9 @@ class TestHelpers {
    *   A list of method to mock when creating the instance.
    * @param string|null $overrideClass
    *   A class to override the default service class.
+   * @param array|null $customArguments
+   *   An array of arguments to pass to the service constructor, overriding
+   *   the default values from the YAML file.
    *
    * @return object
    *   The initialized class instance.
@@ -624,6 +634,7 @@ class TestHelpers {
     string $serviceNameToCheck = NULL,
     array $mockMethods = NULL,
     string $overrideClass = NULL,
+    array $customArguments = NULL,
   ): object {
     // If we have just a service name, not a class.
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
@@ -737,6 +748,9 @@ class TestHelpers {
    *   Initializes core service with constructor and passing all dependencies.
    * @param string $servicesYamlFile
    *   A path to the services.yaml file when it can't be properly autodetect.
+   * @param array|null $customArguments
+   *   An array of arguments to pass to the service constructor, overriding
+   *   the default values from the YAML file.
    *
    * @return object
    *   The initialized service object.
@@ -749,6 +763,7 @@ class TestHelpers {
     array $addMockableMethods = NULL,
     bool $initService = NULL,
     string $servicesYamlFile = NULL,
+    array $customArguments = NULL,
   ): object {
     $addMockableMethods ??= [];
     $container = self::getContainer();
@@ -781,7 +796,7 @@ class TestHelpers {
     }
     elseif (is_string($class)) {
       if ($initService) {
-        $service = self::initService($class, NULL, $mockMethods);
+        $service = self::initService($class, NULL, $mockMethods, $customArguments);
       }
       else {
         // @todo Add $addMockableMethods.
@@ -799,7 +814,7 @@ class TestHelpers {
           if (isset($serviceStub)) {
             $serviceInfo['class'] = $serviceStub;
           }
-          $service = self::initServiceFromInfo($serviceInfo, $mockMethods);
+          $service = self::initServiceFromInfo($serviceInfo, $mockMethods, $customArguments);
         }
       }
       else {
@@ -838,13 +853,19 @@ class TestHelpers {
    *   An array with service information, like in services YAML file.
    * @param array $mockMethods
    *   A list of methods to mock.
+   * @param array|null $customArguments
+   *   An array of arguments to pass to the service constructor, overriding
+   *   the default values from the YAML file.
    *
    * @return object
    *   The service instance.
    *
    * @internal For internal usage only.
    */
-  private static function initServiceFromInfo(array $info, array $mockMethods = NULL) {
+  private static function initServiceFromInfo(array $info, array $mockMethods = NULL, array $customArguments = NULL) {
+    if ($customArguments) {
+      $info['arguments'] = $customArguments;
+    }
     $info['arguments'] ??= [];
     if (isset($info['arguments'])) {
       $info['arguments'] = self::resolveServiceArguments($info['arguments']);
@@ -858,9 +879,6 @@ class TestHelpers {
     }
     else {
       if (isset($info['factory'])) {
-        // // @todo Add call a factory instead of initializing a stub.
-        // // $service = call_user_func($info['factory'], $info['arguments']);
-        // $service = new $info['class'](...$info['arguments']);
         if (is_string($info['factory'])) {
           $service = new $info['class'](...$info['arguments']);
         }
@@ -882,8 +900,7 @@ class TestHelpers {
         $service = new $info['class'](...$info['arguments']);
       }
     }
-    // @todo Implement all calls.
-    // if ($instance instanceof ContainerAwareInterface) {
+    // @todo Make a better implementation of this check.
     if (
       method_exists($service, 'setContainer')
       // The `setContainer()` is deprecated for some services in Drupal 10.3.x.
