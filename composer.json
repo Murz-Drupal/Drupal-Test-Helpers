@@ -1,7 +1,7 @@
 {
     "name": "drupal/test_helpers",
     "description": "Tools and helper functions to simplify writing unit, kernel and functional tests for Drupal",
-    "type": "project",
+    "type": "drupal-module",
     "license": "MIT",
     "autoload": {
         "psr-4": {
