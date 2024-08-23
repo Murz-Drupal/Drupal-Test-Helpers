@@ -1,5 +1,5 @@
 name: Test Helpers Test
 type: module
-description: A test module to help testing the main functionality.
+description: DO NOT ENABLE THIS MODULE IN PRODUCTION ENVIRONMENTS! A test module to help testing the main functionality.
 package: Custom
 core_version_requirement: ^10 || ^11

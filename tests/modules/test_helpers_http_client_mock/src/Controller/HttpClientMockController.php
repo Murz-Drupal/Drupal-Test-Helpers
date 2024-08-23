@@ -2,25 +2,20 @@
 
 namespace Drupal\test_helpers_http_client_mock\Controller;
 
+use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Cache\CacheableResponseInterface;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\State\StateInterface;
 use Drupal\test_helpers_http_client_mock\HttpClientFactoryMock;
 use GuzzleHttp\Psr7\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Controller for the HttpClientMock test helper pages.
  */
 class HttpClientMockController extends ControllerBase {
-
-  /**
-   * The state service.
-   *
-   * @var \Drupal\Core\State\StateInterface
-   */
-  protected StateInterface $state;
 
   /**
    * The request stack service.
@@ -41,9 +36,10 @@ class HttpClientMockController extends ControllerBase {
    */
   public static function create(ContainerInterface $container): self {
     $instance = parent::create($container);
-    $instance->state = $container->get('state');
+    $instance->stateService = $container->get('state');
     $instance->requestStack = $container->get('request_stack');
     $instance->httpClientFactory = $container->get('http_client_factory');
+    $instance->moduleHandler = $container->get('module_handler');
     return $instance;
   }
 
@@ -52,8 +48,10 @@ class HttpClientMockController extends ControllerBase {
    *
    * Pass the values via GET parameters:
    * - mode: The mode to use: 'store' or 'mock'.
-   * - name: The test name
-   * - directory: The directory to store the responses.
+   * - name: The test name.
+   * - module: The module name, used to get the module path for the directory/
+   * - directory: The directory to store the responses. Absolute path, or
+   *   relative to the module path, if the module parameter is set.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
@@ -61,19 +59,54 @@ class HttpClientMockController extends ControllerBase {
   public function setSettings(): JsonResponse {
     $request = $this->requestStack->getCurrentRequest();
     if ($mode = $request->query->get('mode')) {
-      $this->state->set(HttpClientFactoryMock::STATE_KEY_REQUEST_MOCK_MODE, $mode);
+      $this->stateService->set(HttpClientFactoryMock::STATE_KEY_REQUEST_MOCK_MODE, $mode);
     }
     if ($name = $request->query->get('name')) {
-      $this->state->set(HttpClientFactoryMock::STATE_KEY_TEST_NAME, $name);
+      $this->stateService->set(HttpClientFactoryMock::STATE_KEY_TEST_NAME, $name);
     }
     if ($directory = $request->query->get('directory')) {
-      $this->state->set(HttpClientFactoryMock::STATE_KEY_RESPONSES_STORAGE_DIRECTORY, $directory);
+      if (
+        !str_starts_with($directory, '/')
+        && $module = $request->query->get('module')
+      ) {
+        $modulePath = $this->moduleHandler->getModule($module)->getPath();
+        $directory = $modulePath . DIRECTORY_SEPARATOR . $directory;
+      }
+      $this->stateService->set(HttpClientFactoryMock::STATE_KEY_RESPONSES_STORAGE_DIRECTORY, $directory);
+    }
+    if ($uriRegexp = $request->query->get('uri_regexp')) {
+      $this->stateService->set(HttpClientFactoryMock::STATE_KEY_URI_REGEXP, $uriRegexp);
     }
     return new JsonResponse(['status' => 'ok']);
   }
 
   /**
-   * Gets a stored.
+   * Gets a stored response.
+   *
+   * @param mixed $hash
+   *   The hash value.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   The response.
+   */
+  public function getStoredResponse($hash): SymfonyResponse {
+    $response = $this->httpClientFactory->getStoredResponseByHash($hash);
+
+    $symfonyResponse = new SymfonyResponse($response->getBody()->getContents());
+
+    // Add headers to make the HTTP response non-cacheable by browsers and
+    // proxies.
+    $symfonyResponse->headers->set('Cache-Control', 'no-store');
+
+    // Ensure the response is not cacheable by Drupal's internal cache systems.
+    if ($symfonyResponse instanceof CacheableResponseInterface) {
+      $symfonyResponse->addCacheableDependency((new CacheableMetadata())->setCacheMaxAge(0));
+    }
+    return $symfonyResponse;
+  }
+
+  /**
+   * Delete the stored response files.
    *
    * @param mixed $hash
    *   The hash value.
@@ -81,9 +114,41 @@ class HttpClientMockController extends ControllerBase {
    * @return \GuzzleHttp\Psr7\Response
    *   The response.
    */
-  public function getStoredResponse($hash): Response {
-    $response = $this->httpClientFactory->getStoredResponseByHash($hash);
-    return $response;
+  public function deleteStoredResponse($hash): JsonResponse {
+    $this->httpClientFactory->deleteStoredResponseByHash($hash);
+    return new JsonResponse(['status' => 'ok']);
+  }
+
+  /**
+   * Save a stored response files.
+   *
+   * @param mixed $hash
+   *   The hash value.
+   *
+   * @return \GuzzleHttp\Psr7\Response
+   *   The response.
+   */
+  public function saveStoredResponse($hash): JsonResponse {
+    $request = $this->requestStack->getCurrentRequest();
+    $data = $request->getContent();
+    $status = $request->query->get('status', 200);
+    $headers = $request->query->has('headers')
+      ? json_decode($request->query->get('headers'))
+      : [];
+    $response = new Response($status, $headers, $data);
+    $this->httpClientFactory->storeResponse($response, NULL, $hash);
+    return new JsonResponse(['status' => 'ok']);
+  }
+
+  /**
+   * Gets the last requests hashes.
+   *
+   * @return \GuzzleHttp\Psr7\Response
+   *   The response.
+   */
+  public function getLastRequestsHashes(): JsonResponse {
+    $data = $this->stateService->get(HttpClientFactoryMock::STATE_KEY_LAST_REQUESTS_HASHES, []);
+    return new JsonResponse($data);
   }
 
 }

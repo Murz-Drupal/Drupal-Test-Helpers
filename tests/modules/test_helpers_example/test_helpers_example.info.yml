@@ -1,5 +1,5 @@
 name: Test Helpers Example
 type: module
-description: Demonstrates the benefits of using the "Test Helpers" Drupal module.
+description: Demonstrates the benefits of using the "Test Helpers" Drupal module. DO NOT ENABLE THIS MODULE IN PRODUCTION ENVIRONMENTS!
 package: Testing
 core_version_requirement: ^10 || ^11

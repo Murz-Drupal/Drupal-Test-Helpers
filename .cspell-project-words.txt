@@ -1,3 +1,4 @@
+# Names.
 Alexey
 Korepov
 Murz
@@ -8,6 +9,9 @@ unmock
 unmocks
 remocking
 todos
+
+# Package names.
+donatj
 
 # Non english words to test translations.
 histoire

@@ -3,3 +3,4 @@
 .phpdoc
 docs
 /vendor/
+composer.lock

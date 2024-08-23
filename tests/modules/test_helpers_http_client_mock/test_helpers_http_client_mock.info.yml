@@ -1,8 +1,10 @@
 name: Test Helpers HTTP Client Mock
 type: module
 description: |
-  Makes a stub for http_client and http_client_factory services to mock responses for outgoing HTTP requests.
-  Allows automatic capturing and saving real HTTP responses to reuse them in tests.
+  DO NOT ENABLE THIS MODULE IN PRODUCTION ENVIRONMENTS! Makes a stub for
+  the http_client and the http_client_factory Drupal Core services to mock
+  responses for outgoing HTTP requests. Allows automatic capturing and saving
+  real HTTP responses to reuse them in tests.  It's only for running tests.
 package: Testing
 core_version_requirement: ^10 || ^11
 dependencies:

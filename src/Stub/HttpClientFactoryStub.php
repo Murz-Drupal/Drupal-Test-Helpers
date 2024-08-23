@@ -8,6 +8,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Utils;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -44,17 +45,14 @@ class HttpClientFactoryStub extends ClientFactory {
   const HTTP_CLIENT_MODE_MOCK = 'mock';
 
   /**
-   * The HTTP handler name that stores the response.
+   * The HTTP handler name for the `store` mode.
+   *
+   * For the `mock` mode no handler is added to the stack, because the default
+   * handler is replaced to the MockHandler.
    *
    * @var string
    */
   const HANDLER_NAME_STORE = 'test_helpers_http_client_mock.store_response';
-  /**
-   * The HTTP handler name that mocks the response.
-   *
-   * @var string
-   */
-  const HANDLER_NAME_MOCK = 'test_helpers_http_client_mock.mock_response';
 
   /**
    * Hash storage for the stored and mocked requests.
@@ -103,7 +101,7 @@ class HttpClientFactoryStub extends ClientFactory {
           return $handler($request, $options)->then(
             function (ResponseInterface $response) use ($request) {
               if ($this->matchRequest($request)) {
-                $this->storeResponse($request, $response);
+                $this->storeResponse($response, $request);
               }
               return $response;
             }
@@ -113,24 +111,17 @@ class HttpClientFactoryStub extends ClientFactory {
       $config['handler']->push($storeResponse, self::HANDLER_NAME_STORE);
     }
     elseif ($mode == self::HTTP_CLIENT_MODE_MOCK) {
-      // @todo Try to get rid of this clearing of the handler.
-      $config['handler'] = HandlerStack::create();
-
-      $mockResponseHandler = function (callable $handler) {
-        return function ($request, array $options) use ($handler) {
-          return $handler($request, $options)->then(
-            function (ResponseInterface $response) use ($request) {
-              if ($this->matchRequest($request)) {
-                $response = $this->getStoredResponse($request);
-                return new FulfilledPromise($response);
-              }
-              return $response;
-            }
-          );
-        };
+      $mockResponseHandler = function ($request, $options) {
+        if ($this->matchRequest($request)) {
+          $response = $this->getStoredResponse($request);
+          return new FulfilledPromise($response);
+        }
+        else {
+          $defaultHandler = Utils::chooseHandler();
+          return $defaultHandler($request, $options);
+        }
       };
-
-      $config['handler']->push($mockResponseHandler, self::HANDLER_NAME_MOCK);
+      $config['handler'] = new HandlerStack($mockResponseHandler);
     }
     return parent::fromOptions($config);
   }
@@ -149,13 +140,14 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function getStoredResponse(Request $request): Response {
     $hash = $this->getRequestHash($request);
-    $this->mockedRequestsHashesContainer[] = $hash;
+    $this->storeRequestHash($hash);
     try {
       $response = $this->getStoredResponseByHash($hash);
     }
     catch (\Exception $e) {
       throw new \Exception(
-        "No stored response found for the request: " . $request->getUri()
+        "No stored response found for the request with the hash $hash in the \"mock\" mode: "
+        . $request->getMethod() . ' ' . $request->getUri()
         . " Use the '" . self::EMV_HTTP_CLIENT_MODE . "=store' environment variable to create files with stored responses."
       );
     }
@@ -172,8 +164,28 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The stored response.
    */
   public function getStoredResponseByHash(string $hash): Response {
-    $body = file_get_contents($this->getRequestFilename($hash));
-    $response = new Response(body: $body);
+    $file = $this->getRequestFilename($hash);
+    if (!$body = @file_get_contents($file)) {
+      throw new \Exception("No stored response found for the hash \"$hash\" in the file " . $file);
+    }
+    $fileMetadata = $this->getRequestFilename($hash, metadata: TRUE);
+    if (!$metadata = json_decode(@file_get_contents($fileMetadata), TRUE)) {
+      throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata);
+    }
+    if (isset($metadata['response'])) {
+      $status = $metadata['response']['status'];
+      $headers = $metadata['response']['headers'];
+    }
+    else {
+      $status = 200;
+      $headers = [];
+    }
+
+    $response = new Response(
+      status: $status,
+      headers: $headers,
+      body: $body,
+    );
     return $response;
   }
 
@@ -185,7 +197,7 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function deleteStoredResponseByHash(string $hash): void {
     unlink($this->getRequestFilename($hash));
-    unlink($this->getRequestFilename($hash, TRUE));
+    unlink($this->getRequestFilename($hash, metadata: TRUE));
   }
 
   /**
@@ -274,26 +286,34 @@ class HttpClientFactoryStub extends ClientFactory {
   /**
    * Stores the response for a request to the storage.
    *
-   * @param \GuzzleHttp\Psr7\Request $request
-   *   The request, is used to generate the hash.
    * @param \GuzzleHttp\Psr7\Response $response
    *   The response to store.
+   * @param \GuzzleHttp\Psr7\Request $request
+   *   The request, is used to generate the hash.
+   * @param ?string $hash
+   *   The custom hash value to use when storing.
+   *   Useful when you need to store a modified response.
    */
-  protected function storeResponse(Request $request, Response $response) {
-    $hash = $this->getRequestHash($request);
+  public function storeResponse(Response $response, Request $request = NULL, string $hash = NULL) {
+    $hash ??= $this->getRequestHash($request);
     $filename = $this->getRequestFilename($hash);
-    $responseBody = $response->getBody();
-    $responseBody->rewind();
-    $body = $responseBody->getContents();
-    file_put_contents($filename, $body);
-    $responseBody->rewind();
+    $body = $response->getBody();
+    $body->rewind();
+    file_put_contents($filename, $body->getContents());
+    $body->rewind();
     $testName = $this->getTestName();
 
     $metadataFilename = $this->getRequestFilename($hash, metadata: TRUE);
     $metadata = [
-      'request' => $this->getRequestMetadata($request),
       'tests' => [],
+      'response' => [
+        'status' => $response->getStatusCode(),
+        'headers' => $response->getHeaders(),
+      ],
     ];
+    if ($request) {
+      $metadata['request'] = $this->getRequestMetadata($request);
+    }
     if (file_exists($metadataFilename)) {
       $metadataStoredContent = file_get_contents($metadataFilename);
       $metadataStored = json_decode($metadataStoredContent, TRUE) ?? [];
@@ -306,7 +326,7 @@ class HttpClientFactoryStub extends ClientFactory {
     if ($metadataStoredContent ?? '' !== $metadataContent) {
       file_put_contents($metadataFilename, $metadataContent);
     }
-    $this->mockedRequestsHashesContainer[] = $hash;
+    $this->storeRequestHash($hash);
   }
 
   /**
@@ -446,6 +466,16 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function setResponsesStorageDirectory(string $directory): void {
     $this->responsesStorageDirectory = $directory;
+  }
+
+  /**
+   * Adds the request hash to the container.
+   *
+   * @param string $hash
+   *   A hash value.
+   */
+  protected function storeRequestHash(string $hash): void {
+    $this->mockedRequestsHashesContainer[] = $hash;
   }
 
   /**

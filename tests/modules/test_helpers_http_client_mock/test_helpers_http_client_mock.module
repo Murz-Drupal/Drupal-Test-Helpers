@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Provides the module hooks.
+ */
+
+use Drupal\test_helpers_http_client_mock\HttpClientFactoryMock;
+
+/**
+ * Adds the meta tag with the mocked requests hashes to the page.
+ *
+ * Implements hook_page_attachments().
+ *
+ * @param array $page
+ *   The render array of the page.
+ * @param mixed $serviceName
+ *   A custom service name, useful when you create your own mock of the service.
+ */
+function test_helpers_http_client_mock_page_attachments(array &$page, $serviceName = 'http_client_factory') {
+  $httpClientService = \Drupal::service($serviceName);
+  if (!$hashes = $httpClientService->getMockedRequestsHashesContainer()) {
+    return;
+  }
+  $page['#attached']['html_head'][] = [
+    [
+      '#tag' => 'meta',
+      '#attributes' => [
+        'name' => HttpClientFactoryMock::META_TAG_NAME,
+        'content' => json_encode($hashes),
+      ],
+    ],
+    HttpClientFactoryMock::META_TAG_KEY,
+  ];
+}

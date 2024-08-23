@@ -14,5 +14,7 @@
             "email": "MurzNN@gmail.com"
         }
     ],
-    "require": {}
+    "require-dev": {
+        "donatj/mock-webserver": "^2.7"
+    }
 }

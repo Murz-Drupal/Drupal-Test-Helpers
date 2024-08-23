@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\test_helpers_http_client_mock\Kernel;
 
+use donatj\MockWebServer\MockWebServer;
 use Drupal\KernelTests\KernelTestBase;
 use GuzzleHttp\Psr7\Request;
 
@@ -11,9 +12,6 @@ use GuzzleHttp\Psr7\Request;
  * @group test_helpers_http_client_mock
  */
 class HttpClientFactoryMockTest extends KernelTestBase {
-
-  const BASE_URI = "https://jsonplaceholder.typicode.com/";
-  const REQUEST_PATH = "todos/1";
 
   /**
    * {@inheritdoc}
@@ -27,7 +25,10 @@ class HttpClientFactoryMockTest extends KernelTestBase {
    * Tests articlesList() function.
    */
   public function testStoreHttpResponse() {
-    $request = new Request('GET', self::BASE_URI . self::REQUEST_PATH);
+    $server = new MockWebServer();
+    $server->start();
+    $url = $server->getServerRoot() . '/endpoint?get=foobar';
+    $request = new Request('GET', $url);
 
     $directory = __DIR__ . '/../../assets/testStoreHttpResponse';
     $service = \Drupal::service('http_client_factory');
@@ -43,7 +44,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
       unlink($resultsStoreFile);
       unlink($service->getRequestFilename($hash, TRUE));
     }
-    $responseStore = $clientStore->request('GET', self::BASE_URI . self::REQUEST_PATH);
+    $responseStore = $clientStore->request('GET', $url);
     $resultStore = $responseStore->getBody()->getContents();
     $resultStored = file_get_contents($resultsStoreFile);
     $this->assertEquals($resultStore, $resultStored);
@@ -55,7 +56,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
     $resultStoredArray['userId'] = 7;
     $resultStoredModified = json_encode($resultStoredArray);
     file_put_contents($resultsStoreFile, $resultStoredModified);
-    $responseMock = $clientMock->request('GET', self::BASE_URI . self::REQUEST_PATH);
+    $responseMock = $clientMock->request('GET', $url);
     $resultMocked = $responseMock->getBody()->getContents();
     $resultMockedArray = json_decode($resultMocked, TRUE);
     $this->assertEquals(7, $resultMockedArray['userId']);
@@ -63,6 +64,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
     unlink($resultsStoreFile);
     unlink($service->getRequestFilename($hash, TRUE));
     rmdir($directory);
+    $server->stop();
   }
 
 }

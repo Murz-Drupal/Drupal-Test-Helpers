@@ -5,6 +5,8 @@ test_helpers_http_client_mock.set_test_name:
   requirements:
     # We need to make this endpoint available for all to simplify tests.
     _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
 
 test_helpers_http_client_mock.get_stored_response:
   path: '/test-helpers-http-client-mock/get-stored-response/{hash}'
@@ -13,3 +15,35 @@ test_helpers_http_client_mock.get_stored_response:
   requirements:
     # We need to make this endpoint available for all to simplify tests.
     _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_http_client_mock.delete_stored_response:
+  path: '/test-helpers-http-client-mock/delete-stored-response/{hash}'
+  defaults:
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::deleteStoredResponse'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_http_client_mock.save_stored_response:
+  path: '/test-helpers-http-client-mock/save-stored-response/{hash}'
+  defaults:
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::saveStoredResponse'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_http_client_mock.get_last_requests_hashes:
+  path: '/test-helpers-http-client-mock/get-last-requests-hashes'
+  defaults:
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::getLastRequestsHashes'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
