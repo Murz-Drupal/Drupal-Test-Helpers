@@ -34,7 +34,6 @@ include:
   ################
   - project: $_GITLAB_TEMPLATES_REPO
     ref: $_GITLAB_TEMPLATES_REF
-    # A fix for the issue https://www.drupal.org/project/drupal/issues/3469616 end.
     file:
       - '/includes/include.drupalci.main.yml'
       - '/includes/include.drupalci.variables.yml'
