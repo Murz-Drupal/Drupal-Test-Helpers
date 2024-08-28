@@ -61,11 +61,13 @@ variables:
   # Broaden test coverage.
   OPT_IN_TEST_PREVIOUS_MAJOR: 1
   OPT_IN_TEST_MAX_PHP: 1
-  OPT_IN_TEST_NEXT_MAJOR: 1
+  OPT_IN_TEST_NEXT_MAJOR: 0
   # Show more log output
   _PHPUNIT_EXTRA: --verbose
   # Convenient, and we have no secrets.
   _SHOW_ENVIRONMENT_VARIABLES: 1
+  # Force 10.2 version because we're not compatible with 10.3.x and later.
+  _TARGET_CORE: '10.2.7'
 
 pages:
   image:
