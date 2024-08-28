@@ -103,13 +103,17 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
     $testName ??= $state->get(self::STATE_KEY_TEST_NAME);
     $uriRegexp ??= $state->get(self::STATE_KEY_URI_REGEXP);
 
+    $options = [
+      HttpClientFactoryStub::OPTION_URI_REGEXP => $uriRegexp,
+    ];
+
     $stack = $stack ?? HandlerStack::create();
     parent::__construct(
       $stack,
       $requestMockMode,
       $responsesStorageDirectory,
       $testName,
-      $uriRegexp,
+      $options,
     );
   }
 

@@ -55,6 +55,13 @@ class HttpClientFactoryStub extends ClientFactory {
   const HANDLER_NAME_STORE = 'test_helpers_http_client_mock.store_response';
 
   /**
+   * The options keys.
+   */
+  const OPTION_STORE_HEADERS = 'store_headers';
+  const OPTION_STORE_HEADERS_SKIP_KEYS = 'store_headers_skip';
+  const OPTION_URI_REGEXP = 'uri_regexp';
+
+  /**
    * Hash storage for the stored and mocked requests.
    *
    * @var array
@@ -72,17 +79,27 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The directory to store responses.
    * @param string|null $testName
    *   The name of the test.
-   * @param string|null $uriRegexp
-   *   A regular expression to match URIs and process only matched ones.
+   * @param string|null $options
+   *   An associative array of options.
+   *   Supported keys:
+   *   - store_headers: (bool) Store headers of the response. Defaults to FALSE.
+   *   - skip_headers: (array) A list of headers to not store. Defaults to [].
+   *   - uri_regexp: (string) A regular expression for the URI to store.
+   *     Defaults to ''.
    */
   public function __construct(
     ?HandlerStack $stack = NULL,
     protected ?string $requestMockMode = NULL,
     protected ?string $responsesStorageDirectory = NULL,
     protected ?string $testName = NULL,
-    protected ?string $uriRegexp = NULL,
+    protected ?array $options = NULL,
   ) {
     $stack = $stack ?? HandlerStack::create();
+    $this->options ??= [];
+    $this->options += [
+      self::OPTION_STORE_HEADERS => FALSE,
+      self::OPTION_STORE_HEADERS_SKIP_KEYS => [],
+    ];
     $this->setTestName($testName);
     parent::__construct($stack);
   }
@@ -172,13 +189,17 @@ class HttpClientFactoryStub extends ClientFactory {
     if (!$metadata = json_decode(@file_get_contents($fileMetadata), TRUE)) {
       throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata);
     }
+
+    $status = 200;
+    $headers = [];
     if (isset($metadata['response'])) {
       $status = $metadata['response']['status'];
-      $headers = $metadata['response']['headers'];
-    }
-    else {
-      $status = 200;
-      $headers = [];
+      if (
+        $this->options[self::OPTION_STORE_HEADERS]
+        && isset($metadata['response']['headers'])
+      ) {
+        $headers = $metadata['response']['headers'];
+      }
     }
 
     $response = new Response(
@@ -308,9 +329,16 @@ class HttpClientFactoryStub extends ClientFactory {
       'tests' => [],
       'response' => [
         'status' => $response->getStatusCode(),
-        'headers' => $response->getHeaders(),
       ],
     ];
+    if ($this->options[self::OPTION_STORE_HEADERS]) {
+      $metadata['response']['headers'] = $response->getHeaders();
+      if ($this->options[self::OPTION_STORE_HEADERS_SKIP_KEYS]) {
+        foreach ($this->options[self::OPTION_STORE_HEADERS_SKIP_KEYS] as $header) {
+          unset($metadata['response']['headers'][$header]);
+        }
+      }
+    }
     if ($request) {
       $metadata['request'] = $this->getRequestMetadata($request);
     }
@@ -319,10 +347,12 @@ class HttpClientFactoryStub extends ClientFactory {
       $metadataStored = json_decode($metadataStoredContent, TRUE) ?? [];
       $metadata['tests'] = $metadataStored['tests'];
     }
-    if (!in_array($testName, $metadata['tests'])) {
-      $metadata['tests'][] = $testName;
-    }
-    $metadataContent = json_encode($metadata);
+
+    $metadata['tests'][] = $testName;
+    ksort($metadata['tests']);
+    $metadata['tests'] = array_unique($metadata['tests']);
+
+    $metadataContent = json_encode($metadata, JSON_PRETTY_PRINT);
     if ($metadataStoredContent ?? '' !== $metadataContent) {
       file_put_contents($metadataFilename, $metadataContent);
     }
@@ -419,7 +449,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The URI regular expression.
    */
   public function getUriRegexp(): ?string {
-    return $this->uriRegexp;
+    return $this->options[self::OPTION_URI_REGEXP];
   }
 
   /**
@@ -429,7 +459,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The URI regular expression.
    */
   public function setUriRegexp(?string $regexp): void {
-    $this->uriRegexp = $regexp;
+    $this->options[self::OPTION_URI_REGEXP] = $regexp;
   }
 
   /**
@@ -442,8 +472,8 @@ class HttpClientFactoryStub extends ClientFactory {
    *   TRUE if the request matches the URI regular expression, FALSE otherwise.
    */
   protected function matchRequest(Request $request): bool {
-    if ($this->uriRegexp) {
-      return preg_match($this->uriRegexp, $request->getUri()->__toString());
+    if ($this->options[self::OPTION_URI_REGEXP] ?? NULL) {
+      return preg_match($this->options[self::OPTION_URI_REGEXP], $request->getUri()->__toString());
     }
     return TRUE;
   }

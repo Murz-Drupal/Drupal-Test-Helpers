@@ -568,10 +568,14 @@ class TestHelpers {
       $container->setParameter('memory_cache_default_bin_backends', []);
     }
     $classArguments = [];
-    foreach ($arguments as $argument) {
+    foreach ($arguments as $argumentKey => $argument) {
+      if (!is_string($argument)) {
+        $classArguments[$argumentKey] = $argument;
+        continue;
+      }
       $firstCharacter = substr($argument ?? '', 0, 1);
       if ($firstCharacter == '@') {
-        $classArguments[] = self::service(substr($argument, 1));
+        $classArguments[$argumentKey] = self::service(substr($argument, 1));
       }
       elseif ($firstCharacter == '%') {
         $key = trim($argument, '%');
@@ -597,10 +601,10 @@ class TestHelpers {
               throw new \Error("Container parameter '$key' is missing.\nAdd it using TestHelpers::getContainer()->setParameter('$key', \$value');");
           }
         }
-        $classArguments[] = $resolved;
+        $classArguments[$argumentKey] = $resolved;
       }
       else {
-        $classArguments[] = $argument;
+        $classArguments[$argumentKey] = $argument;
       }
     }
     return $classArguments;
