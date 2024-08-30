@@ -13,7 +13,7 @@ use Symfony\Component\Routing\RouteCompiler;
 /**
  * Tests UrlGeneratorStub class.
  *
- * @coversDefaultClass \Drupal\Core\Routing\UrlGenerator
+ * @coversDefaultClass \Drupal\test_helpers\Stub\RouteProviderStub
  * @group test_helpers
  */
 class RouteProviderStubTest extends UnitTestCase {

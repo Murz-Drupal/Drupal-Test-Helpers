@@ -45,7 +45,7 @@ class ConfigurableLanguageManagerStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::stubSetByCode
+   * @covers ::stubAddLanguage
    */
   public function testStubWithSwitchingDefaultLanguage() {
     /** @var \Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub */

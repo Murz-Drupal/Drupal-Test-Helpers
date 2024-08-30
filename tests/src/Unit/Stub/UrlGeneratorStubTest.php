@@ -12,14 +12,13 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Tests UrlGeneratorStub class.
  *
- * @coversDefaultClass \Drupal\Core\Routing\UrlGenerator
+ * @coversDefaultClass \Drupal\test_helpers\Stub\UrlGeneratorStub
  * @group test_helpers
  */
 class UrlGeneratorStubTest extends UnitTestCase {
 
   /**
    * @covers ::__construct
-   * @covers ::toString
    */
   public function testToString() {
     TestHelpers::service('url_generator');

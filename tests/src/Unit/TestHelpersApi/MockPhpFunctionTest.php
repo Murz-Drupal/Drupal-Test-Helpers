@@ -19,8 +19,6 @@ class MockPhpFunctionTest extends UnitTestCase {
   /**
    * @covers ::mockPhpFunction
    * @covers ::mockPhpFunctionStorage
-   * @covers ::mockPhpFunctionStorage
-   * @covers \Drupal\test_helpers\lib\MockedFunctionCalls::_construct
    */
   public function testMockPhpFunction() {
     $calls = TestHelpers::mockPhpFunction(

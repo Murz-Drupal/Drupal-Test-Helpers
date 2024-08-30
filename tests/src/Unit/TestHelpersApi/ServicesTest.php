@@ -227,19 +227,12 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::getServiceClassArguments
-   *
-   * @todo When https://www.drupal.org/project/test_helpers/issues/3388492
-   * lands - rework via initService()
-   * Candidates:
-   * - logger.syslog_test
-   * - plugin.manager.layout_builder.section_storage
-   * So we need to extend this test.
+   * @covers ::initService
    */
   public function testInitServiceWithParent() {
     $logger = TestHelpers::service('logger.channel.default');
     $moduleHandler = TestHelpers::service('module_handler');
-    $service = TestHelpers::initServiceFromYaml('core/core.services.yml', 'plugin.manager.block');
+    $service = TestHelpers::initService('plugin.manager.block');
     $this->assertSame($logger, TestHelpers::getPrivateProperty($service, 'logger'));
     $this->assertSame($moduleHandler, TestHelpers::getPrivateProperty($service, 'moduleHandler'));
   }

@@ -17,8 +17,6 @@ class CacheFactoryStubTest extends UnitTestCase {
 
   /**
    * @covers ::__construct
-   * @covers ::set
-   * @covers ::get
    */
   public function testService() {
     $cacheStatic = TestHelpers::service('cache.static', NULL, NULL, NULL, NULL, TRUE);

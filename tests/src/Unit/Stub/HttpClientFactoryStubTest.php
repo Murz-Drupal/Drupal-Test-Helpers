@@ -16,7 +16,7 @@ use GuzzleHttp\Psr7\Request;
 /**
  * Tests HttpClientFactoryStub class.
  *
- * @coversDefaultClass \Drupal\test_helpers_http_client_mock\HttpClientFactoryStub
+ * @coversDefaultClass \Drupal\test_helpers\Stub\HttpClientFactoryStub
  * @group test_helpers
  * @group test_helpers_http_client
  */
@@ -90,7 +90,6 @@ class HttpClientFactoryStubTest extends UnitTestCase {
    * @covers ::__construct
    * @covers ::fromOptions
    * @covers ::getStoredResponse
-   * @covers ::isUseRealRequestsEnabled
    * @covers ::storeResponse
    * @covers ::getRequestHash
    */

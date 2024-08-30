@@ -22,7 +22,7 @@ class AssertSequenceTest extends UnitTestCase {
   protected static $assertSequence;
 
   /**
-   * @covers ::callEventSubscriber
+   * @covers ::__construct
    */
   public function testCallEventSubscriber() {
     // A positive scenario with correct sequence.
