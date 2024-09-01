@@ -23,6 +23,20 @@ class LoggerChannelFactoryStub extends LoggerChannelFactory {
   protected $staticLogger;
 
   /**
+   * A request stack instance.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $requestStack;
+
+  /**
+   * A current user instance.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $currentUser;
+
+  /**
    * Constructs a new LoggerChannelFactory class.
    */
   public function __construct(
