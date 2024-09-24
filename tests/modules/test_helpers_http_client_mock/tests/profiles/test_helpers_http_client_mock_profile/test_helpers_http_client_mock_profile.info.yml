@@ -1,0 +1,12 @@
+name: Test Helpers HTTP Client Mock profile
+type: profile
+core_version_requirement: ^10 || ^11
+description: 'Profile with pre-installed test_helpers_http_client_mock and test_helpers_functional_api modules.'
+version: VERSION
+hidden: true
+install:
+  - js_testing_log_test
+  - nightwatch_theme_install_utility
+  - test_helpers
+  - test_helpers_test
+  - test_helpers_http_client_mock

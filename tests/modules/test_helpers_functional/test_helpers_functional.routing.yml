@@ -1,0 +1,53 @@
+test_helpers_functional.set_envs:
+  path: '/test-helpers-functional/set-envs'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::setEnvs'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_functional.get_env:
+  path: '/test-helpers-functional/get-env/{name}'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::getEnv'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+    parameters:
+      name: ''
+
+test_helpers_functional.module_installer:
+  path: '/test-helpers-functional/module-installer'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::moduleInstaller'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_functional.create_user:
+  path: '/test-helpers-functional/create-user'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::createUser'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_functional.login:
+  path: '/test-helpers-functional/login/{name}'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::login'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+    parameters:
+      name: ''

@@ -2,7 +2,7 @@ const setSettingsPath = '/test-helpers-http-client-mock/set-settings';
 
 exports.command = function testHelpersHttpMockSetSettings(
   settings = {},
-  callback,
+  callback = undefined,
 ) {
   const self = this;
   const urlParams = new URLSearchParams();

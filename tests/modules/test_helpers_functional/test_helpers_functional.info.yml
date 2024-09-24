@@ -1,0 +1,8 @@
+name: Test Helpers Functional
+type: module
+description: |
+  DO NOT ENABLE THIS MODULE IN PRODUCTION ENVIRONMENTS! Provides utilities for
+  functional tests, where no Drupal Kernel is available, for example in
+  Nightwatch tests.
+package: Testing
+core_version_requirement: ^10 || ^11

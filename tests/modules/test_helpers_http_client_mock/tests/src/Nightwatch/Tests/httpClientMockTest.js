@@ -55,6 +55,8 @@ const deleteStoredResponse = (hash) => {
   }
 };
 
+let request1Hash;
+let request2Hash;
 let request1MockHash;
 
 module.exports = {
@@ -69,67 +71,60 @@ module.exports = {
     EventEmitter.defaultMaxListeners = 10;
   },
   before(browser) {
-    browser.drupalInstall({ installProfile: 'minimal' });
+    browser.drupalInstall({
+      installProfile: 'test_helpers_http_client_mock_profile',
+    });
   },
   after(browser) {
     browser.drupalUninstall();
   },
-  'Test the store mode': async (browser) => {
-    // Installing modules here because the before hook has a limit of 20s
-    // but the installation can take longer, so we can get a flaky test.
-    // So, installing the modules one by one.
-    // @see https://github.com/nightwatchjs/nightwatch/issues/4255
-    await browser.drupalInstallModule('test_helpers');
-    await browser.drupalInstallModule('test_helpers_http_client_mock');
-    await browser.drupalInstallModule('test_helpers_test');
-
-    await browser.testHelpersHttpMockSetSettings({
-      mode: 'store',
-      directory: assetsDirectory,
-    });
-
-    await browser
+  'Test the store mode': (browser) => {
+    browser
+      .testHelpersHttpMockSetSettings({
+        mode: 'store',
+        directory: assetsDirectory,
+      })
       .drupalRelativeURL(requestPath1)
-      .waitForElementVisible(responseContentTagSelector, 1000);
-    const request1Hash = JSON.parse(
-      await browser.getAttribute(`meta[name="${metatagName}"]`, 'content'),
-    )[0];
-    request1MockHash = request1Hash;
-    const apiResponse1Data = JSON.parse(readStoredResponse(request1Hash));
-    await browser.assert.textContains('body', apiResponse1Data.title);
-
-    await browser
+      .waitForElementVisible(responseContentTagSelector)
+      .getAttribute(`meta[name="${metatagName}"]`, 'content', (result) => {
+        [request1Hash] = JSON.parse(result.value);
+        request1MockHash = request1Hash;
+        const apiResponse1Data = JSON.parse(readStoredResponse(request1Hash));
+        browser.assert.textContains('body', apiResponse1Data.title);
+      })
       .drupalRelativeURL(requestPath2)
-      .waitForElementVisible(responseContentTagSelector, 1000);
-    const request2Hash = JSON.parse(
-      await browser.getAttribute(`meta[name="${metatagName}"]`, 'content'),
-    )[0];
-    const apiResponse2Data = JSON.parse(readStoredResponse(request2Hash));
-    await browser.assert.textContains(
-      responseContentTagSelector,
-      apiResponse2Data.title,
-    );
-
-    deleteStoredResponse(request1Hash);
-    deleteStoredResponse(request2Hash);
+      .waitForElementVisible(responseContentTagSelector)
+      .getAttribute(`meta[name="${metatagName}"]`, 'content', (result) => {
+        [request2Hash] = JSON.parse(result.value);
+        const apiResponse2Data = JSON.parse(readStoredResponse(request2Hash));
+        browser.assert.textContains(
+          responseContentTagSelector,
+          apiResponse2Data.title,
+        );
+      })
+      .perform(() => {
+        deleteStoredResponse(request1Hash);
+        deleteStoredResponse(request2Hash);
+      });
   },
 
-  'Test the mock mode': async (browser) => {
-    // We assume that the modules are already installed from the previous test.
-    // Copy here the module installing block if remove the first test.
+  'Test the mock mode': (browser) => {
     const mockedResponse = {
       title: 'Mocked title',
     };
-    await browser.testHelpersHttpMockSetSettings({
-      mode: 'mock',
-      directory: assetsDirectory,
-    });
-    writeStoredResponse(request1MockHash, JSON.stringify(mockedResponse));
-    await browser
+    browser
+      .testHelpersHttpMockSetSettings({
+        mode: 'mock',
+        directory: assetsDirectory,
+      })
+      .perform(() => {
+        writeStoredResponse(request1MockHash, JSON.stringify(mockedResponse));
+      })
       .drupalRelativeURL(requestPath1)
-      .waitForElementVisible(responseContentTagSelector, 1000)
-      .assert.textContains(responseContentTagSelector, mockedResponse.title);
-
-    deleteStoredResponse(request1MockHash);
+      .waitForElementVisible(responseContentTagSelector)
+      .assert.textContains(responseContentTagSelector, mockedResponse.title)
+      .perform(() => {
+        deleteStoredResponse(request1MockHash);
+      });
   },
 };

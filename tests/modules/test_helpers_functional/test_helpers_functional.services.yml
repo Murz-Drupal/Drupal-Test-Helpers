@@ -1,0 +1,6 @@
+services:
+  Drupal\test_helpers_functional\EventSubscriber\TestHelpersFunctionalEventSubscriber:
+    arguments:
+      - '@state'
+    tags:
+      - name: event_subscriber
