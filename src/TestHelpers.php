@@ -19,8 +19,6 @@ use Drupal\Core\Language\Language;
 use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\TypedData\TypedDataInterface;
-use Drupal\test_helpers\lib\MockedFunctionCalls;
-use Drupal\test_helpers\lib\MockedFunctionStorage;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\CacheFactoryStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
@@ -49,6 +47,8 @@ use Drupal\test_helpers\Stub\TypedDataManagerStub;
 use Drupal\test_helpers\Stub\UrlGeneratorStub;
 use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
+use Drupal\test_helpers\lib\MockedFunctionCalls;
+use Drupal\test_helpers\lib\MockedFunctionStorage;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
@@ -393,7 +393,7 @@ class TestHelpers {
    *
    * @todo Cover this function by a unit test.
    */
-  public static function assertException(callable $function, string $exceptionClass = NULL, string $message = NULL) {
+  public static function assertException(callable $function, ?string $exceptionClass = NULL, ?string $message = NULL) {
     $exceptionClass ??= '\Exception';
     $message ??= "An exception instance of $exceptionClass is expected.";
     try {
@@ -425,7 +425,7 @@ class TestHelpers {
    * @return mixed
    *   The definition from the plugin.
    */
-  public static function getPluginDefinition(string $class, string $plugin = 'TypedData', string $annotationName = NULL) {
+  public static function getPluginDefinition(string $class, string $plugin = 'TypedData', ?string $annotationName = NULL) {
     $rc = new \ReflectionClass($class);
 
     $reader = new SimpleAnnotationReader();
@@ -481,7 +481,7 @@ class TestHelpers {
    * @return object
    *   The initialized class instance.
    */
-  public static function createClass($class, array $createArguments = NULL, array $services = NULL): object {
+  public static function createClass($class, ?array $createArguments = NULL, ?array $services = NULL): object {
     if ($services) {
       self::setServices($services);
     }
@@ -512,9 +512,9 @@ class TestHelpers {
   public static function initServiceFromYaml(
     $servicesYamlFileOrData,
     string $name,
-    array $mockMethods = NULL,
-    string $overrideClass = NULL,
-    array $customArguments = NULL,
+    ?array $mockMethods = NULL,
+    ?string $overrideClass = NULL,
+    ?array $customArguments = NULL,
   ): object {
     if (is_string($servicesYamlFileOrData)) {
       $serviceInfo = self::getServiceInfoFromYaml($name, $servicesYamlFileOrData);
@@ -636,10 +636,10 @@ class TestHelpers {
    */
   public static function initService(
     string $serviceNameOrClass,
-    string $serviceNameToCheck = NULL,
-    array $mockMethods = NULL,
-    string $overrideClass = NULL,
-    array $customArguments = NULL,
+    ?string $serviceNameToCheck = NULL,
+    ?array $mockMethods = NULL,
+    ?string $overrideClass = NULL,
+    ?array $customArguments = NULL,
   ): object {
     // If we have just a service name, not a class.
     if (strpos($serviceNameOrClass, '\\') === FALSE) {
@@ -691,7 +691,7 @@ class TestHelpers {
     try {
       $servicesFileData = self::parseYamlFile($servicesFile);
     }
-    catch (\Exception $e) {
+    catch (\Exception) {
       return NULL;
     }
     foreach ($servicesFileData['services'] ?? [] as $name => $info) {
@@ -763,12 +763,12 @@ class TestHelpers {
   public static function service(
     string $serviceName,
     $class = NULL,
-    bool $forceOverride = NULL,
-    array $mockMethods = NULL,
-    array $addMockableMethods = NULL,
-    bool $initService = NULL,
-    string $servicesYamlFile = NULL,
-    array $customArguments = NULL,
+    ?bool $forceOverride = NULL,
+    ?array $mockMethods = NULL,
+    ?array $addMockableMethods = NULL,
+    ?bool $initService = NULL,
+    ?string $servicesYamlFile = NULL,
+    ?array $customArguments = NULL,
   ): object {
     $addMockableMethods ??= [];
     $container = self::getContainer();
@@ -867,7 +867,7 @@ class TestHelpers {
    *
    * @internal For internal usage only.
    */
-  private static function initServiceFromInfo(array $info, array $mockMethods = NULL, array $customArguments = NULL) {
+  private static function initServiceFromInfo(array $info, ?array $mockMethods = NULL, ?array $customArguments = NULL) {
     if ($customArguments) {
       $info['arguments'] = $customArguments;
     }
@@ -937,9 +937,9 @@ class TestHelpers {
    */
   public static function setServices(
     array $services,
-    bool $clearContainer = NULL,
-    bool $forceOverride = NULL,
-    bool $initServices = NULL,
+    ?bool $clearContainer = NULL,
+    ?bool $forceOverride = NULL,
+    ?bool $initServices = NULL,
   ): void {
     if ($clearContainer) {
       TestHelpers::getContainer(TRUE);
@@ -993,7 +993,7 @@ class TestHelpers {
    * @return \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The stub object for the entity.
    */
-  public static function createEntity(string $entityTypeNameOrClass, array $values = NULL, array $translations = NULL, array $options = NULL) {
+  public static function createEntity(string $entityTypeNameOrClass, ?array $values = NULL, ?array $translations = NULL, ?array $options = NULL) {
     $options ??= [];
     // Splitting $options to entity options and storage options.
     if (isset($options['skipPrePostSave'])) {
@@ -1040,7 +1040,7 @@ class TestHelpers {
    * @return \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The stub object for the entity.
    */
-  public static function saveEntity(string $entityTypeNameOrClass, array $values = NULL, array $translations = NULL, array $options = NULL) {
+  public static function saveEntity(string $entityTypeNameOrClass, ?array $values = NULL, ?array $translations = NULL, ?array $options = NULL) {
     $entity = self::createEntity($entityTypeNameOrClass, $values, $translations, $options);
     $entity->save();
     return $entity;
@@ -1068,7 +1068,7 @@ class TestHelpers {
    * @return \Drupal\Core\Entity\EntityStorageInterface
    *   The initialized stub of Entity Storage.
    */
-  public static function getEntityStorage(string $entityTypeNameOrClass, EntityStorageInterface $storageInstance = NULL, ?bool $forceOverride = NULL, array $storageOptions = NULL): EntityStorageInterface {
+  public static function getEntityStorage(string $entityTypeNameOrClass, ?EntityStorageInterface $storageInstance = NULL, ?bool $forceOverride = NULL, ?array $storageOptions = NULL): EntityStorageInterface {
     return self::service('entity_type.manager')->stubGetOrCreateStorage($entityTypeNameOrClass, $storageInstance, $forceOverride, $storageOptions);
   }
 
@@ -1098,10 +1098,10 @@ class TestHelpers {
   public static function createFieldStub(
     $values = NULL,
     $typeOrDefinition = NULL,
-    string $name = NULL,
-    TypedDataInterface $parent = NULL,
+    ?string $name = NULL,
+    ?TypedDataInterface $parent = NULL,
     $isBaseField = NULL,
-    array $mockMethods = NULL,
+    ?array $mockMethods = NULL,
   ): FieldItemListInterface {
     return FieldItemListStubFactory::create($name, $values, $typeOrDefinition, $parent, $isBaseField, $mockMethods);
   }
@@ -1257,7 +1257,7 @@ class TestHelpers {
    * @return bool
    *   True if is subset, false if not.
    */
-  public static function matchConditions(object $conditionsObject, object $conditionsExpectedObject, bool $onlyListed = NULL, bool $throwErrors = FALSE): bool {
+  public static function matchConditions(object $conditionsObject, object $conditionsExpectedObject, ?bool $onlyListed = NULL, bool $throwErrors = FALSE): bool {
     if ($conditionsObject instanceof EntityQueryConditionInterface) {
       if (strcasecmp($conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction()) != 0) {
         $throwErrors && self::throwMatchError('conjunction', $conditionsObject->getConjunction(), $conditionsExpectedObject->getConjunction());
@@ -1603,14 +1603,14 @@ class TestHelpers {
   /**
    * Creates a partial mock for the class and call constructor with arguments.
    */
-  public static function createPartialMockWithConstructor(string $originalClassName, array $methods, array $constructorArgs = NULL, array $addMethods = NULL): MockObject {
+  public static function createPartialMockWithConstructor(string $originalClassName, array $methods, ?array $constructorArgs = NULL, ?array $addMethods = NULL): MockObject {
     return UnitTestCaseWrapper::getInstance()->createPartialMockWithConstructor($originalClassName, $methods, $constructorArgs, $addMethods);
   }
 
   /**
    * Creates a partial mock with ability to add custom methods.
    */
-  public static function createPartialMockWithCustomMethods(string $originalClassName, array $methods, array $addMethods = NULL): MockObject {
+  public static function createPartialMockWithCustomMethods(string $originalClassName, array $methods, ?array $addMethods = NULL): MockObject {
     return UnitTestCaseWrapper::getInstance()->createPartialMockWithCustomMethods($originalClassName, $methods, $addMethods);
   }
 
@@ -1719,7 +1719,7 @@ class TestHelpers {
    * @return string|null
    *   The full path to the module root.
    */
-  public static function getModuleRoot($pathOrClassOrLevel = NULL, string $moduleName = NULL): ?string {
+  public static function getModuleRoot($pathOrClassOrLevel = NULL, ?string $moduleName = NULL): ?string {
     if ($pathOrClassOrLevel === NULL || is_numeric($pathOrClassOrLevel)) {
       // Getting a module info from a caller function.
       $level = is_numeric($pathOrClassOrLevel) ? 2 + $pathOrClassOrLevel : 2;
@@ -1778,7 +1778,7 @@ class TestHelpers {
    * @return string
    *   A full path to the module file.
    */
-  public static function getModuleFilePath(string $relativePath, int $parentCallsLevel = NULL) {
+  public static function getModuleFilePath(string $relativePath, ?int $parentCallsLevel = NULL) {
     // We should increase a level by one, to bypass this function call.
     $parentCallsLevel ??= 0;
     $parentCallsLevel++;
@@ -1833,7 +1833,7 @@ class TestHelpers {
    * @return \Drupal\test_helpers\lib\MockedFunctionCalls
    *   A MockedFunctionCalls object, containing list of all function calls.
    */
-  public static function mockPhpFunction(string $name, string $class, callable $callback = NULL): MockedFunctionCalls {
+  public static function mockPhpFunction(string $name, string $class, ?callable $callback = NULL): MockedFunctionCalls {
     $namespace = implode("\\", array_slice(explode("\\", ltrim($class, '\\')), 0, -1));
     $functionPath = $namespace . '\\' . $name;
     $storage = self::mockPhpFunctionStorage($functionPath);
@@ -2053,7 +2053,7 @@ EOT;
    *
    * @internal For internal usage only.
    */
-  private static function getServiceInfo(string $serviceName, string $servicesYamlFile = NULL): array {
+  private static function getServiceInfo(string $serviceName, ?string $servicesYamlFile = NULL): array {
     if ($serviceName == 'kernel') {
       $info = [
         'class' => DrupalKernel::class,

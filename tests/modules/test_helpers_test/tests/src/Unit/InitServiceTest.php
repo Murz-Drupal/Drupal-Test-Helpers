@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers_test\Unit;
 
-use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\Yaml\Parser;
 
 /**

@@ -18,7 +18,7 @@ class LanguageDefaultStub extends LanguageDefault {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $values = NULL) {
+  public function __construct(?array $values = NULL) {
     if ($values === NULL) {
       $values = [
         'id' => 'en',

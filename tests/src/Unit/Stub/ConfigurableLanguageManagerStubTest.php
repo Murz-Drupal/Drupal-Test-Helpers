@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Language\LanguageManager;
+use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests ConfigurableLanguageManagerStub class.

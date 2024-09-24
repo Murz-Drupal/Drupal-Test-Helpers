@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers_example\Unit;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -11,9 +13,9 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Link;
+use Drupal\Tests\UnitTestCase;
 use Drupal\node\NodeInterface;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
-use Drupal\Tests\UnitTestCase;
 use Drupal\user\UserInterface;
 
 /**
@@ -110,7 +112,7 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
 
     $dateFormatter = $this->createMock(DateFormatterInterface::class);
     $dateFormatter->method('format')->willReturnCallback(function ($timestamp) {
-      return date('d.m.Y', $timestamp);
+      return date('d.m.Y', (int) $timestamp);
     });
 
     $configFactory = $this->createMock(ConfigFactoryInterface::class);

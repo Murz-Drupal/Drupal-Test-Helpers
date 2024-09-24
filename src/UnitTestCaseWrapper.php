@@ -76,7 +76,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
    * @return \PHPUnit\Framework\MockObject\MockObject
    *   The mocked object
    */
-  public function createPartialMockWithConstructor(string $originalClassName, array $methods = NULL, array $constructorArgs = NULL, array $addMethods = NULL): MockObject {
+  public function createPartialMockWithConstructor(string $originalClassName, ?array $methods = NULL, ?array $constructorArgs = NULL, ?array $addMethods = NULL): MockObject {
     $mockBuilder = $this->getMockBuilder($originalClassName)
       ->setConstructorArgs($constructorArgs ?? [])
       ->disableOriginalClone();
@@ -103,7 +103,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
    * @return \PHPUnit\Framework\MockObject\MockObject
    *   The mocked object
    */
-  public function createPartialMockWithCustomMethods(string $originalClassName, array $methods = NULL, array $addMethods = NULL): MockObject {
+  public function createPartialMockWithCustomMethods(string $originalClassName, ?array $methods = NULL, ?array $addMethods = NULL): MockObject {
     $mockBuilder = $this->getMockBuilder($originalClassName)
       ->disableOriginalConstructor()
       ->disableOriginalClone();

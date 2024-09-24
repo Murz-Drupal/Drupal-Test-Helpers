@@ -4,8 +4,8 @@ namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\test_helpers\lib\StaticLogger;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\test_helpers\lib\StaticLogger;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -20,21 +20,7 @@ class LoggerChannelFactoryStub extends LoggerChannelFactory {
    *
    * @var \Drupal\test_helpers\lib\StaticLogger
    */
-  protected $staticLogger;
-
-  /**
-   * A request stack instance.
-   *
-   * @var \Symfony\Component\HttpFoundation\RequestStack
-   */
-  protected $requestStack;
-
-  /**
-   * A current user instance.
-   *
-   * @var \Drupal\Core\Session\AccountInterface
-   */
-  protected $currentUser;
+  protected ?StaticLogger $staticLogger;
 
   /**
    * Constructs a new LoggerChannelFactory class.

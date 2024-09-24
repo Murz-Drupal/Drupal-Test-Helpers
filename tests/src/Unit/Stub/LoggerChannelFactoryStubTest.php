@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Session\UserSession;
-use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests LoggerChannelFactoryStub class.

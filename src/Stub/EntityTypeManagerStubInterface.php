@@ -24,7 +24,7 @@ interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
    * @return mixed
    *   The definition.
    */
-  public function stubSetDefinition(string $pluginId, object $definition = NULL, $forceOverride = FALSE);
+  public function stubSetDefinition(string $pluginId, ?object $definition = NULL, $forceOverride = FALSE);
 
   /**
    * Creates a new handler, or return exists one.
@@ -41,7 +41,7 @@ interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
    * @return mixed
    *   The handler.
    */
-  public function stubGetOrCreateHandler(string $handlerType, string $entityTypeId, object $handler = NULL, $forceOverride = FALSE);
+  public function stubGetOrCreateHandler(string $handlerType, string $entityTypeId, ?object $handler = NULL, $forceOverride = FALSE);
 
   /**
    * Creates a new entity type storage, or return exists one.
@@ -65,7 +65,7 @@ interface EntityTypeManagerStubInterface extends EntityTypeManagerInterface {
    * @return \PHPUnit\Framework\MockObject\MockObject
    *   The mocked Entity Storage Stub.
    */
-  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, bool $forceOverride = NULL, array $storageOptions = NULL);
+  public function stubGetOrCreateStorage(string $entityClass, $storageInstanceOrAnnotation = NULL, ?bool $forceOverride = NULL, ?array $storageOptions = NULL);
 
   /**
    * Resets the stub and clears all storages.

@@ -7,9 +7,9 @@ namespace Drupal\Tests\test_helpers\Unit;
 use Drupal\Core\Database\ConnectionNotDefinedException;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Database\Query\ConditionInterface;
+use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\DatabaseConnectionStub\Connection;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests ConnectionStub class.

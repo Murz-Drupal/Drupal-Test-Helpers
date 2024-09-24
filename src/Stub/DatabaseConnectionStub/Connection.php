@@ -7,9 +7,9 @@ use Drupal\Core\Database\Database;
 use Drupal\Core\Database\Query\Upsert;
 use Drupal\Core\Database\Schema;
 use Drupal\Core\Database\Transaction\TransactionManagerInterface;
+use Drupal\Tests\Core\Database\Stub\StubPDO;
 use Drupal\test_helpers\Stub\TransactionManagerStub;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\Core\Database\Stub\StubPDO;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -40,7 +40,7 @@ class Connection extends CoreDatabaseConnection {
   /**
    * {@inheritdoc}
    */
-  public function __construct(\PDO $connection = NULL, array $connection_options = []) {
+  public function __construct(?\PDO $connection = NULL, array $connection_options = []) {
     $this->pdoMock = $connection;
     $this->connectionOptions = $connection_options;
     $this->connectionOptions['namespace'] ??= self::getNamespace(self::class);

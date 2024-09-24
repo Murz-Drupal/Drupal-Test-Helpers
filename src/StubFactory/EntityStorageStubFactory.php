@@ -57,7 +57,7 @@ class EntityStorageStubFactory {
    * @return \Drupal\Core\Entity\EntityStorageInterface|\PHPUnit\Framework\MockObject\MockObject
    *   The mocked Entity Storage Stub.
    */
-  public static function create(string $entityClassOrName, string $annotation = NULL, array $storageOptions = NULL) {
+  public static function create(string $entityClassOrName, ?string $annotation = NULL, ?array $storageOptions = NULL) {
     $storageOptions ??= [];
     if (is_array($storageOptions['methods'] ?? NULL)) {
       @trigger_error('The storage option "methods" is deprecated in test_helpers:1.0.0-beta9 and is removed from test_helpers:1.0.0-rc1. Use "mockMethods" instead. See https://www.drupal.org/project/test_helpers/issues/3347857', E_USER_DEPRECATED);
@@ -372,7 +372,7 @@ class EntityStorageStubFactory {
 
     if (in_array('loadMultiple', $overriddenMethods)) {
       TestHelpers::setMockedClassMethod(
-        $entityStorage, 'loadMultiple', function (array $ids = NULL) use (&$entitiesStorage) {
+        $entityStorage, 'loadMultiple', function (?array $ids = NULL) use (&$entitiesStorage) {
           if ($ids === NULL) {
             $entitiesValues = $entitiesStorage['byId'] ?? [];
           }

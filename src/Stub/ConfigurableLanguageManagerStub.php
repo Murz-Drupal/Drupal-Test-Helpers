@@ -33,11 +33,11 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
    * {@inheritdoc}
    */
   public function __construct(
-    LanguageDefault $default_language = NULL,
-    ConfigFactoryInterface $config_factory = NULL,
-    ModuleHandlerInterface $module_handler = NULL,
-    LanguageConfigFactoryOverrideInterface $config_override = NULL,
-    RequestStack $request_stack = NULL,
+    ?LanguageDefault $default_language = NULL,
+    ?ConfigFactoryInterface $config_factory = NULL,
+    ?ModuleHandlerInterface $module_handler = NULL,
+    ?LanguageConfigFactoryOverrideInterface $config_override = NULL,
+    ?RequestStack $request_stack = NULL,
   ) {
     $default_language ??= TestHelpers::service('language.default');
     $config_factory ??= TestHelpers::service('config.factory');
@@ -57,7 +57,7 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
    * @param string|null $label
    *   A label for the language, if NULL - get from standard list.
    */
-  public function stubAddLanguage(string $code, string $label = NULL) {
+  public function stubAddLanguage(string $code, ?string $label = NULL) {
     $values = $this->languageValuesFromCode($code, $label);
     // In a configuration record the 'label' term is used instead of 'name'.
     if (isset($values['label'])) {
@@ -117,7 +117,7 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
    * @return array
    *   An array with values for creating a Language object.
    */
-  public function languageValuesFromCode(string $langcode, string $label = NULL): array {
+  public function languageValuesFromCode(string $langcode, ?string $label = NULL): array {
     if ($langcode == LanguageInterface::LANGCODE_NOT_SPECIFIED) {
       $languageData = ['Not specified', 'Not specified'];
     }

@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\test_helpers_http_client_mock\Kernel;
 
-use donatj\MockWebServer\MockWebServer;
 use Drupal\KernelTests\KernelTestBase;
 use GuzzleHttp\Psr7\Request;
+use donatj\MockWebServer\MockWebServer;
 
 /**
  * @coversDefaultClass \Drupal\test_helpers_http_client_mock\HttpClientFactoryMock

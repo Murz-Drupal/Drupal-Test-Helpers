@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\test_helpers_http_client_mock;
 
 use Drupal\Core\State\StateInterface;

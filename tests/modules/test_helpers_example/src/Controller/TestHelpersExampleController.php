@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\test_helpers_example\Controller;
 
 use Drupal\Core\Config\ConfigFactoryInterface;

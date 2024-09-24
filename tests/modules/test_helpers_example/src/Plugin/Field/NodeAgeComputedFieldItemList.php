@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\test_helpers_example\Plugin\Field;
 
 use Drupal\Core\Field\FieldItemList;

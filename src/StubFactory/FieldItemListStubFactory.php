@@ -36,7 +36,7 @@ class FieldItemListStubFactory {
    * @return \Drupal\Core\Field\FieldDefinitionInterface
    *   A field field definition stub.
    */
-  public static function createFieldItemDefinitionStub(string $class = NULL, array $settings = NULL, bool $isBaseField = NULL): FieldDefinitionInterface {
+  public static function createFieldItemDefinitionStub(?string $class = NULL, ?array $settings = NULL, ?bool $isBaseField = NULL): FieldDefinitionInterface {
     if (!$class) {
       $class = ItemStubItem::class;
     }
@@ -75,12 +75,12 @@ class FieldItemListStubFactory {
    *   A field item list with items as stubs.
    */
   public static function create(
-    string $name = NULL,
+    ?string $name = NULL,
     $values = NULL,
     $typeOrDefinition = NULL,
-    TypedDataInterface $parent = NULL,
-    bool $isBaseField = NULL,
-    array $mockMethods = NULL,
+    ?TypedDataInterface $parent = NULL,
+    ?bool $isBaseField = NULL,
+    ?array $mockMethods = NULL,
   ): FieldItemListInterface {
     TestHelpers::initEntityTypeManagerStubs();
     if (is_string($typeOrDefinition)) {

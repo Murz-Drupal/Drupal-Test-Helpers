@@ -122,7 +122,7 @@ class TypedDataManagerStub extends TypedDataManager {
    * @param string|null $namespace
    *   The namespace to use.
    */
-  public function stubInitPlugin(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
+  public function stubInitPlugin(string $class, string $plugin = 'TypedData', ?string $namespace = NULL): void {
     $definition = TestHelpers::getPluginDefinition($class, $plugin);
     $id = self::getIdWithNamespace($definition['id'], $namespace);
 
@@ -146,7 +146,7 @@ class TypedDataManagerStub extends TypedDataManager {
    * @param string|null $namespace
    *   The namespace to use.
    */
-  public function stubSetPlugin(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
+  public function stubSetPlugin(string $class, string $plugin = 'TypedData', ?string $namespace = NULL): void {
     $definition = TestHelpers::getPluginDefinition($class, $plugin);
     if (!isset($definition['list_class'])) {
       $definition['list_class'] = 'Drupal\Core\Field\FieldItemList';
@@ -174,7 +174,7 @@ class TypedDataManagerStub extends TypedDataManager {
    * @param string|null $customId
    *   Sets the custom id, if needed.
    */
-  public function stubSetDefinition($definition, string $namespace = NULL, string $customId = NULL): void {
+  public function stubSetDefinition($definition, ?string $namespace = NULL, ?string $customId = NULL): void {
     $this->definitions[self::getIdWithNamespace($customId ?? $definition['id'], $namespace)] = $definition;
   }
 
@@ -188,7 +188,7 @@ class TypedDataManagerStub extends TypedDataManager {
    * @param string|null $namespace
    *   The namespace to use.
    */
-  public function stubSetDefinitionFromClass(string $class, string $plugin = 'TypedData', string $namespace = NULL): void {
+  public function stubSetDefinitionFromClass(string $class, string $plugin = 'TypedData', ?string $namespace = NULL): void {
     $definition = TestHelpers::getPluginDefinition($class, $plugin);
     self::stubSetDefinition($definition, $plugin, $namespace);
   }
@@ -204,7 +204,7 @@ class TypedDataManagerStub extends TypedDataManager {
    * @return string
    *   The combined string.
    */
-  protected function getIdWithNamespace(string $id, string $namespace = NULL) {
+  protected function getIdWithNamespace(string $id, ?string $namespace = NULL) {
     return $namespace
       ? $namespace . ':' . $id
       : $id;

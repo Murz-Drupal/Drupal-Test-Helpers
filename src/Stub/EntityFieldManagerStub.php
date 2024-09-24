@@ -38,7 +38,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
    * @param string $langcode
    *   The langcode, gets the current language if NULL.
    */
-  public function stubSetFieldDefinitions(string $entityTypeId, string $bundle, array $fieldDefinitions, string $langcode = NULL): void {
+  public function stubSetFieldDefinitions(string $entityTypeId, string $bundle, array $fieldDefinitions, ?string $langcode = NULL): void {
     $langcode ??= TestHelpers::service('language_manager')->getCurrentLanguage()->getId();
     $this->fieldDefinitions[$entityTypeId][$bundle][$langcode] = $fieldDefinitions;
   }
@@ -67,7 +67,7 @@ class EntityFieldManagerStub extends EntityFieldManager {
    * @param string $langcode
    *   The langcode, gets the current language if NULL.
    */
-  public function stubAddFieldDefinition(string $entityTypeId, string $bundle, string $fieldName, FieldDefinitionInterface $fieldDefinition, string $langcode = NULL): void {
+  public function stubAddFieldDefinition(string $entityTypeId, string $bundle, string $fieldName, FieldDefinitionInterface $fieldDefinition, ?string $langcode = NULL): void {
     $langcode ??= TestHelpers::service('language_manager')->getCurrentLanguage()->getId();
     $this->fieldDefinitions[$entityTypeId][$bundle][$langcode][$fieldName] = $fieldDefinition;
   }

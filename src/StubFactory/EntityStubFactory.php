@@ -65,10 +65,10 @@ class EntityStubFactory {
    */
   public static function create(
     string $entityTypeNameOrClass,
-    array $values = NULL,
-    array $translations = NULL,
-    array $options = NULL,
-    array $storageOptions = NULL,
+    ?array $values = NULL,
+    ?array $translations = NULL,
+    ?array $options = NULL,
+    ?array $storageOptions = NULL,
   ) {
     $values ??= [];
     $options ??= [];
@@ -354,7 +354,7 @@ class EntityStubFactory {
     $entity->enforceIsNew();
 
     TestHelpers::setMockedClassMethod(
-      $entity, 'stubSetFieldObject', function (string $fieldName, $fieldObject, string $langCode = NULL): void {
+      $entity, 'stubSetFieldObject', function (string $fieldName, $fieldObject, ?string $langCode = NULL): void {
         /**
          * @var \Drupal\test_helpers\Stub\EntityStubInterface|\Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $this
          */

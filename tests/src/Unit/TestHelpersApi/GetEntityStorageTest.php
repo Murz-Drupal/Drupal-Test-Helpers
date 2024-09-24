@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
+use Drupal\Tests\UnitTestCase;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests Query helper functions.

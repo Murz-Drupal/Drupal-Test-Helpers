@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\test_helpers_test;
 
 use Drupal\Core\Messenger\MessengerInterface;

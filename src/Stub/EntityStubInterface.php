@@ -24,6 +24,6 @@ interface EntityStubInterface {
    * @param string|null $langCode
    *   A language code to use.
    */
-  public function stubSetFieldObject(string $fieldName, $fieldObject, string $langCode = NULL): void;
+  public function stubSetFieldObject(string $fieldName, $fieldObject, ?string $langCode = NULL): void;
 
 }

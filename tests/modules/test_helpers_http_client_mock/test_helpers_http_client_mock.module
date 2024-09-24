@@ -5,6 +5,8 @@
  * Provides the module hooks.
  */
 
+declare(strict_types=1);
+
 use Drupal\test_helpers_http_client_mock\HttpClientFactoryMock;
 
 /**

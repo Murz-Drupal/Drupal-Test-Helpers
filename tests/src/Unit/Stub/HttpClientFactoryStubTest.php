@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
-use donatj\MockWebServer\MockWebServer;
 use Drupal\Core\Http\ClientFactory;
+use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\HttpClientFactoryStub;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
+use donatj\MockWebServer\MockWebServer;
 
 /**
  * Tests HttpClientFactoryStub class.

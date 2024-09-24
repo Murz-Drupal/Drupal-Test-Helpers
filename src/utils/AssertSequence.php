@@ -67,7 +67,7 @@ class AssertSequence {
    * @param string|null $name
    *   A name for the object, to display in exceptions.
    */
-  public function __construct(array $values, string $name = NULL) {
+  public function __construct(array $values, ?string $name = NULL) {
     // Removing array keys, if exist.
     $this->values = array_values($values);
     $this->name = $name;

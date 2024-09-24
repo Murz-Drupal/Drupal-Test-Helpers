@@ -161,7 +161,7 @@ class HttpClientFactoryStub extends ClientFactory {
     try {
       $response = $this->getStoredResponseByHash($hash);
     }
-    catch (\Exception $e) {
+    catch (\Exception) {
       throw new \Exception(
         "No stored response found for the request with the hash $hash in the \"mock\" mode: "
         . $request->getMethod() . ' ' . $request->getUri()
@@ -315,7 +315,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The custom hash value to use when storing.
    *   Useful when you need to store a modified response.
    */
-  public function storeResponse(Response $response, Request $request = NULL, string $hash = NULL) {
+  public function storeResponse(Response $response, ?Request $request = NULL, ?string $hash = NULL) {
     $hash ??= $this->getRequestHash($request);
     $filename = $this->getRequestFilename($hash);
     $body = $response->getBody();

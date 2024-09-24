@@ -36,7 +36,7 @@ class UploadedFileStub extends UploadedFile {
    * Additionally to the original constructor, you have to pass the file content
    * via the $content argument.
    */
-  public function __construct(string $path, string $originalName, string $mimeType = NULL, int $error = NULL, bool $test = FALSE, $content = '') {
+  public function __construct(string $path, string $originalName, ?string $mimeType = NULL, ?int $error = NULL, bool $test = FALSE, $content = '') {
     self::$filesStorage ??= new \ArrayObject();
     $filesStorage = self::$filesStorage;
     // @todo Move to a storage as a container service to clear on recreating

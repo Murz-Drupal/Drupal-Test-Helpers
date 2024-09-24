@@ -141,7 +141,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   /**
    * {@inheritdoc}
    */
-  public function stubSetDefinition(string $pluginId, object $definition = NULL, $forceOverride = FALSE) {
+  public function stubSetDefinition(string $pluginId, ?object $definition = NULL, $forceOverride = FALSE) {
     if ($forceOverride || !isset($this->definitions[$pluginId])) {
       $this->definitions[$pluginId] = $definition;
     }
@@ -151,7 +151,7 @@ class EntityTypeManagerStub extends EntityTypeManager implements EntityTypeManag
   /**
    * {@inheritdoc}
    */
-  public function stubGetOrCreateHandler(string $handlerType, string $entityTypeId, object $handler = NULL, $forceOverride = FALSE) {
+  public function stubGetOrCreateHandler(string $handlerType, string $entityTypeId, ?object $handler = NULL, $forceOverride = FALSE) {
     if ($forceOverride || !isset($this->handlers[$handlerType][$entityTypeId])) {
       $this->handlers[$handlerType][$entityTypeId] = $handler;
     }

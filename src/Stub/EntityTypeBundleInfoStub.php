@@ -26,7 +26,7 @@ class EntityTypeBundleInfoStub extends EntityTypeBundleInfo {
    * @param mixed $force
    *   Override already set info.
    */
-  public function stubSetBundleInfo(string $entityTypeId, string $bundleName, EntityInterface $bundleEntity = NULL, $force = FALSE): void {
+  public function stubSetBundleInfo(string $entityTypeId, string $bundleName, ?EntityInterface $bundleEntity = NULL, $force = FALSE): void {
     if ($bundleEntity) {
       $bundleInfo = [
         'label' => new TranslatableMarkup('@bundleName bundle', ['@bundleName' => $bundleEntity->label()]),
