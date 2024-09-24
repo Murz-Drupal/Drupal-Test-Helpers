@@ -28,3 +28,7 @@ than Drupal Core alternatives (`drupalInstall()`, `drupalCreateUser()`, etc).
 
 See the usage examples in the included self-tests in the directory
 `tests/modules/test_helpers_functional/tests/src/Nightwatch/Tests`.
+
+Vote for the issue [#3464642 Provide PHP helpers for Nightwatch tests to speed
+up routine operations](https://www.drupal.org/project/drupal/issues/3464642) to
+port these features in Drupal Core!
