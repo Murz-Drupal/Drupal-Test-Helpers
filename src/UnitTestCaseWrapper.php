@@ -84,6 +84,9 @@ class UnitTestCaseWrapper extends UnitTestCase {
       $mockBuilder->onlyMethods($methods);
     }
     if (!empty($addMethods)) {
+      // @todo Reimplement this function locally if the author removes it.
+      // @see https://github.com/sebastianbergmann/phpunit/issues/5320
+      // @phpstan-ignore-next-line We need this function.
       $mockBuilder->addMethods($addMethods);
     }
     // @todo Try to add enableProxyingToOriginalMethods() function.
@@ -111,6 +114,9 @@ class UnitTestCaseWrapper extends UnitTestCase {
       $mockBuilder->onlyMethods($methods);
     }
     if (!empty($addMethods)) {
+      // @todo Reimplement this function locally if the author removes it.
+      // @see https://github.com/sebastianbergmann/phpunit/issues/5320
+      // @phpstan-ignore-next-line
       $mockBuilder->addMethods($addMethods);
     }
     // @todo Try to add enableProxyingToOriginalMethods() function.
