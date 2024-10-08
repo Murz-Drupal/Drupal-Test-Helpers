@@ -321,6 +321,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
    *   The keyed array with strings.
    */
   protected function genId(array $ids) {
+    $result = [];
     foreach ($ids as $id) {
       $idString = (string) $id;
       $result[$idString] = $idString;

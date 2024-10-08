@@ -1,27 +1,24 @@
 /**
  * @file
- * Contains the ThLogin Nightwatch command.
+ * Contains the ThLogout Nightwatch command.
  */
 
 const assert = require('assert');
 
-module.exports = class ThLogin {
+module.exports = class ThLogout {
   /**
    * Performs a login for the given user.
    *
-   * @param {string} username
-   *   The name of a user to log in.
    * @param {function} callback
    *   A callback which will be called when the login is finished.
    *
    * @return {object}
    *   The thLogin command.
    */
-  command(username, callback) {
-    const endpoint = '/test-helpers-functional/login/';
-    const url = endpoint + username;
+  command(callback) {
+    const endpoint = '/test-helpers-functional/logout';
     this.api
-      .thDrupalFetchURL(url, (result) => {
+      .thDrupalFetchURL(endpoint, (result) => {
         assert.equal(JSON.parse(result.value.data).status, 'success');
       })
       .perform(() => {

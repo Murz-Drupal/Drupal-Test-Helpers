@@ -573,7 +573,7 @@ class TestHelpers {
         $classArguments[$argumentKey] = $argument;
         continue;
       }
-      $firstCharacter = substr($argument ?? '', 0, 1);
+      $firstCharacter = substr($argument, 0, 1);
       if ($firstCharacter == '@') {
         $classArguments[$argumentKey] = self::service(substr($argument, 1));
       }
@@ -907,6 +907,7 @@ class TestHelpers {
     }
     // @todo Make a better implementation of this check.
     if (
+      // @phpstan-ignore-next-line The $service is always defined.
       method_exists($service, 'setContainer')
       // The `setContainer()` is deprecated for some services in Drupal 10.3.x.
       && !$service instanceof LoggerChannelFactory
@@ -914,6 +915,7 @@ class TestHelpers {
     ) {
       $service->setContainer(self::getContainer());
     }
+    // @phpstan-ignore-next-line The $service is always defined.
     return $service;
   }
 
@@ -2038,6 +2040,7 @@ EOT;
    * @internal For internal usage only.
    */
   private static function conditionsSearchApiObjectsToArray(array $conditionsAsObjects): array {
+    $conditions = [];
     foreach ($conditionsAsObjects as $delta => $conditionAsObject) {
       $conditions[$delta] = [
         'field' => $conditionAsObject->getField(),
@@ -2166,6 +2169,9 @@ EOT;
         $major--;
         $minor = 10;
       }
+    }
+    if (!isset($path)) {
+      throw new \Exception("The Core Features Map file is not found.");
     }
     require_once $path;
   }

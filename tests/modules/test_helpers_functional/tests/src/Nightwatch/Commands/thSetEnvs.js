@@ -1,31 +1,40 @@
-const endpoint = '/test-helpers-functional/set-envs';
-
 /**
- * Sets the environment variables on the Drupal side.
- *
- * @param {array} envs
- *   A list of envs with values.
- * @param {function} callback
- *   A callback which will be called, when creating the role is finished.
- * @return {object}
- *   The thLogin command.
+ * @file
+ * Defines the ThSetEnvs Nightwatch command.
  */
-exports.command = function thSetEnvs(envs, callback) {
-  const self = this;
-  const tempUrl = new URL(endpoint, 'http://temp');
-  Object.entries(envs).forEach(([key, value]) => {
-    tempUrl.searchParams.append(key, value);
-  });
-  const pathWithParams = tempUrl.pathname + tempUrl.search;
-  this.drupalRelativeURL(pathWithParams)
-    .waitForElementVisible('body')
-    .assert.textContains('body', '"status":"success"');
 
-  this.perform(() => {
-    if (typeof callback === 'function') {
-      callback.call(self);
-    }
-  });
+const assert = require('assert');
 
-  return this;
+module.exports = class ThSetEnvs {
+  /**
+   * Sets the environment variables on the Drupal side.
+   *
+   * @param {Object} envs
+   *   A list of environment variables with their values.
+   * @param {Function} callback
+   *   A callback which will be called when setting the environment variables is finished.
+   *
+   * @return {Object}
+   *   The ThSetEnvs command.
+   */
+  command(envs, callback) {
+    const endpoint = '/test-helpers-functional/set-envs';
+    const tempUrl = new URL(endpoint, 'http://temp');
+    Object.entries(envs).forEach(([key, value]) => {
+      tempUrl.searchParams.append(key, value);
+    });
+    const pathWithParams = tempUrl.pathname + tempUrl.search;
+    this.api.thDrupalFetchURL(pathWithParams, (result) => {
+      assert.equal(JSON.parse(result.value.data).status, 'success');
+    });
+
+    this.api.perform(() => {
+      if (typeof callback === 'function') {
+        const self = this;
+        callback.call(self);
+      }
+    });
+
+    return this;
+  }
 };

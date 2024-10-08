@@ -1,4 +1,8 @@
+const getBeforeAfterFunctions = require('../Lib/getBeforeAfterFunctions');
+
 module.exports = {
+  ...getBeforeAfterFunctions(),
+
   // @covers tests/src/Nightwatch/Commands/thSetEnvs.js:thSetEnvs
   // @covers tests/src/Nightwatch/Commands/thGetEnv.js:thGetEnv
   'Test setEnvs and getEnv': (browser) => {

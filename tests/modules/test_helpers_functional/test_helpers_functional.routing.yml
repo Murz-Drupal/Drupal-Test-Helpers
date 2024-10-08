@@ -51,3 +51,23 @@ test_helpers_functional.login:
     no_cache: 'TRUE'
     parameters:
       name: ''
+
+test_helpers_functional.logout:
+  path: '/test-helpers-functional/logout'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::logout'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_functional.cache_clear:
+  path: '/test-helpers-functional/cache-clear'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::cacheClear'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'

@@ -76,6 +76,7 @@ const TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP = [
 
 EOT;
 
+$files = [];
 $it = new RecursiveDirectoryIterator($drupalRoot . '/core');
 foreach (new RecursiveIteratorIterator($it) as $file) {
   if (strpos($file, '/tests/')) {
@@ -86,20 +87,22 @@ foreach (new RecursiveIteratorIterator($it) as $file) {
   }
 }
 
-foreach ($files as $file) {
-  $data = Yaml::parseFile($file);
-  $fileRelative = ltrim(str_replace($drupalRoot, '', $file), '/');
-  foreach (array_keys($data['services'] ?? []) as $service) {
-    if (
-      strpos($service, '\\') !== FALSE
-      || $service == '_defaults'
-    ) {
-      continue;
-    }
-    $contents .= <<<EOT
+if ($files) {
+  foreach ($files as $file) {
+    $data = Yaml::parseFile($file);
+    $fileRelative = ltrim(str_replace($drupalRoot, '', $file), '/');
+    foreach (array_keys($data['services'] ?? []) as $service) {
+      if (
+        strpos($service, '\\') !== FALSE
+        || $service == '_defaults'
+      ) {
+        continue;
+      }
+      $contents .= <<<EOT
   '$service' => '$fileRelative',
 
 EOT;
+    }
   }
 }
 

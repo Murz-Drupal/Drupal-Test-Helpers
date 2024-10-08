@@ -39,6 +39,7 @@ class ArticlesManagerService {
    */
   public function getTranslatedArticlesList(string $langcode) {
     $nodes = $this->entityTypeManager->getStorage('node')->loadMultiple();
+    $result = [];
     foreach ($nodes as $node) {
       if (!$node->hasTranslation($langcode)) {
         continue;

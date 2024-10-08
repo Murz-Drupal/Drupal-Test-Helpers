@@ -42,6 +42,7 @@ class TypedDataManagerStub extends TypedDataManager {
     }
     else {
       $category = NULL;
+      $name = NULL;
     }
     switch ($category) {
       // @todo Add other plugin categories here.

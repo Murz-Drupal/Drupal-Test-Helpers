@@ -2,9 +2,9 @@ name: Test Helpers Functional profile
 type: profile
 core_version_requirement: ^10 || ^11
 description: 'Minimal profile for running Nightwatch tests with Test Helpers Functional API enabled. Based on the "nightwatch_testing" profile.'
-version: VERSION
 hidden: true
 install:
   - js_testing_log_test
   - nightwatch_theme_install_utility
   - test_helpers_functional
+  - test_helpers_test

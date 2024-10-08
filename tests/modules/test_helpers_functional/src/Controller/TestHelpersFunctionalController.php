@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\test_helpers_functional\Controller;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Extension\ModuleInstallerInterface;
 use Drupal\Core\State\StateInterface;
@@ -15,6 +18,13 @@ use Symfony\Component\HttpFoundation\Response;
  * Controller for the TestHelpersFunctional HTTP API pages.
  */
 class TestHelpersFunctionalController extends ControllerBase {
+
+  /**
+   * The container.
+   *
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface
+   */
+  protected ContainerInterface $container;
 
   /**
    * The state service.
@@ -38,13 +48,22 @@ class TestHelpersFunctionalController extends ControllerBase {
   protected ModuleInstallerInterface $moduleInstaller;
 
   /**
+   * The cache tags invalidator service.
+   *
+   * @var \Drupal\Core\Cache\CacheTagsInvalidatorInterface
+   */
+  protected $cacheTagsInvalidator;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): self {
     $instance = parent::create($container);
+    $instance->container = $container;
     $instance->state = $container->get('state');
     $instance->requestStack = $container->get('request_stack');
     $instance->moduleInstaller = $container->get('module_installer');
+    $instance->cacheTagsInvalidator = $container->get('cache_tags.invalidator');
     return $instance;
   }
 
@@ -58,11 +77,12 @@ class TestHelpersFunctionalController extends ControllerBase {
     $currentRequest = $this->requestStack->getCurrentRequest();
     $envVariables = $currentRequest->query->all();
     if (empty($envVariables)) {
-      return new JsonResponse([
-        'status' => 'error',
-        'message' => 'No environment variables provided',
-        'details' => 'Please provide environment variables as key-value GET parameters.',
-      ],
+      return new JsonResponse(
+        [
+          'status' => 'error',
+          'message' => 'No environment variables provided',
+          'details' => 'Please provide environment variables as key-value GET parameters.',
+        ],
       );
     }
     $currentVariables = $this->state->get(TestHelpersFunctionalEventSubscriber::STATE_KEY_ENV_VARIABLES, []);
@@ -155,6 +175,19 @@ class TestHelpersFunctionalController extends ControllerBase {
   }
 
   /**
+   * Logs out from a user session.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The operation status.
+   */
+  public function logout() {
+    user_logout();
+    return new JsonResponse(
+      ['status' => 'success'],
+    );
+  }
+
+  /**
    * Creates a new user.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
@@ -223,6 +256,35 @@ class TestHelpersFunctionalController extends ControllerBase {
     return new JsonResponse([
       'status' => 'success',
       'data' => $user->toArray(),
+    ]);
+  }
+
+  /**
+   * Creates a new user.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The operation status.
+   */
+  public function cacheClear(): Response {
+    $params = $this->requestStack->getCurrentRequest()->query->all();
+    if (!empty($params['bins'])) {
+      $bins = explode(',', $params['bins']);
+      foreach ($bins as $bin) {
+        if (!$binService = Cache::getBins()[$bin]) {
+          throw new \Exception("Cache bin '$bin' not found.");
+        }
+        $binService->deleteAll();
+      }
+    }
+    if (!empty($params['tags'])) {
+      $tags = explode(',', $params['tags']);
+      $this->cacheTagsInvalidator->invalidateTags($tags);
+    }
+    if (empty($params)) {
+      drupal_flush_all_caches();
+    }
+    return new JsonResponse([
+      'status' => 'success',
     ]);
   }
 

@@ -284,6 +284,7 @@ class EntityStubFactory {
             }
           }
 
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
           if (!$newDefinition && !isset($this->fieldDefinitions[$name])) {
             // If we have no exact field type and no defined one, creating
             // a new definition.
@@ -384,6 +385,7 @@ class EntityStubFactory {
           }
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
           foreach ($this->getFieldDefinitions() as $name => $definition) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
             if (!$definition->isComputed() && !empty($this->fields[$name])) {
               // @phpstan-ignore-next-line `$this` will be available in the runtime.
               foreach ($this->fields[$name] as $langcode => $item) {

@@ -1,7 +1,11 @@
+const getBeforeAfterFunctions = require('../Lib/getBeforeAfterFunctions');
+
 const testInstallModules = ['options', 'datetime'];
 const testInstallModulesDependencies = ['text'];
 
 module.exports = {
+  ...getBeforeAfterFunctions(),
+
   // @covers tests/src/Nightwatch/Commands/thInstallModules.js:thInstallModules
   'Test thInstallModules': (browser) => {
     /* eslint-disable prefer-const */

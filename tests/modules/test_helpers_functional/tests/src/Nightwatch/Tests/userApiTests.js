@@ -1,7 +1,11 @@
+const getBeforeAfterFunctions = require('../Lib/getBeforeAfterFunctions');
+
 /** A number to use in tests to randomize values. */
 const seedNumber = 1000 + Math.floor(Math.random() * 8000);
 
 module.exports = {
+  ...getBeforeAfterFunctions(),
+
   // @covers tests/src/Nightwatch/Commands/thCreateUser.js
   'Test thCreateUser with a user by just name and log in': (browser) => {
     const name = `test_user_${seedNumber + 1}`;
@@ -19,7 +23,13 @@ module.exports = {
       .thCreateUser({ name })
       .thLogin(name)
       .drupalRelativeURL('/user')
-      .assert.textContains('h1', name);
+      .assert.textContains('h1', name)
+      .thLogin('admin')
+      .drupalRelativeURL('/user')
+      .assert.textContains('h1', 'admin')
+      .thLogout()
+      .drupalRelativeURL('/user')
+      .assert.textContains('h1', 'Log in');
   },
 
   // @covers tests/src/Nightwatch/Commands/thCreateUser.js:thCreateUser

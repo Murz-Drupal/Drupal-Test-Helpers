@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\test_helpers_http_client_mock;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\State\StateInterface;
 use Drupal\test_helpers\Stub\HttpClientFactoryStub;
 use GuzzleHttp\HandlerStack;
@@ -21,32 +23,39 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscriberInterface {
 
   /**
-   * The key to store the requests mocking mode in the State.
+   * The key to store the requests mocking mode in the configuration.
    *
    * @var string
    */
-  const STATE_KEY_REQUEST_MOCK_MODE = 'test_helpers_http_client_mock.request_mock_mode';
+
+  const SETTINGS_CONFIG_KEY = 'test_helpers_http_client_mock.settings';
+  /**
+   * The key to store the requests mocking mode in the configuration.
+   *
+   * @var string
+   */
+  const SETTING_KEY_REQUEST_MOCK_MODE = 'request_mock_mode';
 
   /**
-   * The key to store the responses storage directory in the State.
+   * The key to store the responses storage directory in the configuration.
    *
    * @var string
    */
-  const STATE_KEY_RESPONSES_STORAGE_DIRECTORY = 'test_helpers_http_client_mock.responses_storage_directory';
+  const SETTING_KEY_RESPONSES_STORAGE_DIRECTORY = 'responses_storage_directory';
 
   /**
-   * The key to store the test name in the State.
+   * The key to store the test name in the configuration.
    *
    * @var string
    */
-  const STATE_KEY_TEST_NAME = 'test_helpers_http_client_mock.test_name';
+  const SETTING_KEY_TEST_NAME = 'test_name';
 
   /**
-   * The key to store the URI regular expression in the State.
+   * The key to store the URI regular expression in the configuration.
    *
    * @var string
    */
-  const STATE_KEY_URI_REGEXP = 'test_helpers_http_client_mock.uri_regexp';
+  const SETTING_KEY_URI_REGEXP = 'uri_regexp';
 
   /**
    * The key to store the list of requests hashes in the State.
@@ -83,6 +92,8 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    *   The GuzzleHttp handler stack.
    * @param \Drupal\Core\State\StateInterface $state
    *   The Drupal state service.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The configuration factory.
    * @param string|null $requestMockMode
    *   The requests mocking mode: NULL, 'store', 'mock'.
    * @param string|null $responsesStorageDirectory
@@ -95,26 +106,26 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
   public function __construct(
     HandlerStack $stack,
     protected StateInterface $state,
+    protected ConfigFactoryInterface $configFactory,
     protected ?string $requestMockMode = NULL,
     protected ?string $responsesStorageDirectory = NULL,
     protected ?string $testName = NULL,
     protected ?string $uriRegexp = NULL,
   ) {
-    $requestMockMode ??= $state->get(self::STATE_KEY_REQUEST_MOCK_MODE);
-    $responsesStorageDirectory ??= $state->get(self::STATE_KEY_RESPONSES_STORAGE_DIRECTORY);
-    $testName ??= $state->get(self::STATE_KEY_TEST_NAME);
-    $uriRegexp ??= $state->get(self::STATE_KEY_URI_REGEXP);
+    $this->requestMockMode ??= $this->getConfig(self::SETTING_KEY_REQUEST_MOCK_MODE);
+    $this->responsesStorageDirectory ??= $this->getConfig(self::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY);
+    $this->testName ??= $this->getConfig(self::SETTING_KEY_TEST_NAME);
+    $this->uriRegexp ??= $this->getConfig(self::SETTING_KEY_URI_REGEXP);
 
     $options = [
-      HttpClientFactoryStub::OPTION_URI_REGEXP => $uriRegexp,
+      HttpClientFactoryStub::OPTION_URI_REGEXP => $this->uriRegexp,
     ];
 
-    $stack = $stack ?? HandlerStack::create();
     parent::__construct(
       $stack,
-      $requestMockMode,
-      $responsesStorageDirectory,
-      $testName,
+      $this->requestMockMode,
+      $this->responsesStorageDirectory,
+      $this->testName,
       $options,
     );
   }
@@ -151,8 +162,45 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
     parent::storeRequestHash($hash);
     $lastHashes = $this->state->get(self::STATE_KEY_LAST_REQUESTS_HASHES, []);
     array_unshift($lastHashes, $hash);
-    array_slice($lastHashes, 0, 32);
+    $lastHashes = array_slice($lastHashes, 0, 32);
     $this->state->set(self::STATE_KEY_LAST_REQUESTS_HASHES, $lastHashes);
+  }
+
+  /**
+   * Retrieves a configuration value by key.
+   *
+   * @param string $key
+   *   The configuration key.
+   *
+   * @return mixed
+   *   The configuration value.
+   */
+  public function getConfig(string $key) {
+    return $this->configFactory->get(self::SETTINGS_CONFIG_KEY)->get($key);
+  }
+
+  /**
+   * Retrieves a configuration object.
+   *
+   * @return \Drupal\Core\Config\ImmutableConfig
+   *   The configuration object.
+   */
+  public function getConfiguration(): ImmutableConfig {
+    return $this->configFactory->get(self::SETTINGS_CONFIG_KEY);
+  }
+
+  /**
+   * Sets a configuration value by key.
+   *
+   * @param string $key
+   *   The configuration key.
+   * @param mixed $value
+   *   The configuration value.
+   */
+  public function setConfig(string $key, mixed $value): void {
+    $this->configFactory->getEditable(self::SETTINGS_CONFIG_KEY)
+      ->set($key, $value)
+      ->save();
   }
 
 }

@@ -138,7 +138,6 @@ class ServicesTest extends UnitTestCase {
           '#markup' => TestHelpers::callPrivateMethod($testClass, 't', [
             'Root for @title with @theme', [
               '@title' => $element['#title'],
-              // @phpstan-ignore-next-line This will be executed in the class context.
               '@theme' => 'My theme',
             ],
           ]),

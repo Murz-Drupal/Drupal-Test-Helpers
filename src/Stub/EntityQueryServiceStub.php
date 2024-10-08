@@ -53,6 +53,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
       $result = [];
       // @phpstan-ignore-next-line `$this` will be available in the runtime.
       $storage = TestHelpers::service('entity_type.manager')->getStorage($this->entityTypeId);
+      // @phpstan-ignore-next-line `$this` will be available in the runtime.
       if ($this->latestRevision ?? NULL) {
         $allEntities = $storage->stubGetAllLatestRevision();
       }
@@ -115,6 +116,7 @@ class EntityQueryServiceStub implements QueryFactoryInterface {
       }
       $result = [];
       foreach ($resultEntities as $entity) {
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
         if ($this->latestRevision ?? NULL) {
           $key = $entity->getRevisionId();
         }

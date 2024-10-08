@@ -1,7 +1,17 @@
-test_helpers_http_client_mock.set_test_name:
+test_helpers_http_client_mock.set_settings:
   path: '/test-helpers-http-client-mock/set-settings'
   defaults:
     _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::setSettings'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_http_client_mock.get_settings:
+  path: '/test-helpers-http-client-mock/get-settings'
+  defaults:
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::getSettings'
   requirements:
     # We need to make this endpoint available for all to simplify tests.
     _access: 'TRUE'
@@ -28,10 +38,10 @@ test_helpers_http_client_mock.delete_stored_response:
   options:
     no_cache: 'TRUE'
 
-test_helpers_http_client_mock.save_stored_response:
-  path: '/test-helpers-http-client-mock/save-stored-response/{hash}'
+test_helpers_http_client_mock.set_stored_response:
+  path: '/test-helpers-http-client-mock/set-stored-response/{hash}'
   defaults:
-    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::saveStoredResponse'
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::setStoredResponse'
   requirements:
     # We need to make this endpoint available for all to simplify tests.
     _access: 'TRUE'

@@ -1,26 +1,35 @@
-const endpointPrefix = '/test-helpers-functional/get-env/';
-
 /**
- * Gets the environment variable value from the Drupal side.
- *
- * @param {object} env
- *   Env variable names and values.
- * @param {function} callback
- *   A callback which will be called, when creating the role is finished.
- * @return {object}
- *   The thLogin command.
+ * @file
+ * Defines the ThGetEnv Nightwatch command.
  */
-exports.command = function thGetEnv(env, callback) {
-  const self = this;
-  this.drupalRelativeURL(endpointPrefix + env)
-    .waitForElementVisible('body')
-    .perform(() => {
+
+module.exports = class ThGetEnv {
+  /**
+   * Gets the environment variable value from the Drupal side.
+   *
+   * @param {object} env
+   *   An object containing environment variable names and values.
+   * @param {function} callback
+   *   A callback function which will be called when the environment variable
+   *   value is retrieved.
+   *
+   * @return {object}
+   *   The ThGetEnv command instance.
+   */
+  async command(env, callback) {
+    const endpointPrefix = '/test-helpers-functional/get-env/';
+    let value;
+    this.api.thDrupalFetchURL(endpointPrefix + env, (result) => {
+      value = result.value.data;
       if (typeof callback === 'function') {
-        this.getText('body', (result) => {
-          callback.call(self, result);
+        const self = this;
+        callback.call(self, {
+          status: 0,
+          value,
         });
       }
     });
 
-  return this;
+    return value;
+  }
 };

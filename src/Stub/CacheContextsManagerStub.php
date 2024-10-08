@@ -30,7 +30,7 @@ class CacheContextsManagerStub extends CacheContextsManager {
    * @param string[] $contexts
    *   An array of the available cache context IDs, NULL to accept all contexts.
    */
-  public function __construct(ContainerInterface $container, array $contexts = []) {
+  public function __construct(ContainerInterface $container, ?array $contexts = NULL) {
     parent::__construct($container, $contexts ?? []);
     $this->stubAllowAnyContexts = TRUE;
   }

@@ -1,7 +1,7 @@
 test_helpers_test.http_call_render:
   path: '/test-helpers-test/http-call-render'
   defaults:
-    _controller: 'Drupal\test_helpers_test\Controller\HttpClientController::httpCallRender'
+    _controller: 'Drupal\test_helpers_test\Controller\HttpClientTestController::httpCallRender'
   requirements:
     # We need to make this endpoint available for all to simplify tests.
     _access: 'TRUE'
@@ -11,7 +11,7 @@ test_helpers_test.http_call_render:
 test_helpers_test.json_response_1:
   path: '/test-helpers-test/json-response-1'
   defaults:
-    _controller: 'Drupal\test_helpers_test\Controller\HttpClientController::jsonResponse1'
+    _controller: 'Drupal\test_helpers_test\Controller\HttpClientTestController::jsonResponse1'
   requirements:
     # We need to make this endpoint available for all to simplify tests.
     _access: 'TRUE'
@@ -21,7 +21,7 @@ test_helpers_test.json_response_1:
 test_helpers_test.json_response_2:
   path: '/test-helpers-test/json-response-2'
   defaults:
-    _controller: 'Drupal\test_helpers_test\Controller\HttpClientController::jsonResponse2'
+    _controller: 'Drupal\test_helpers_test\Controller\HttpClientTestController::jsonResponse2'
   requirements:
     # We need to make this endpoint available for all to simplify tests.
     _access: 'TRUE'

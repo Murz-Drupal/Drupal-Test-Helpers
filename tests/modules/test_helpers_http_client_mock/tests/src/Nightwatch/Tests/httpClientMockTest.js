@@ -9,7 +9,7 @@ const requestPath2 =
 
 const metatagName = 'TestHelpersHttpClientMockRequestsHashes';
 
-const responseContentTagSelector = '#http-call-render-response';
+const responseContentTagSelector = '.http-call-render-response';
 
 // We should use a module subdirectory, because the drupal.org pipeline creates
 // symlinks for all the root module directories, so when we create a new

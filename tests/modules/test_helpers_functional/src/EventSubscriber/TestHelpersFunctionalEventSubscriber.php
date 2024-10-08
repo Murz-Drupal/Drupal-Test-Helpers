@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\test_helpers_functional\EventSubscriber;
 
 use Drupal\Core\State\StateInterface;

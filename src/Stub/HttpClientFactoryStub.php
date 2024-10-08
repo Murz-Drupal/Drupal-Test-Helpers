@@ -125,6 +125,8 @@ class HttpClientFactoryStub extends ClientFactory {
           );
         };
       };
+      // We need to remove the previous handler, if exist.
+      $config['handler']->remove(self::HANDLER_NAME_STORE);
       $config['handler']->push($storeResponse, self::HANDLER_NAME_STORE);
     }
     elseif ($mode == self::HTTP_CLIENT_MODE_MOCK) {
@@ -161,9 +163,10 @@ class HttpClientFactoryStub extends ClientFactory {
     try {
       $response = $this->getStoredResponseByHash($hash);
     }
-    catch (\Exception) {
+    catch (\Exception $e) {
       throw new \Exception(
-        "No stored response found for the request with the hash $hash in the \"mock\" mode: "
+        $e->getMessage()
+        . " in the \"mock\" mode. Request: "
         . $request->getMethod() . ' ' . $request->getUri()
         . " Use the '" . self::EMV_HTTP_CLIENT_MODE . "=store' environment variable to create files with stored responses."
       );
@@ -182,12 +185,19 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function getStoredResponseByHash(string $hash): Response {
     $file = $this->getRequestFilename($hash);
-    if (!$body = @file_get_contents($file)) {
-      throw new \Exception("No stored response found for the hash \"$hash\" in the file " . $file);
+    try {
+      $body = file_get_contents($file);
     }
+    catch (\Exception $e) {
+      throw new \Exception("No stored response found for the hash \"$hash\" in the file " . $file . " (" . $e->getMessage() . ")");
+    }
+
     $fileMetadata = $this->getRequestFilename($hash, metadata: TRUE);
-    if (!$metadata = json_decode(@file_get_contents($fileMetadata), TRUE)) {
-      throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata);
+    try {
+      $metadata = json_decode(file_get_contents($fileMetadata), TRUE);
+    }
+    catch (\Exception $e) {
+      throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata . " (" . $e->getMessage() . ")");
     }
 
     $status = 200;
@@ -208,6 +218,23 @@ class HttpClientFactoryStub extends ClientFactory {
       body: $body,
     );
     return $response;
+  }
+
+  /**
+   * Get the stored response metadata from the storage by the request hash.
+   *
+   * @param string $hash
+   *   A request hash.
+   *
+   * @return array
+   *   The stored response metadata array.
+   */
+  public function getStoredResponseMetadataByHash(string $hash): array {
+    $fileMetadata = $this->getRequestFilename($hash, metadata: TRUE);
+    if (!$metadata = json_decode(@file_get_contents($fileMetadata), TRUE)) {
+      throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata);
+    }
+    return $metadata;
   }
 
   /**
@@ -346,6 +373,14 @@ class HttpClientFactoryStub extends ClientFactory {
       $metadataStoredContent = file_get_contents($metadataFilename);
       $metadataStored = json_decode($metadataStoredContent, TRUE) ?? [];
       $metadata['tests'] = $metadataStored['tests'];
+      // On the setStoredResponse we have no request data, so copying it
+      // from the stored response metadata.
+      if (
+        !isset($metadata['request'])
+        && isset($metadataStored['request'])
+      ) {
+        $metadata['request'] = $metadataStored['request'];
+      }
     }
 
     $metadata['tests'][] = $testName;

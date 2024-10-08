@@ -4,5 +4,6 @@ services:
     arguments:
       - '@http_handler_stack'
       - '@state'
+      - '@config.factory'
     tags:
       - { name: event_subscriber }

@@ -212,7 +212,9 @@ class EntityStorageStubFactory {
       );
 
       TestHelpers::setMockedClassMethod(
-        $entityStorage, 'stubInit', function () use ($entityTypeDefinition) {
+        $entityStorage,
+        'stubInit',
+        function () use ($entityTypeDefinition) {
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->entityType = $entityTypeDefinition;
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
@@ -245,7 +247,7 @@ class EntityStorageStubFactory {
             $this->cacheBackend = TestHelpers::service('cache.backend.memory')->get('entity_storage_stub.cache.' . $this->entityTypeId);
           }
 
-        }, $entityStorage, 'stubInit'
+        },
       );
 
       $entityStorage->stubInit();

@@ -3,6 +3,9 @@ Alexey
 Korepov
 Murz
 
+# Project vocabulary
+Commercetools
+
 # Tests specific vocabulary.
 autoincrement
 unmock
