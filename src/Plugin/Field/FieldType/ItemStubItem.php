@@ -14,9 +14,9 @@ use Drupal\Core\TypedData\DataDefinition;
  *
  * @FieldType(
  *   id = "item_stub",
- *   label = "Item stub",
- *   description = "Stub item",
- *   category = "Stubs",
+ *   label = "Item Stub",
+ *   description = "A stub field item to simplify writing unit tests.",
+ *   category = "test_helpers",
  *   default_widget = "string_textfield",
  *   default_formatter = "string"
  * )
