@@ -101,10 +101,3 @@ composer:
     - !reference [ .skip-nightwatch-rule ]
     - *nightwatch-tests-exist-rule
 # A workaround for the issue https://www.drupal.org/project/gitlab_templates/issues/3469616 end.
-
-# TEMP
-
-phpcs:
-  before_script:
-    - printenv
-    - cat $_WEB_ROOT/core/phpcs.xml.dist

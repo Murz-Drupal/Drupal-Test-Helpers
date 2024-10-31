@@ -14,3 +14,6 @@ test_helpers_http_client_mock.settings:
     uri_regexp:
       type: string
       label: The URI regexp
+    log_stored_responses_usage_file:
+      type: string
+      label: A path to the log file for stored responses usage

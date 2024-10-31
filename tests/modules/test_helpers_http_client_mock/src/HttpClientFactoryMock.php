@@ -44,6 +44,13 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
   const SETTING_KEY_RESPONSES_STORAGE_DIRECTORY = 'responses_storage_directory';
 
   /**
+   * The key to store the log stored responses file in the configuration.
+   *
+   * @var string
+   */
+  const SETTING_KEY_LOG_STORED_RESPONSES_USAGE_FILE = 'log_stored_responses_usage_file';
+
+  /**
    * The key to store the test name in the configuration.
    *
    * @var string
@@ -119,6 +126,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
 
     $options = [
       HttpClientFactoryStub::OPTION_URI_REGEXP => $this->uriRegexp,
+      HttpClientFactoryStub::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => $this->getConfig(self::SETTING_KEY_LOG_STORED_RESPONSES_USAGE_FILE),
     ];
 
     parent::__construct(

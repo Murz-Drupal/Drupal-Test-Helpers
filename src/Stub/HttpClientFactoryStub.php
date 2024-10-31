@@ -8,7 +8,6 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Utils;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -31,18 +30,25 @@ class HttpClientFactoryStub extends ClientFactory {
    * @var string
    */
   const EMV_HTTP_CLIENT_MODE = 'TH_HTTP_CLIENT_MODE';
+
   /**
-   * The environment variable value to set the storing to files mode.
+   * The mode to store all outgoing requests responses to files.
    *
    * @var string
    */
   const HTTP_CLIENT_MODE_STORE = 'store';
   /**
-   * The environment variable value to set the mocking from files mode.
+   * The mode to mock all outgoing requests responses from files.
    *
    * @var string
    */
   const HTTP_CLIENT_MODE_MOCK = 'mock';
+  /**
+   * The mode to store requests responses only if the stored one is missing.
+   *
+   * @var string
+   */
+  const HTTP_CLIENT_MODE_APPEND = 'append';
 
   /**
    * The HTTP handler name for the `store` mode.
@@ -52,13 +58,15 @@ class HttpClientFactoryStub extends ClientFactory {
    *
    * @var string
    */
-  const HANDLER_NAME_STORE = 'test_helpers_http_client_mock.store_response';
+  const HANDLER_NAME_BEFORE_REAL_CALL = 'test_helpers_http_client_mock.handle_before_real_call';
+  const HANDLER_NAME_AFTER_REAL_CALL = 'test_helpers_http_client_mock.handle_after_real_call';
 
   /**
    * The options keys.
    */
   const OPTION_STORE_HEADERS = 'store_headers';
   const OPTION_STORE_HEADERS_SKIP_KEYS = 'store_headers_skip';
+  const OPTION_LOG_STORED_RESPONSES_USAGE_FILE = 'log_stored_responses_usage_file';
   const OPTION_URI_REGEXP = 'uri_regexp';
 
   /**
@@ -74,7 +82,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param \GuzzleHttp\HandlerStack|null $stack
    *   The HTTP client stack.
    * @param string|null $requestMockMode
-   *   The requests mocking mode: NULL, 'store', 'mock'.
+   *   The requests mocking mode: NULL, 'store', 'mock', 'append'.
+   *   - append: makes a new request only if the stored response is missing.
    * @param string|null $responsesStorageDirectory
    *   The directory to store responses.
    * @param string|null $testName
@@ -99,6 +108,7 @@ class HttpClientFactoryStub extends ClientFactory {
     $this->options += [
       self::OPTION_STORE_HEADERS => FALSE,
       self::OPTION_STORE_HEADERS_SKIP_KEYS => [],
+      self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => NULL,
     ];
     $this->setTestName($testName);
     parent::__construct($stack);
@@ -108,41 +118,89 @@ class HttpClientFactoryStub extends ClientFactory {
    * {@inheritdoc}
    */
   public function fromOptions(array $config = []) {
-    $mode = $this->getRequestMockMode();
-    if ($mode == self::HTTP_CLIENT_MODE_STORE) {
-      if (!isset($config['handler'])) {
-        $config['handler'] = $this->stack;
-      }
-      $storeResponse = function (callable $handler) {
-        return function ($request, array $options) use ($handler) {
-          return $handler($request, $options)->then(
-            function (ResponseInterface $response) use ($request) {
-              if ($this->matchRequest($request)) {
-                $this->storeResponse($response, $request);
-              }
-              return $response;
+    // Setting the default handler, if the custom one is not set.
+    $config['handler'] ??= $this->stack;
+
+    $lastMockingResult = NULL;
+
+    // A request handler that executes before all other handlers.
+    $handleResponseBeforeRealCall = function (callable $handler) use (&$lastMockingResult) {
+      return function ($request, array $options) use ($handler, &$lastMockingResult) {
+        $lastMockingResult = NULL;
+        if (
+          in_array($this->getRequestMockMode(), [
+            self::HTTP_CLIENT_MODE_MOCK,
+            self::HTTP_CLIENT_MODE_APPEND,
+          ])
+          && $this->matchRequest($request)
+        ) {
+
+          // For the append mode, we should check if the response is already
+          // stored and do not produce an exception on missing stored response.
+          if ($this->getRequestMockMode() == self::HTTP_CLIENT_MODE_APPEND) {
+            if ($this->hasStoredResponse($request)) {
+              $response = $this->getStoredResponse($request);
+              $lastMockingResult = TRUE;
+              return new FulfilledPromise($response);
             }
-          );
-        };
-      };
-      // We need to remove the previous handler, if exist.
-      $config['handler']->remove(self::HANDLER_NAME_STORE);
-      $config['handler']->push($storeResponse, self::HANDLER_NAME_STORE);
-    }
-    elseif ($mode == self::HTTP_CLIENT_MODE_MOCK) {
-      $mockResponseHandler = function ($request, $options) {
-        if ($this->matchRequest($request)) {
-          $response = $this->getStoredResponse($request);
-          return new FulfilledPromise($response);
+            else {
+              $lastMockingResult = FALSE;
+            }
+          }
+          else {
+            $response = $this->getStoredResponse($request);
+            return new FulfilledPromise($response);
+          }
         }
-        else {
-          $defaultHandler = Utils::chooseHandler();
-          return $defaultHandler($request, $options);
-        }
+        return $handler($request, $options);
       };
-      $config['handler'] = new HandlerStack($mockResponseHandler);
-    }
+    };
+
+    // A request handler that executes after all other handlers.
+    $handleResponseAfterRealCall = function (callable $handler) use (&$lastMockingResult) {
+      return function ($request, array $options) use ($handler, &$lastMockingResult) {
+        return $handler($request, $options)->then(
+          function (ResponseInterface $response) use ($request, &$lastMockingResult) {
+            if (
+              (
+                $this->getRequestMockMode() == self::HTTP_CLIENT_MODE_STORE
+                || $lastMockingResult === FALSE
+              )
+              && $this->matchRequest($request)
+            ) {
+              $this->storeResponse($response, $request);
+            }
+            return $response;
+          }
+        );
+      };
+    };
+
+    // Adding custom handlers to the stack. Because they executes in the reverse
+    // order, we should add them in the reverse order too.
+    // And clean up already added our handlers, if present.
+    $config['handler']->remove(self::HANDLER_NAME_AFTER_REAL_CALL);
+    $config['handler']->push($handleResponseAfterRealCall, self::HANDLER_NAME_AFTER_REAL_CALL);
+
+    $config['handler']->remove(self::HANDLER_NAME_BEFORE_REAL_CALL);
+    $config['handler']->unshift($handleResponseBeforeRealCall, self::HANDLER_NAME_BEFORE_REAL_CALL);
+
     return parent::fromOptions($config);
+  }
+
+  /**
+   * Checks if a stored response exists for the given request.
+   *
+   * @param \GuzzleHttp\Psr7\Request $request
+   *   The request object to check for a stored response.
+   *
+   * @return bool
+   *   TRUE if a stored response exists, FALSE otherwise.
+   */
+  public function hasStoredResponse(Request $request): bool {
+    $hash = self::getRequestHash($request);
+    $file = $this->getRequestFilename($hash);
+    return file_exists($file);
   }
 
   /**
@@ -158,7 +216,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The stored response.
    */
   public function getStoredResponse(Request $request): Response {
-    $hash = $this->getRequestHash($request);
+    $hash = self::getRequestHash($request);
     $this->storeRequestHash($hash);
     try {
       $response = $this->getStoredResponseByHash($hash);
@@ -185,19 +243,29 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function getStoredResponseByHash(string $hash): Response {
     $file = $this->getRequestFilename($hash);
-    try {
-      $body = file_get_contents($file);
-    }
-    catch (\Exception $e) {
-      throw new \Exception("No stored response found for the hash \"$hash\" in the file " . $file . " (" . $e->getMessage() . ")");
+
+    // The `file_get_contents` throws a warning if the file doesn't exist,
+    // so we have to do an additional check to get rid of this warning.
+    // @todo Remove this exception when dropping PHPUnit 9 support.
+    if (!file_exists($file)) {
+      throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
     }
 
-    $fileMetadata = $this->getRequestFilename($hash, metadata: TRUE);
-    try {
-      $metadata = json_decode(file_get_contents($fileMetadata), TRUE);
+    $body = file_get_contents($file);
+    if ($body === FALSE) {
+      throw new \Exception("Can't read the stored response file for the request with hash $hash - expected to find file $file.");
     }
-    catch (\Exception $e) {
-      throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata . " (" . $e->getMessage() . ")");
+
+    // The `file_get_contents` throws a warning if the file doesn't exist,
+    // so we have to do an additional check to get rid of this warning.
+    // @todo Remove this exception when dropping PHPUnit 9 support.
+    $fileMetadata = $this->getRequestFilename($hash, metadata: TRUE);
+    if (!file_exists($fileMetadata)) {
+      throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
+    }
+    $metadata = json_decode(file_get_contents($fileMetadata), TRUE);
+    if ($metadata == FALSE) {
+      throw new \Exception("Can't read the stored response metadata file for the request with hash $hash - expected to find file $fileMetadata.");
     }
 
     $status = 200;
@@ -211,6 +279,7 @@ class HttpClientFactoryStub extends ClientFactory {
         $headers = $metadata['response']['headers'];
       }
     }
+    $this->logResponseUsage($hash, 'read');
 
     $response = new Response(
       status: $status,
@@ -325,7 +394,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * Sets the HTTP Requests mocking mode.
    *
    * @param mixed $mode
-   *   A mode: store, mock, or NULL to use the Drupal default mode.
+   *   A mode: store, mock, append or NULL to use the Drupal default mode.
    */
   public function setRequestMockMode(string $mode): void {
     $this->requestMockMode = $mode;
@@ -343,12 +412,31 @@ class HttpClientFactoryStub extends ClientFactory {
    *   Useful when you need to store a modified response.
    */
   public function storeResponse(Response $response, ?Request $request = NULL, ?string $hash = NULL) {
-    $hash ??= $this->getRequestHash($request);
+    $hash ??= self::getRequestHash($request);
     $filename = $this->getRequestFilename($hash);
     $body = $response->getBody();
     $body->rewind();
-    file_put_contents($filename, $body->getContents());
+    $content = $body->getContents();
+    // Restore the seek to the beginning of the stream.
     $body->rewind();
+
+    // Additional checks for the usage log mode.
+    if ($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE]) {
+      if (file_exists($filename)) {
+        $storedContent = file_get_contents($filename);
+        if ($storedContent == $content) {
+          $usageOperation = 'check';
+        }
+        else {
+          $usageOperation = 'update';
+        }
+      }
+      else {
+        $usageOperation = 'create';
+      }
+    }
+
+    file_put_contents($filename, $content);
     $testName = $this->getTestName();
 
     $metadataFilename = $this->getRequestFilename($hash, metadata: TRUE);
@@ -391,6 +479,9 @@ class HttpClientFactoryStub extends ClientFactory {
     if ($metadataStoredContent ?? '' !== $metadataContent) {
       file_put_contents($metadataFilename, $metadataContent);
     }
+    if (isset($usageOperation)) {
+      $this->logResponseUsage($hash, $usageOperation);
+    }
     $this->storeRequestHash($hash);
   }
 
@@ -406,7 +497,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   A full path to the stored response file.
    */
   public function getRequestFilenameFromRequest(Request $request, bool $metadata = FALSE): string {
-    return $this->getRequestFilename($this->getRequestHash($request), $metadata);
+    return $this->getRequestFilename(self::getRequestHash($request), $metadata);
   }
 
   /**
@@ -441,7 +532,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   - uri: The request URI.
    *   - body: The request body, if not empty.
    */
-  protected function getRequestMetadata($request): array {
+  protected static function getRequestMetadata($request): array {
     $metadata = [
       'method' => $request->getMethod(),
       'uri' => $request->getUri()->__toString(),
@@ -463,8 +554,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string
    *   The generated hash.
    */
-  public function getRequestHash($request): string {
-    return md5(json_encode($this->getRequestMetadata($request)));
+  public static function getRequestHash($request): string {
+    return md5(json_encode(self::getRequestMetadata($request)));
   }
 
   /**
@@ -551,6 +642,58 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function getMockedRequestsHashesContainer(): array {
     return $this->mockedRequestsHashesContainer;
+  }
+
+  /**
+   * Logs the response usage to the log file.
+   *
+   * @param string $hash
+   *   A hash of the request.
+   * @param string $operation
+   *   The operation type: 'read', 'create', 'update', 'check'.
+   */
+  private function logResponseUsage(string $hash, string $operation): void {
+    if (!$this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE]) {
+      return;
+    }
+    $entry = [
+      "time" => microtime(TRUE),
+      "hash" => $hash,
+      "operation" => $operation,
+      "test" => $this->getTestName(),
+    ];
+    file_put_contents($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE], json_encode($entry) . "\n", FILE_APPEND);
+  }
+
+  /**
+   * Retrieves the response usage log entries from the log file as array.
+   *
+   * @return array
+   *   The array of log entries.
+   */
+  public function getResponseUsageLog(): array {
+    if (
+      empty($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE])
+      || !file_exists($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE])
+    ) {
+      return [];
+    }
+    $log = file_get_contents($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE]);
+    $entries = explode("\n", $log);
+    $result = [];
+    foreach ($entries as $entry) {
+      if ($entry) {
+        $result[] = json_decode($entry, TRUE);
+      }
+    }
+    return $result;
+  }
+
+  /**
+   * Removes the response usage log file.
+   */
+  public function removeResponseUsageLog(): void {
+    unlink($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE]);
   }
 
 }

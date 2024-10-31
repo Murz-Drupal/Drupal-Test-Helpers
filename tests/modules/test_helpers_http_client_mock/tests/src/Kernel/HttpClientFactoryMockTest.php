@@ -38,7 +38,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
     $service->setRequestMockMode('store');
     $options = [];
     $clientStore = $service->fromOptions($options);
-    $hash = $service->getRequestHash($request);
+    $hash = $service::getRequestHash($request);
     $resultsStoreFile = $service->getRequestFilename($hash);
 
     // Deleting the file if exists, to check if it will be recreated.

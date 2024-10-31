@@ -11,6 +11,7 @@ use Drupal\test_helpers\TestHelpers;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use donatj\MockWebServer\MockWebServer;
 
 /**
@@ -59,31 +60,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $factoryDefault2 = TestHelpers::service(
       'http_client_factory',
       forceOverride: TRUE);
-    $options = [];
     $this->assertEquals(__CLASS__ . '::' . __FUNCTION__, $factoryDefault2->getTestName());
-
-    $clientDefault1 = $factoryDefault1->fromOptions($options);
-    $clientStore = $factoryStore->fromOptions($options);
-    $clientMock = $factoryMock->fromOptions($options);
-    $clientDefault2 = $factoryDefault2->fromOptions($options);
-
-    $findNamedHandlerInClient = function (Client $client, string $name): ?int {
-      $options = TestHelpers::getPrivateProperty($client, 'config');
-      $handler = $options['handler'];
-      $stack = TestHelpers::getPrivateProperty($handler, 'stack');
-      foreach ($stack as $delta => $item) {
-        if ($item[1] == $name) {
-          return $delta;
-        }
-      }
-      return NULL;
-    };
-
-    // Checking that the store handler added only with the store mode.
-    $this->assertNull($findNamedHandlerInClient($clientDefault1, HttpClientFactoryStub::HANDLER_NAME_STORE));
-    $this->assertNotNull($findNamedHandlerInClient($clientStore, HttpClientFactoryStub::HANDLER_NAME_STORE));
-    $this->assertNull($findNamedHandlerInClient($clientMock, HttpClientFactoryStub::HANDLER_NAME_STORE));
-    $this->assertNull($findNamedHandlerInClient($clientDefault2, HttpClientFactoryStub::HANDLER_NAME_STORE));
   }
 
   /**
@@ -102,6 +79,13 @@ class HttpClientFactoryStubTest extends UnitTestCase {
 
     $request = new Request('GET', $url);
 
+    $httpClientFactoryStubNone = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: NULL,
+    );
+    $clientFactoryNone = TestHelpers::service('http_client_factory', $httpClientFactoryStubNone, forceOverride: TRUE);
+    $httpCallerNone = new HttpCaller($clientFactoryNone, $baseUri);
+
     $httpClientFactoryStubStore = new HttpClientFactoryStub(
       responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
       requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_STORE,
@@ -116,18 +100,27 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $clientFactoryMock = TestHelpers::service('http_client_factory', $httpClientFactoryStubMock, forceOverride: TRUE);
     $httpCallerMock = new HttpCaller($clientFactoryMock, $baseUri);
 
+    $httpClientFactoryStubAppend = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_APPEND,
+    );
+    $clientFactoryAppend = TestHelpers::service('http_client_factory', $httpClientFactoryStubAppend, forceOverride: TRUE);
+    $httpCallerAppend = new HttpCaller($clientFactoryAppend, $baseUri);
+
+    $getResponse = function ($httpCaller, $requestPath) {
+      $response = $httpCaller->get($requestPath);
+      $result = json_decode($response->getBody()->getContents());
+      return $result;
+    };
+
     // Test a real response.
-    $response = $httpCallerStore->get($requestPath);
-    $result = json_decode($response->getBody()->getContents());
-    $this->assertEquals('foobar', $result->_GET->get);
+    $this->assertEquals('foobar', $getResponse($httpCallerStore, $requestPath)->_GET->get);
 
     // Test a stored response.
-    $response = $httpCallerStore->get($requestPath);
-    $result = json_decode($response->getBody()->getContents());
-    $this->assertEquals('foobar', $result->_GET->get);
+    $this->assertEquals('foobar', $getResponse($httpCallerStore, $requestPath)->_GET->get);
 
-    // Test the modified stored response.
-    $storedResponseHash = $httpClientFactoryStubMock->getRequestHash($request);
+    // Store the modified stored response.
+    $storedResponseHash = $httpClientFactoryStubMock::getRequestHash($request);
     $storedResponseFile = self::RESPONSES_STORAGE_DIRECTORY . '/' . $storedResponseHash . '.json';
     $storedResponseContents = file_get_contents($storedResponseFile);
     $modifiedResponse = json_decode($storedResponseContents);
@@ -135,17 +128,38 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     file_put_contents($storedResponseFile, json_encode($modifiedResponse));
 
     // Check that the stored response has the modified value.
-    $response = $httpCallerMock->get($requestPath);
-    $result = json_decode($response->getBody()->getContents());
-    $this->assertEquals('baz', $result->_GET->get);
+    $this->assertEquals('baz', $getResponse($httpCallerMock, $requestPath)->_GET->get);
 
-    // Check that the real response has the original value.
-    $response = $httpCallerStore->get($requestPath);
-    $result = json_decode($response->getBody()->getContents());
-    $this->assertEquals('foobar', $result->_GET->get);
+    // Check that the none mode returns the original value.
+    $this->assertEquals('foobar', $getResponse($httpCallerNone, $requestPath)->_GET->get);
+
+    // Check that the append mode has the modified value.
+    $this->assertEquals('baz', $getResponse($httpCallerAppend, $requestPath)->_GET->get);
+
+    // Check that the store mode provides the original value.
+    $this->assertEquals('foobar', $getResponse($httpCallerStore, $requestPath)->_GET->get);
+
+    // Check that the append mode started to return the modified value after
+    // storing the actual request.
+    $this->assertEquals('foobar', $getResponse($httpCallerAppend, $requestPath)->_GET->get);
+
+    // Check the exception with the mock mode if the stored response is missing.
+    $httpClientFactoryStubMock->deleteStoredResponseByHash($storedResponseHash);
+    try {
+      $httpCallerMock->get($requestPath);
+      $this->fail('The call in the mock mode with the deleted response should throw an exception.');
+    }
+    catch (\Exception $e) {
+      $this->assertStringContainsString('Missing the stored response file', $e->getMessage());
+      $this->assertStringContainsString($storedResponseHash, $e->getMessage());
+    }
+
+    // Check that the append more recreates the file if missing.
+    $this->assertEquals('foobar', $getResponse($httpCallerAppend, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $getResponse($httpCallerMock, $requestPath)->_GET->get);
 
     // Restore the stored file contents.
-    file_put_contents($storedResponseFile, json_encode($storedResponseContents));
+    \Drupal::service('http_client_factory')->deleteStoredResponseByHash($storedResponseHash);
     $server->stop();
   }
 
@@ -185,7 +199,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $storedResponseMetadata = json_decode(file_get_contents($storedResponseMetadataFile), TRUE);
     $this->assertContains($testName, $storedResponseMetadata['tests']);
     $this->assertContains($testNameCustom, $storedResponseMetadata['tests']);
-    $httpClientFactoryStub->deleteStoredResponseByHash($httpClientFactoryStub->getRequestHash($request));
+    $httpClientFactoryStub->deleteStoredResponseByHash($httpClientFactoryStub::getRequestHash($request));
     $server->stop();
   }
 
@@ -218,10 +232,140 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $this->assertEquals($url, $storedResponseMetadata['request']['uri']);
     $this->assertEquals($body, $storedResponseMetadata['request']['body']);
     $this->assertTrue(file_exists($storedResponseFile));
-    $httpClientFactoryStub->deleteStoredResponseByHash($httpClientFactoryStub->getRequestHash($request));
+    $httpClientFactoryStub->deleteStoredResponseByHash($httpClientFactoryStub::getRequestHash($request));
     $this->assertFalse(file_exists($storedResponseFile));
     $this->assertFalse(file_exists($storedResponseMetadataFile));
     $server->stop();
+  }
+
+  /**
+   * @covers ::logResponseUsage
+   * @covers ::removeResponseUsageLog
+   * @covers ::getResponseUsageLog
+   */
+  public function testResponsesUsageLog() {
+    $server = new MockWebServer();
+    $server->start();
+
+    $logFile = tempnam(sys_get_temp_dir(), 'test_helpers_http_client_log_');
+
+    $httpClientFactoryLog = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_APPEND,
+      options: [
+        HttpClientFactoryStub::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => $logFile,
+      ],
+    );
+
+    $httpClientFactoryNoLog = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_APPEND,
+      options: [
+        HttpClientFactoryStub::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => NULL,
+      ],
+    );
+
+    // Make several requests without log mode enabled.
+    TestHelpers::service('http_client_factory', $httpClientFactoryNoLog, forceOverride: TRUE);
+    $hash1 = $this->makeRequestGetHash($server, '/endpoint?get=test1');
+    $hash2 = $this->makeRequestGetHash($server, '/endpoint?get=test2');
+    $this->assertEmpty($httpClientFactoryNoLog->getResponseUsageLog());
+    $this->assertEmpty($httpClientFactoryLog->getResponseUsageLog());
+
+    // Modify the first request stored response.
+    $responseFake = new Response(202, [], 'fake response');
+    $httpClientFactoryNoLog->storeResponse($responseFake, NULL, $hash1);
+
+    TestHelpers::service('http_client_factory', $httpClientFactoryLog, forceOverride: TRUE);
+    \Drupal::service('http_client_factory')->setRequestMockMode(HttpClientFactoryStub::HTTP_CLIENT_MODE_STORE);
+    $hash1 = $this->makeRequestGetHash($server, '/endpoint?get=test1');
+    $hash2 = $this->testResponsesUsageLogSubFunction($httpClientFactoryLog, $server, '/endpoint?get=test2');
+    \Drupal::service('http_client_factory')->setTestName();
+    \Drupal::service('http_client_factory')->setRequestMockMode(HttpClientFactoryStub::HTTP_CLIENT_MODE_APPEND);
+    // Calling the no-logging service.
+    TestHelpers::service('http_client_factory', $httpClientFactoryNoLog, forceOverride: TRUE);
+    $this->makeRequestGetHash($server, '/endpoint?get=test2');
+    // Reverting to the logging service.
+    TestHelpers::service('http_client_factory', $httpClientFactoryLog, forceOverride: TRUE);
+    $this->makeRequestGetHash($server, '/endpoint?get=test2');
+    $hash3 = $this->makeRequestGetHash($server, '/endpoint?get=test3');
+
+    // Expect tat the no-log log is empty.
+    $this->assertEmpty($httpClientFactoryNoLog->getResponseUsageLog());
+
+    $httpClientFactoryLog->deleteStoredResponseByHash($hash1);
+    $httpClientFactoryLog->deleteStoredResponseByHash($hash2);
+    $httpClientFactoryLog->deleteStoredResponseByHash($hash3);
+
+    $log = $httpClientFactoryLog->getResponseUsageLog();
+    $logExpected = [
+      [
+        'hash' => $hash1,
+        'operation' => 'update',
+        'test' => self::class . '::testResponsesUsageLog',
+      ],
+      [
+        'hash' => $hash2,
+        'operation' => 'check',
+        'test' => self::class . '::testResponsesUsageLogSubFunction',
+      ],
+      [
+        'hash' => $hash2,
+        'operation' => 'read',
+        'test' => self::class . '::testResponsesUsageLog',
+      ],
+      [
+        'hash' => $hash3,
+        'operation' => 'create',
+        'test' => self::class . '::testResponsesUsageLog',
+      ],
+    ];
+    $this->assertTrue(TestHelpers::isNestedArraySubsetOf($log, $logExpected));
+  }
+
+  /**
+   * Makes a request and returns the hash of the request.
+   *
+   * @param \donatj\MockWebServer\MockWebServer $server
+   *   A mock web server.
+   * @param string $path
+   *   A path.
+   * @param string $type
+   *   A type of the request.
+   * @param mixed $body
+   *   A body of the request.
+   *
+   * @return string
+   *   A hash of the request.
+   */
+  private function makeRequestGetHash(MockWebServer $server, string $path, $type = 'GET', $body = NULL): string {
+    $baseUri = $server->getServerRoot();
+    $url = $baseUri . $path;
+    $request = new Request($type, $url, body: $body);
+    $client = \Drupal::service('http_client_factory')->fromOptions([
+      'base_uri' => $baseUri,
+    ]);
+    $client->send($request);
+    $hash = HttpClientFactoryStub::getRequestHash($request);
+    return $hash;
+  }
+
+  /**
+   * A sub-function to test the responses usage log.
+   *
+   * @param \Drupal\test_helpers\Stub\HttpClientFactoryStub $httpClientFactory
+   *   An HTTP client factory.
+   * @param \donatj\MockWebServer\MockWebServer $server
+   *   A mock web server.
+   * @param string $path
+   *   A path.
+   *
+   * @return string
+   *   A hash of the request.
+   */
+  private function testResponsesUsageLogSubFunction($httpClientFactory, $server, $path) {
+    $httpClientFactory->setTestName();
+    return $this->makeRequestGetHash($server, $path);
   }
 
 }
