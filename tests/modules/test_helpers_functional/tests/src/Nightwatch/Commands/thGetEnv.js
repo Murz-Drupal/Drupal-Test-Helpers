@@ -20,7 +20,7 @@ module.exports = class ThGetEnv {
     const endpointPrefix = '/test-helpers-functional/get-env/';
     let value;
     this.api.thDrupalFetchURL(endpointPrefix + env, (result) => {
-      value = result.value.data;
+      value = result.value.body;
       if (typeof callback === 'function') {
         const self = this;
         callback.call(self, {

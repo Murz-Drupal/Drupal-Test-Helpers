@@ -3,7 +3,7 @@
  * Contains the ThLogout Nightwatch command.
  */
 
-const assert = require('assert');
+const assertOperationSuccess = require('../Lib/assertOperationSuccess');
 
 module.exports = class ThLogout {
   /**
@@ -19,7 +19,7 @@ module.exports = class ThLogout {
     const endpoint = '/test-helpers-functional/logout';
     this.api
       .thDrupalFetchURL(endpoint, (result) => {
-        assert.equal(JSON.parse(result.value.data).status, 'success');
+        assertOperationSuccess(result.value.body, 'thLogout');
       })
       .perform(() => {
         if (typeof callback === 'function') {

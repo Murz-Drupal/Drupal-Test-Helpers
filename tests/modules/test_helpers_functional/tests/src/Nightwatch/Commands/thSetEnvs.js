@@ -3,7 +3,7 @@
  * Defines the ThSetEnvs Nightwatch command.
  */
 
-const assert = require('assert');
+const assertOperationSuccess = require('../Lib/assertOperationSuccess');
 
 module.exports = class ThSetEnvs {
   /**
@@ -25,7 +25,7 @@ module.exports = class ThSetEnvs {
     });
     const pathWithParams = tempUrl.pathname + tempUrl.search;
     this.api.thDrupalFetchURL(pathWithParams, (result) => {
-      assert.equal(JSON.parse(result.value.data).status, 'success');
+      assertOperationSuccess(result.value.body, 'thSetEnvs');
     });
 
     this.api.perform(() => {

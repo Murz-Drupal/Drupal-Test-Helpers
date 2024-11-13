@@ -3,7 +3,7 @@
  * Contains the thUninstallModules Nightwatch command.
  */
 
-const assert = require('assert');
+const assertOperationSuccess = require('../Lib/assertOperationSuccess');
 
 /**
  * Uninstalls one or several modules at once.
@@ -26,7 +26,7 @@ exports.command = function thUninstallModules(modules, callback) {
    *   The result object from the fetch.
    */
   this.thDrupalFetchURL(url, (result) => {
-    assert.equal(JSON.parse(result.value.data).status, 'success');
+    assertOperationSuccess(result.value.body, 'thUninstallModules');
   });
 
   /**

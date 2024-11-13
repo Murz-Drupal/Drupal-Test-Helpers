@@ -3,7 +3,7 @@
  * Nightwatch command to create a new user with optional permissions and login.
  */
 
-const assert = require('assert');
+const assertOperationSuccess = require('../Lib/assertOperationSuccess');
 
 module.exports = class ThCreateUser {
   /**
@@ -29,7 +29,7 @@ module.exports = class ThCreateUser {
     });
     const pathWithParams = `${tempUrl.pathname}${tempUrl.search}`;
     this.api.thDrupalFetchURL(pathWithParams, (result) => {
-      assert.equal(JSON.parse(result.value.data).status, 'success');
+      assertOperationSuccess(result.value.body, 'thLogin');
     });
 
     this.api.perform(() => {

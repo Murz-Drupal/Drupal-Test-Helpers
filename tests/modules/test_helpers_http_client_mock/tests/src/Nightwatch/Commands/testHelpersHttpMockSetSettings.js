@@ -12,7 +12,7 @@ exports.command = function testHelpersHttpMockSetSettings(
   });
   const requestPath = `${setSettingsPath}?${urlParams.toString()}`;
   this.thDrupalFetchURL(requestPath, (result) => {
-    assert.equal(JSON.parse(result.value.data).status, 'success');
+    assert.equal(JSON.parse(result.value.body).status, 'success');
   }).perform(() => {
     if (typeof callback === 'function') {
       const self = this;

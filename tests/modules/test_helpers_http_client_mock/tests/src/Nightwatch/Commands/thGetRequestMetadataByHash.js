@@ -24,7 +24,7 @@ module.exports = class ThGetRequestMetadataByHash {
     await this.api.thDrupalFetchURL(url, 'GET', null, (result) => {
       response = result;
     });
-    const body = JSON.parse(response.value.data);
+    const body = JSON.parse(response.value.body);
 
     if (typeof callback === 'function') {
       const self = this;

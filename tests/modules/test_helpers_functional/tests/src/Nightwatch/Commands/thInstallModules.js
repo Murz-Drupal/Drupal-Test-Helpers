@@ -3,7 +3,7 @@
  * Contains the ThInstallModules Nightwatch command.
  */
 
-const assert = require('assert');
+const assertOperationSuccess = require('../Lib/assertOperationSuccess');
 
 module.exports = class ThInstallModules {
   /**
@@ -25,7 +25,7 @@ module.exports = class ThInstallModules {
     }`;
     this.api
       .thDrupalFetchURL(url, (result) => {
-        assert.equal(JSON.parse(result.value.data).status, 'success');
+        assertOperationSuccess(result.value.body, 'thInstallModules');
       })
       .perform(() => {
         if (typeof callback === 'function') {

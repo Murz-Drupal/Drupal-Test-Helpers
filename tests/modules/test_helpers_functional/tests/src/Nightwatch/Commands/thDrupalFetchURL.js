@@ -126,7 +126,7 @@ module.exports = class ThDrupalFetchURL {
    *   The URL to fetch.
    * @param {string} [method='GET']
    *   The HTTP method to use.
-   * @param {string} [body='']
+   * @param {string} [requestBody='']
    *   The body of the request.
    * @param {Array} [cookiesObjects=[]]
    *   An array of cookie objects.
@@ -137,7 +137,7 @@ module.exports = class ThDrupalFetchURL {
   static async fetchWithCookies(
     url,
     method = 'GET',
-    body = '',
+    requestBody = '',
     cookiesObjects = [],
   ) {
     // Convert the array of cookie objects to a single string for the Cookie header
@@ -151,10 +151,10 @@ module.exports = class ThDrupalFetchURL {
       },
     };
     if (method !== 'GET' && method !== 'HEAD') {
-      options.body = body;
+      options.body = requestBody;
     }
     const response = await fetch(url, options);
-    const data = await response.text();
+    const body = await response.text();
     const headers = {};
     response.headers.forEach((value, name) => {
       // Actually, Node.js function fetch() support multiple values only for
@@ -181,7 +181,7 @@ module.exports = class ThDrupalFetchURL {
     }
 
     const responseData = {
-      data,
+      body,
       status: response.status,
       statusText: response.statusText,
       headers,

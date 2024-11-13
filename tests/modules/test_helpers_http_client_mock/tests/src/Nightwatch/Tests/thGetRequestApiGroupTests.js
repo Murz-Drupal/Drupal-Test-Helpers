@@ -56,19 +56,19 @@ module.exports = {
       .perform(() => {
         browser
           .thGetRequestResponseFromPage((response) => {
-            browser.assert.equal(response.value.data, expectedResponse1);
+            browser.assert.equal(response.value.body, expectedResponse1);
           })
           .thGetRequestResponseFromPage(0, (response) => {
-            browser.assert.equal(response.value.data, expectedResponse1);
+            browser.assert.equal(response.value.body, expectedResponse1);
           })
           .thGetRequestResponseFromPage(1, (response) => {
-            browser.assert.equal(response.value.data, expectedResponse2);
+            browser.assert.equal(response.value.body, expectedResponse2);
           })
           .thGetRequestResponseFromPage(2, (response) => {
-            browser.assert.equal(response.value.data, expectedResponse2);
+            browser.assert.equal(response.value.body, expectedResponse2);
           })
           .thGetRequestResponseFromPage(3, (response) => {
-            browser.assert.equal(response.value.data, expectedResponse1);
+            browser.assert.equal(response.value.body, expectedResponse1);
           });
       })
       // Test thGetRequestResponseByHash() and thSetRequestResponseByHash().
@@ -135,10 +135,10 @@ module.exports = {
     let response;
 
     response = await browser.thGetRequestResponseFromPage();
-    browser.assert.equal(response.data, expectedResponse1);
+    browser.assert.equal(response.body, expectedResponse1);
 
     response = await browser.thGetRequestResponseFromPage(2);
-    browser.assert.equal(response.data, expectedResponse2);
+    browser.assert.equal(response.body, expectedResponse2);
 
     const hashes = await browser.thGetRequestHashesFromPage();
     browser.assert.equal(hashes.length, 4);

@@ -3,7 +3,7 @@
  * Contains the ThLogin Nightwatch command.
  */
 
-const assert = require('assert');
+const assertOperationSuccess = require('../Lib/assertOperationSuccess');
 
 module.exports = class ThLogin {
   /**
@@ -22,7 +22,7 @@ module.exports = class ThLogin {
     const url = endpoint + username;
     this.api
       .thDrupalFetchURL(url, (result) => {
-        assert.equal(JSON.parse(result.value.data).status, 'success');
+        assertOperationSuccess(result.value.body, 'thLogin');
       })
       .perform(() => {
         if (typeof callback === 'function') {

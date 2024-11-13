@@ -7,7 +7,7 @@
  * state before running tests.
  */
 
-const assert = require('assert');
+const assertOperationSuccess = require('../Lib/assertOperationSuccess');
 
 module.exports = class ThCacheClear {
   /**
@@ -34,7 +34,7 @@ module.exports = class ThCacheClear {
         ? `${endpoint}?${new URLSearchParams(params)}`
         : endpoint;
     await this.api.thDrupalFetchURL(url, (result) => {
-      assert.equal(result.value.data, '{"status":"success"}');
+      assertOperationSuccess(result.value.body, 'thLogin');
     });
   }
 };

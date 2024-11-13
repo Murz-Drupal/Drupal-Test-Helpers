@@ -22,7 +22,7 @@ module.exports = {
       .thDrupalFetchURL('/test-helpers-test/json-response-1', (result) => {
         const response = result.value;
         browser.assert.equal(response.status, 200);
-        browser.assert.equal(response.data, '{"title":"foo1"}');
+        browser.assert.equal(response.body, '{"title":"foo1"}');
         browser.assert.equal(
           response.headers['content-type'],
           'application/json',
@@ -53,7 +53,7 @@ module.exports = {
           browser.assert
             .equal(result.value.status, 400)
             .assert.equal(
-              result.value.data,
+              result.value.body,
               '{"message":"Sorry, unrecognized username or password."}',
             );
         },
