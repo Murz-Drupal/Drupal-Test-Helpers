@@ -133,8 +133,8 @@ class HttpClientTestController extends ControllerBase {
     $response = new JsonResponse(['title' => 'foo1']);
     $response->headers->add(['Multiple-Header' => 'value1']);
     $response->headers->add(['Multiple-Header' => 'value2']);
-    $response->headers->setCookie(new Cookie('TestCookie1', 'foo'));
-    $response->headers->setCookie(new Cookie('TestCookie2', 'bar'));
+    $response->headers->setCookie(Cookie::create('TestCookie1', 'foo'));
+    $response->headers->setCookie(Cookie::create('TestCookie2', 'bar'));
     return $response;
   }
 
