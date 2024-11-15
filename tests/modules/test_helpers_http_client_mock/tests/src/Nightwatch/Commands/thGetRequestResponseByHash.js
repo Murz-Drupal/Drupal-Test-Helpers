@@ -21,7 +21,7 @@ module.exports = class ThGetRequestResponseByHash {
 
     const url = endpointPrefix + hash;
     const response = await this.api.thDrupalFetchURL(url);
-    const body = response.data;
+    const body = response.body;
 
     if (typeof callback === 'function') {
       const self = this;

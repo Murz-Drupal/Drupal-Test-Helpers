@@ -14,7 +14,10 @@ const expectedResponse1 = '{"title":"foo1"}';
 const expectedResponse2 = '{"title":"foo2","bar":"baz"}';
 const expectedResponse2Mocked = '{"title":"foo3","bar":"baz"}';
 
+let testedResponsesCount = 0;
+
 module.exports = {
+  '@tags': ['test_helpers', 'test_helpers_http_client_mock'],
   before(browser) {
     browser.drupalInstall({
       installProfile: 'test_helpers_http_client_mock_profile',
@@ -48,7 +51,9 @@ module.exports = {
       // Test thGetRequestHashesFromPage().
       .thGetRequestHashesFromPage((response) => {
         hashes = response.value;
-        browser.assert.equal(hashes.length, 4);
+        const currentResponsesCount = 4;
+        browser.assert.equal(hashes.length, currentResponsesCount);
+        testedResponsesCount = currentResponsesCount;
         browser.assert.equal(hashes[0], hashes[3]);
         browser.assert.equal(hashes[1], hashes[2]);
       })
@@ -103,7 +108,9 @@ module.exports = {
       .perform(() => {
         browser.thGetLastRequestsHashes((response) => {
           const lastHashes = response.value;
-          browser.assert.equal(lastHashes.length, 6);
+          const currentResponsesCount = 6;
+          browser.assert.equal(lastHashes.length, currentResponsesCount);
+          testedResponsesCount = currentResponsesCount;
           browser.assert.equal(lastHashes[0], lastHashes[5]);
           browser.assert.equal(lastHashes[3], lastHashes[4]);
         });
@@ -146,7 +153,11 @@ module.exports = {
     browser.assert.equal(hashes[1], hashes[2]);
 
     const hashesLast = await browser.thGetLastRequestsHashes();
-    browser.assert.equal(hashesLast.length, 10);
+    const currentResponsesCount = 4;
+    browser.assert.equal(
+      hashesLast.length,
+      testedResponsesCount + currentResponsesCount,
+    );
     browser.assert.equal(hashesLast[0], hashesLast[9]);
     browser.assert.equal(hashesLast[1], hashesLast[8]);
 

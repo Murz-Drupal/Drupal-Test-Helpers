@@ -17,7 +17,7 @@ module.exports = class ThGetLastRequestsHashes {
     const endpoint = '/test-helpers-http-client-mock/get-last-requests-hashes';
 
     const response = await this.api.thDrupalFetchURL(endpoint);
-    const hashes = JSON.parse(response.data);
+    const hashes = JSON.parse(response.body);
 
     if (typeof callback === 'function') {
       const self = this;
