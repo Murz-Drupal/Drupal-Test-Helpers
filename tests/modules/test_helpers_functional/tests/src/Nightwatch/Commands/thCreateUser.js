@@ -19,6 +19,7 @@ module.exports = class ThCreateUser {
    *   The thCreateUser command.
    */
   command(userData, login = false, callback = undefined) {
+    let returnValue;
     const endpoint = '/test-helpers-functional/create-user';
     const tempUrl = new URL(endpoint, 'http://temp');
     if (login) {
@@ -30,15 +31,17 @@ module.exports = class ThCreateUser {
     const pathWithParams = `${tempUrl.pathname}${tempUrl.search}`;
     this.api.thDrupalFetchURL(pathWithParams, (result) => {
       assertOperationSuccess(result.value.body, 'thLogin');
+      const user = JSON.parse(result.value.body).data;
+      returnValue = { status: 0, value: user };
     });
 
     this.api.perform(() => {
       if (typeof callback === 'function') {
         const self = this;
-        callback.call(self);
+        callback.call(self, returnValue);
       }
     });
 
-    return this;
+    return returnValue;
   }
 };

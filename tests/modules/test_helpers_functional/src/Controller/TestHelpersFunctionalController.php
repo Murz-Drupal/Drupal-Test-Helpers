@@ -157,20 +157,23 @@ class TestHelpersFunctionalController extends ControllerBase {
    */
   public function login(string $name) {
     /**
-     * @var \Drupal\user\UserInterface $account
+     * @var \Drupal\user\UserInterface $user
      */
-    $account = current($this->entityTypeManager()->getStorage('user')
+    $user = current($this->entityTypeManager()->getStorage('user')
       ->loadByProperties(['name' => $name]));
-    if (!$account) {
+    if (!$user) {
       return new JsonResponse([
         'status' => 'error',
         'message' => 'User not found',
         'details' => "No user found with the name '$name'.",
       ]);
     }
-    user_login_finalize($account);
+    user_login_finalize($user);
     return new JsonResponse(
-      ['status' => 'success'],
+      [
+        'status' => 'success',
+        'data' => $user->toArray(),
+      ],
     );
   }
 

@@ -18,19 +18,22 @@ module.exports = class ThLogin {
    *   The thLogin command.
    */
   command(username, callback) {
+    let returnValue;
     const endpoint = '/test-helpers-functional/login/';
     const url = endpoint + username;
     this.api
       .thDrupalFetchURL(url, (result) => {
         assertOperationSuccess(result.value.body, 'thLogin');
+        const user = JSON.parse(result.value.body).data;
+        returnValue = { status: 0, value: user };
       })
       .perform(() => {
         if (typeof callback === 'function') {
           const self = this;
-          callback.call(self);
+          callback.call(self, returnValue);
         }
       });
 
-    return this;
+    return returnValue;
   }
 };

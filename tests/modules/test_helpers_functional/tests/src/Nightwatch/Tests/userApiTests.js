@@ -50,8 +50,14 @@ module.exports = {
     let customRole;
     let assignedPermissions;
     browser
-      .thCreateUser({ name, permissions })
-      .thLogin('admin')
+      .thCreateUser({ name, permissions }, false, (result) => {
+        browser.assert.equal('en', result.value.langcode[0].value);
+        browser.assert.equal(1, result.value.roles.length);
+      })
+      .thLogin('admin', (result) => {
+        browser.assert.equal('admin', result.value.name[0].value);
+        browser.assert.equal(0, result.value.roles.length);
+      })
       .drupalRelativeURL('/admin/people')
       .useXpath()
       .getAttribute(`//a[.='${name}']`, 'href', (result) => {
