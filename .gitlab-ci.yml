@@ -78,26 +78,3 @@ pages:
   rules:
   # Generate documentation only for stable releases tags.
   - if: $CI_COMMIT_REF_NAME =~ "/^\d+\.\d+\.\d+$/"
-
-
-# A workaround for the issue https://www.drupal.org/project/drupal/issues/3469607 start.
-composer:
-  after_script:
-    - 'grep -qxF "  follow: true," web/core/tests/Drupal/Nightwatch/nightwatch.conf.js || sed -i "/  ignore: process.env.DRUPAL_NIGHTWATCH_IGNORE_DIRECTORIES/i\  follow: true," web/core/tests/Drupal/Nightwatch/nightwatch.conf.js'
-# A workaround for the issue https://www.drupal.org/project/drupal/issues/3469607 end.
-
-# A workaround for the issue https://www.drupal.org/project/gitlab_templates/issues/3469616 start.
-.nightwatch-tests-exist-rule: &nightwatch-tests-exist-rule
-  - exists:
-      - tests/src/Nightwatch/**/*.js
-      - modules/*/tests/src/Nightwatch/**/*.js
-      # A fix for https://www.drupal.org/project/gitlab_templates/issues/3469616.
-      - tests/modules/*/tests/src/Nightwatch/**/*.js
-    when: on_success
-
-.nightwatch-base:
-  rules:
-    - !reference [ .opt-in-current-rule ]
-    - !reference [ .skip-nightwatch-rule ]
-    - *nightwatch-tests-exist-rule
-# A workaround for the issue https://www.drupal.org/project/gitlab_templates/issues/3469616 end.
