@@ -48,6 +48,16 @@ test_helpers_http_client_mock.set_stored_response:
   options:
     no_cache: 'TRUE'
 
+test_helpers_http_client_mock.get_last_response:
+  path: '/test-helpers-http-client-mock/get-last-response/{delta}'
+  defaults:
+    _controller: 'Drupal\test_helpers_http_client_mock\Controller\HttpClientMockController::getLastResponse'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
 test_helpers_http_client_mock.get_last_requests_hashes:
   path: '/test-helpers-http-client-mock/get-last-requests-hashes'
   defaults:

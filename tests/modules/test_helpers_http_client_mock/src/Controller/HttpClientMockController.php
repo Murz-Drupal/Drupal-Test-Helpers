@@ -174,4 +174,16 @@ class HttpClientMockController extends ControllerBase {
     return new JsonResponse($data);
   }
 
+  /**
+   * Gets the last response.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   The response.
+   */
+  public function getLastResponse($delta = 0): SymfonyResponse {
+    $hashes = array_reverse($this->stateService->get(HttpClientFactoryMock::STATE_KEY_LAST_REQUESTS_HASHES, []));
+    $hash = $hashes[$delta] ?? NULL;
+    return $this->getStoredResponse($hash);
+  }
+
 }

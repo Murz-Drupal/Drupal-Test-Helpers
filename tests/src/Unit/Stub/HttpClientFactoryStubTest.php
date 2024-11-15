@@ -199,6 +199,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $storedResponseMetadata = json_decode(file_get_contents($storedResponseMetadataFile), TRUE);
     $this->assertContains($testName, $storedResponseMetadata['tests']);
     $this->assertContains($testNameCustom, $storedResponseMetadata['tests']);
+
     $httpClientFactoryStub->deleteStoredResponseByHash($httpClientFactoryStub::getRequestHash($request));
     $server->stop();
   }
@@ -242,6 +243,8 @@ class HttpClientFactoryStubTest extends UnitTestCase {
    * @covers ::logResponseUsage
    * @covers ::removeResponseUsageLog
    * @covers ::getResponseUsageLog
+   * @covers ::getMockedRequestsHashesContainer
+   * @covers ::getLastResponse
    */
   public function testResponsesUsageLog() {
     $server = new MockWebServer();
@@ -292,6 +295,20 @@ class HttpClientFactoryStubTest extends UnitTestCase {
 
     // Expect tat the no-log log is empty.
     $this->assertEmpty($httpClientFactoryNoLog->getResponseUsageLog());
+
+    // Tests the responses container.
+    $responsesContainer = $httpClientFactoryLog->getMockedRequestsHashesContainer();
+    $this->assertEquals([
+      $hash1,
+      $hash2,
+      $hash2,
+      $hash3,
+    ], $responsesContainer);
+
+    $lastResponse0 = json_decode($httpClientFactoryLog->getLastResponse());
+    $this->assertEquals('test3', $lastResponse0->_GET->get);
+    $lastResponse1 = json_decode($httpClientFactoryLog->getLastResponse(1));
+    $this->assertEquals('test2', $lastResponse1->_GET->get);
 
     $httpClientFactoryLog->deleteStoredResponseByHash($hash1);
     $httpClientFactoryLog->deleteStoredResponseByHash($hash2);

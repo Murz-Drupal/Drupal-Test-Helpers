@@ -645,6 +645,17 @@ class HttpClientFactoryStub extends ClientFactory {
   }
 
   /**
+   * Returns the last request response body.
+   *
+   * @return string
+   *   The last response body.
+   */
+  public function getLastResponse(int $delta = 0): string {
+    $hashes = array_reverse($this->getMockedRequestsHashesContainer());
+    return $this->getStoredResponseByHash($hashes[$delta])->getBody()->getContents();
+  }
+
+  /**
    * Logs the response usage to the log file.
    *
    * @param string $hash

@@ -128,6 +128,8 @@ module.exports = {
    * @covers thGetRequestResponseByHash()
    * @covers thGetRequestMetadataByHash()
    * @covers thSetRequestResponseByHash()
+   * @covers thGetLastResponse()
+   * @covers thDeleteRequestResponseByHash()
    */
 
   'Shortened test in async mode': async (browser) => {
@@ -183,5 +185,19 @@ module.exports = {
     browser.assert.equal(hashesLast2.length, 12);
     browser.assert.equal(hashesLast2[2], hashesLast2[11]);
     browser.assert.equal(hashesLast2[1], hashesLast2[10]);
+
+    const hashLast0 = await browser.thGetLastResponse();
+    browser.assert.equal(hashLast0.body, expectedResponse1);
+    const hashLast1 = await browser.thGetLastResponse(1);
+    browser.assert.equal(hashLast1.body, expectedResponse2);
+
+    // Cleanup asset files.
+    const hashesUnique = [...new Set(hashesLast2)];
+    // We need to use the for loop here, because the `await` inside the
+    // forEach loop doesn't work.
+    // eslint-disable-next-line no-restricted-syntax
+    for (const hash of hashesUnique) {
+      browser.thDeleteRequestResponseByHash(hash);
+    }
   },
 };
