@@ -44,7 +44,7 @@ const writeStoredResponse = (hash, content, metadata = null) => {
   fs.writeFileSync(mockedResponseMetadataFile, JSON.stringify(metadata));
 };
 
-const deleteStoredResponse = (hash) => {
+const stubDeleteStoredResponse = (hash) => {
   const mockedResponseFile = `${assetsDirectory}${path.sep}${hash}.json`;
   if (fs.existsSync(mockedResponseFile)) {
     fs.unlinkSync(mockedResponseFile);
@@ -103,8 +103,8 @@ module.exports = {
         );
       })
       .perform(() => {
-        deleteStoredResponse(request1Hash);
-        deleteStoredResponse(request2Hash);
+        stubDeleteStoredResponse(request1Hash);
+        stubDeleteStoredResponse(request2Hash);
       });
   },
 
@@ -124,7 +124,7 @@ module.exports = {
       .waitForElementVisible(responseContentTagSelector)
       .assert.textContains(responseContentTagSelector, mockedResponse.title)
       .perform(() => {
-        deleteStoredResponse(request1MockHash);
+        stubDeleteStoredResponse(request1MockHash);
       });
   },
 };

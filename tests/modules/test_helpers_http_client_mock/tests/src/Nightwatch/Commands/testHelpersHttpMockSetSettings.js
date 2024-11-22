@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const setSettingsPath = '/test-helpers-http-client-mock/set-settings';
+const stubSetSettingsPath = '/test-helpers-http-client-mock/set-settings';
 
 exports.command = function testHelpersHttpMockSetSettings(
   settings = {},
@@ -10,7 +10,7 @@ exports.command = function testHelpersHttpMockSetSettings(
   Object.entries(settings).forEach(([key, value]) => {
     urlParams.append(key, value);
   });
-  const requestPath = `${setSettingsPath}?${urlParams.toString()}`;
+  const requestPath = `${stubSetSettingsPath}?${urlParams.toString()}`;
   this.thDrupalFetchURL(requestPath, (result) => {
     assert.equal(JSON.parse(result.value.body).status, 'success');
   }).perform(() => {

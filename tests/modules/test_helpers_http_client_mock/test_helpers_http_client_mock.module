@@ -21,7 +21,7 @@ use Drupal\test_helpers_http_client_mock\HttpClientFactoryMock;
  */
 function test_helpers_http_client_mock_page_attachments(array &$page, $serviceName = 'http_client_factory') {
   $httpClientService = \Drupal::service($serviceName);
-  if (!$hashes = $httpClientService->getMockedRequestsHashesContainer()) {
+  if (!$hashes = $httpClientService->stubGetMockedRequestsHashesContainer()) {
     return;
   }
   $page['#attached']['html_head'][] = [

@@ -119,14 +119,14 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
     protected ?string $testName = NULL,
     protected ?string $uriRegexp = NULL,
   ) {
-    $this->requestMockMode ??= $this->getConfig(self::SETTING_KEY_REQUEST_MOCK_MODE);
-    $this->responsesStorageDirectory ??= $this->getConfig(self::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY);
-    $this->testName ??= $this->getConfig(self::SETTING_KEY_TEST_NAME);
-    $this->uriRegexp ??= $this->getConfig(self::SETTING_KEY_URI_REGEXP);
+    $this->requestMockMode ??= $this->stubGetConfig(self::SETTING_KEY_REQUEST_MOCK_MODE);
+    $this->responsesStorageDirectory ??= $this->stubGetConfig(self::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY);
+    $this->testName ??= $this->stubGetConfig(self::SETTING_KEY_TEST_NAME);
+    $this->uriRegexp ??= $this->stubGetConfig(self::SETTING_KEY_URI_REGEXP);
 
     $options = [
       HttpClientFactoryStub::OPTION_URI_REGEXP => $this->uriRegexp,
-      HttpClientFactoryStub::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => $this->getConfig(self::SETTING_KEY_LOG_STORED_RESPONSES_USAGE_FILE),
+      HttpClientFactoryStub::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => $this->stubGetConfig(self::SETTING_KEY_LOG_STORED_RESPONSES_USAGE_FILE),
     ];
 
     parent::__construct(
@@ -154,7 +154,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    *   A response event.
    */
   public function onRespond(ResponseEvent $event) {
-    if ($hashes = $this->getMockedRequestsHashesContainer()) {
+    if ($hashes = $this->stubGetMockedRequestsHashesContainer()) {
       $response = $event->getResponse();
       $response->headers->set(self::HTTP_HEADER_NAME, json_encode($hashes));
     }
@@ -166,8 +166,8 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    * @param string $hash
    *   A hash value.
    */
-  protected function storeRequestHash(string $hash): void {
-    parent::storeRequestHash($hash);
+  protected function stubStoreRequestHash(string $hash): void {
+    parent::stubStoreRequestHash($hash);
     $lastHashes = $this->state->get(self::STATE_KEY_LAST_REQUESTS_HASHES, []);
     array_unshift($lastHashes, $hash);
     $lastHashes = array_slice($lastHashes, 0, 32);
@@ -183,7 +183,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    * @return mixed
    *   The configuration value.
    */
-  public function getConfig(string $key) {
+  public function stubGetConfig(string $key) {
     return $this->configFactory->get(self::SETTINGS_CONFIG_KEY)->get($key);
   }
 
@@ -193,7 +193,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    * @return \Drupal\Core\Config\ImmutableConfig
    *   The configuration object.
    */
-  public function getConfiguration(): ImmutableConfig {
+  public function stubGetConfiguration(): ImmutableConfig {
     return $this->configFactory->get(self::SETTINGS_CONFIG_KEY);
   }
 
@@ -205,7 +205,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    * @param mixed $value
    *   The configuration value.
    */
-  public function setConfig(string $key, mixed $value): void {
+  public function stubSetConfig(string $key, mixed $value): void {
     $this->configFactory->getEditable(self::SETTINGS_CONFIG_KEY)
       ->set($key, $value)
       ->save();

@@ -51,15 +51,14 @@ class HttpClientFactoryStub extends ClientFactory {
   const HTTP_CLIENT_MODE_APPEND = 'append';
 
   /**
-   * The HTTP handler name for the `store` mode.
-   *
-   * For the `mock` mode no handler is added to the stack, because the default
-   * handler is replaced to the MockHandler.
+   * The HTTP handler names to find them in the stack.
    *
    * @var string
    */
-  const HANDLER_NAME_BEFORE_REAL_CALL = 'test_helpers_http_client_mock.handle_before_real_call';
-  const HANDLER_NAME_AFTER_REAL_CALL = 'test_helpers_http_client_mock.handle_after_real_call';
+  const HANDLER_NAME_CUSTOM = 'test_helpers_http_client_mock.handler_custom';
+  const HANDLER_NAME_CUSTOM_RESPONSES_STACK = 'test_helpers_http_client_mock.handler_custom_responses_stack';
+  const HANDLER_NAME_BEFORE_REAL_CALL = 'test_helpers_http_client_mock.handler_before_real_call';
+  const HANDLER_NAME_AFTER_REAL_CALL = 'test_helpers_http_client_mock.handler_after_real_call';
 
   /**
    * The options keys.
@@ -75,6 +74,28 @@ class HttpClientFactoryStub extends ClientFactory {
    * @var array
    */
   protected array $mockedRequestsHashesContainer = [];
+
+  /**
+   * A stack with custom responses.
+   *
+   * @var \GuzzleHttp\Psr7\Response[]
+   */
+  protected array $stubCustomResponsesStack = [];
+
+  /**
+   * The handler stack, attached to the last created HTTP client.
+   *
+   * Used to dynamically control the custom handler.
+   *
+   * @var \GuzzleHttp\HandlerStack|null
+   */
+  protected $stubHandlerStackLast = NULL;
+  /**
+   * A custom handler for HTTP requests.
+   *
+   * @var callable|null
+   */
+  protected $stubHandlerCustom = NULL;
 
   /**
    * HttpClientFactoryStub constructor.
@@ -110,7 +131,7 @@ class HttpClientFactoryStub extends ClientFactory {
       self::OPTION_STORE_HEADERS_SKIP_KEYS => [],
       self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => NULL,
     ];
-    $this->setTestName($testName);
+    $this->stubSetTestName($testName);
     parent::__construct($stack);
   }
 
@@ -121,25 +142,28 @@ class HttpClientFactoryStub extends ClientFactory {
     // Setting the default handler, if the custom one is not set.
     $config['handler'] ??= $this->stack;
 
+    $this->stubHandlerStackLast = $config['handler'];
+
     $lastMockingResult = NULL;
 
     // A request handler that executes before all other handlers.
-    $handleResponseBeforeRealCall = function (callable $handler) use (&$lastMockingResult) {
+    $handlerBeforeRealCall = function (callable $handler) use (&$lastMockingResult) {
+      // @todo Simplify this by not run the custom function if no needs.
       return function ($request, array $options) use ($handler, &$lastMockingResult) {
         $lastMockingResult = NULL;
         if (
-          in_array($this->getRequestMockMode(), [
+          in_array($this->stubGetRequestMockMode(), [
             self::HTTP_CLIENT_MODE_MOCK,
             self::HTTP_CLIENT_MODE_APPEND,
           ])
-          && $this->matchRequest($request)
+          && $this->stubMatchRequest($request)
         ) {
 
           // For the append mode, we should check if the response is already
           // stored and do not produce an exception on missing stored response.
-          if ($this->getRequestMockMode() == self::HTTP_CLIENT_MODE_APPEND) {
-            if ($this->hasStoredResponse($request)) {
-              $response = $this->getStoredResponse($request);
+          if ($this->stubGetRequestMockMode() == self::HTTP_CLIENT_MODE_APPEND) {
+            if ($this->stubHasStoredResponse($request)) {
+              $response = $this->stubGetStoredResponse($request);
               $lastMockingResult = TRUE;
               return new FulfilledPromise($response);
             }
@@ -148,7 +172,7 @@ class HttpClientFactoryStub extends ClientFactory {
             }
           }
           else {
-            $response = $this->getStoredResponse($request);
+            $response = $this->stubGetStoredResponse($request);
             return new FulfilledPromise($response);
           }
         }
@@ -157,33 +181,56 @@ class HttpClientFactoryStub extends ClientFactory {
     };
 
     // A request handler that executes after all other handlers.
-    $handleResponseAfterRealCall = function (callable $handler) use (&$lastMockingResult) {
+    $handlerAfterRealCall = function (callable $handler) use (&$lastMockingResult) {
+      // @todo Simplify this by not run the custom function if no needs.
       return function ($request, array $options) use ($handler, &$lastMockingResult) {
-        return $handler($request, $options)->then(
-          function (ResponseInterface $response) use ($request, &$lastMockingResult) {
-            if (
-              (
-                $this->getRequestMockMode() == self::HTTP_CLIENT_MODE_STORE
-                || $lastMockingResult === FALSE
-              )
-              && $this->matchRequest($request)
-            ) {
-              $this->storeResponse($response, $request);
-            }
-            return $response;
+        if (
+          (
+            $this->stubGetRequestMockMode() == self::HTTP_CLIENT_MODE_STORE
+            || $lastMockingResult === FALSE
+          )
+        ) {
+          if ($this->stubMatchRequest($request)) {
+            // Execute the real request to get the response.
+            $handler($request, $options)->then(
+              function ($response) use ($request) {
+                $this->stubStoreResponse($response, $request);
+                return $response;
+              }
+            );
           }
-        );
+        }
+        return $handler($request, $options);
       };
     };
 
-    // Adding custom handlers to the stack. Because they executes in the reverse
-    // order, we should add them in the reverse order too.
+    // A request handler that executes before all other handlers.
+    $handlerCustomResponsesStack = function (callable $handler) {
+      // @todo Simplify this by not run the custom function if no needs.
+      return function ($request, array $options) use ($handler) {
+        if (!empty($this->stubCustomResponsesStack)) {
+          $response = array_shift($this->stubCustomResponsesStack);
+          return new FulfilledPromise($response);
+        }
+        return $handler($request, $options);
+      };
+    };
+
+    // Add custom handlers to the stack.
     // And clean up already added our handlers, if present.
     $config['handler']->remove(self::HANDLER_NAME_AFTER_REAL_CALL);
-    $config['handler']->push($handleResponseAfterRealCall, self::HANDLER_NAME_AFTER_REAL_CALL);
+    $config['handler']->push($handlerAfterRealCall, self::HANDLER_NAME_AFTER_REAL_CALL);
 
     $config['handler']->remove(self::HANDLER_NAME_BEFORE_REAL_CALL);
-    $config['handler']->unshift($handleResponseBeforeRealCall, self::HANDLER_NAME_BEFORE_REAL_CALL);
+    $config['handler']->unshift($handlerBeforeRealCall, self::HANDLER_NAME_BEFORE_REAL_CALL);
+
+    $config['handler']->remove(self::HANDLER_NAME_CUSTOM);
+    if ($this->stubHandlerCustom) {
+      $config['handler']->unshift($this->stubHandlerCustom, self::HANDLER_NAME_CUSTOM);
+    }
+
+    $config['handler']->remove(self::HANDLER_NAME_CUSTOM_RESPONSES_STACK);
+    $config['handler']->unshift($handlerCustomResponsesStack, self::HANDLER_NAME_CUSTOM_RESPONSES_STACK);
 
     return parent::fromOptions($config);
   }
@@ -197,9 +244,9 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return bool
    *   TRUE if a stored response exists, FALSE otherwise.
    */
-  public function hasStoredResponse(Request $request): bool {
-    $hash = self::getRequestHash($request);
-    $file = $this->getRequestFilename($hash);
+  public function stubHasStoredResponse(Request $request): bool {
+    $hash = self::stubGetRequestHash($request);
+    $file = $this->stubGetRequestFilename($hash);
     return file_exists($file);
   }
 
@@ -215,11 +262,11 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return \GuzzleHttp\Psr7\Response
    *   The stored response.
    */
-  public function getStoredResponse(Request $request): Response {
-    $hash = self::getRequestHash($request);
-    $this->storeRequestHash($hash);
+  public function stubGetStoredResponse(Request $request): Response {
+    $hash = self::stubGetRequestHash($request);
+    $this->stubStoreRequestHash($hash);
     try {
-      $response = $this->getStoredResponseByHash($hash);
+      $response = $this->stubGetStoredResponseByHash($hash);
     }
     catch (\Exception $e) {
       throw new \Exception(
@@ -241,8 +288,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return \GuzzleHttp\Psr7\Response
    *   The stored response.
    */
-  public function getStoredResponseByHash(string $hash): Response {
-    $file = $this->getRequestFilename($hash);
+  public function stubGetStoredResponseByHash(string $hash): Response {
+    $file = $this->stubGetRequestFilename($hash);
 
     // The `file_get_contents` throws a warning if the file doesn't exist,
     // so we have to do an additional check to get rid of this warning.
@@ -259,7 +306,7 @@ class HttpClientFactoryStub extends ClientFactory {
     // The `file_get_contents` throws a warning if the file doesn't exist,
     // so we have to do an additional check to get rid of this warning.
     // @todo Remove this exception when dropping PHPUnit 9 support.
-    $fileMetadata = $this->getRequestFilename($hash, metadata: TRUE);
+    $fileMetadata = $this->stubGetRequestFilename($hash, metadata: TRUE);
     if (!file_exists($fileMetadata)) {
       throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
     }
@@ -279,7 +326,7 @@ class HttpClientFactoryStub extends ClientFactory {
         $headers = $metadata['response']['headers'];
       }
     }
-    $this->logResponseUsage($hash, 'read');
+    $this->stubLogResponseUsage($hash, 'read');
 
     $response = new Response(
       status: $status,
@@ -298,8 +345,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return array
    *   The stored response metadata array.
    */
-  public function getStoredResponseMetadataByHash(string $hash): array {
-    $fileMetadata = $this->getRequestFilename($hash, metadata: TRUE);
+  public function stubGetStoredResponseMetadataByHash(string $hash): array {
+    $fileMetadata = $this->stubGetRequestFilename($hash, metadata: TRUE);
     if (!$metadata = json_decode(@file_get_contents($fileMetadata), TRUE)) {
       throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata);
     }
@@ -312,9 +359,9 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param string $hash
    *   A request hash.
    */
-  public function deleteStoredResponseByHash(string $hash): void {
-    unlink($this->getRequestFilename($hash));
-    unlink($this->getRequestFilename($hash, metadata: TRUE));
+  public function stubDeleteStoredResponseByHash(string $hash): void {
+    unlink($this->stubGetRequestFilename($hash));
+    unlink($this->stubGetRequestFilename($hash, metadata: TRUE));
   }
 
   /**
@@ -323,7 +370,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string
    *   The current test name.
    */
-  public function getTestName(): string {
+  public function stubGetTestName(): string {
     return $this->testName;
   }
 
@@ -333,11 +380,11 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param string|null $name
    *   The test name. If NULL - tries to autodetect it.
    */
-  public function setTestName(?string $name = NULL): void {
+  public function stubSetTestName(?string $name = NULL): void {
     if ($name !== NULL) {
       $this->testName = $name;
     }
-    elseif ($this->isPhpunitTest()) {
+    elseif ($this->stubIsPhpunitTest()) {
       // Autodetect the test name from parent callers.
       $backtrace = debug_backtrace();
       foreach ($backtrace as $item) {
@@ -372,7 +419,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   - store - stores all response to the storage.
    *   - mock - mocks all requests from the storage.
    */
-  public function getRequestMockMode(): ?string {
+  public function stubGetRequestMockMode(): ?string {
     if ($this->requestMockMode === NULL) {
       switch (getenv(self::EMV_HTTP_CLIENT_MODE)) {
         case self::HTTP_CLIENT_MODE_STORE:
@@ -396,7 +443,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param mixed $mode
    *   A mode: store, mock, append or NULL to use the Drupal default mode.
    */
-  public function setRequestMockMode(string $mode): void {
+  public function stubSetRequestMockMode(string $mode): void {
     $this->requestMockMode = $mode;
   }
 
@@ -411,9 +458,9 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The custom hash value to use when storing.
    *   Useful when you need to store a modified response.
    */
-  public function storeResponse(Response $response, ?Request $request = NULL, ?string $hash = NULL) {
-    $hash ??= self::getRequestHash($request);
-    $filename = $this->getRequestFilename($hash);
+  public function stubStoreResponse(Response $response, ?Request $request = NULL, ?string $hash = NULL) {
+    $hash ??= self::stubGetRequestHash($request);
+    $filename = $this->stubGetRequestFilename($hash);
     $body = $response->getBody();
     $body->rewind();
     $content = $body->getContents();
@@ -437,9 +484,9 @@ class HttpClientFactoryStub extends ClientFactory {
     }
 
     file_put_contents($filename, $content);
-    $testName = $this->getTestName();
+    $testName = $this->stubGetTestName();
 
-    $metadataFilename = $this->getRequestFilename($hash, metadata: TRUE);
+    $metadataFilename = $this->stubGetRequestFilename($hash, metadata: TRUE);
     $metadata = [
       'tests' => [],
       'response' => [
@@ -455,13 +502,13 @@ class HttpClientFactoryStub extends ClientFactory {
       }
     }
     if ($request) {
-      $metadata['request'] = $this->getRequestMetadata($request);
+      $metadata['request'] = $this->stubGetRequestMetadata($request);
     }
     if (file_exists($metadataFilename)) {
       $metadataStoredContent = file_get_contents($metadataFilename);
       $metadataStored = json_decode($metadataStoredContent, TRUE) ?? [];
       $metadata['tests'] = $metadataStored['tests'];
-      // On the setStoredResponse we have no request data, so copying it
+      // On the stubSetStoredResponse we have no request data, so copying it
       // from the stored response metadata.
       if (
         !isset($metadata['request'])
@@ -480,9 +527,9 @@ class HttpClientFactoryStub extends ClientFactory {
       file_put_contents($metadataFilename, $metadataContent);
     }
     if (isset($usageOperation)) {
-      $this->logResponseUsage($hash, $usageOperation);
+      $this->stubLogResponseUsage($hash, $usageOperation);
     }
-    $this->storeRequestHash($hash);
+    $this->stubStoreRequestHash($hash);
   }
 
   /**
@@ -496,8 +543,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string
    *   A full path to the stored response file.
    */
-  public function getRequestFilenameFromRequest(Request $request, bool $metadata = FALSE): string {
-    return $this->getRequestFilename(self::getRequestHash($request), $metadata);
+  public function stubGetRequestFilenameFromRequest(Request $request, bool $metadata = FALSE): string {
+    return $this->stubGetRequestFilename(self::stubGetRequestHash($request), $metadata);
   }
 
   /**
@@ -511,8 +558,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string
    *   A full path to the file.
    */
-  public function getRequestFilename(string $hash, bool $metadata = FALSE): string {
-    $directory = $this->getResponsesStorageDirectory();
+  public function stubGetRequestFilename(string $hash, bool $metadata = FALSE): string {
+    $directory = $this->stubGetResponsesStorageDirectory();
     if ($metadata) {
       $hash = $hash . '_metadata';
     }
@@ -532,7 +579,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   - uri: The request URI.
    *   - body: The request body, if not empty.
    */
-  protected static function getRequestMetadata($request): array {
+  protected static function stubGetRequestMetadata($request): array {
     $metadata = [
       'method' => $request->getMethod(),
       'uri' => $request->getUri()->__toString(),
@@ -554,8 +601,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string
    *   The generated hash.
    */
-  public static function getRequestHash($request): string {
-    return md5(json_encode(self::getRequestMetadata($request)));
+  public static function stubGetRequestHash($request): string {
+    return md5(json_encode(self::stubGetRequestMetadata($request)));
   }
 
   /**
@@ -564,7 +611,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return bool
    *   True if PHPUnit, false otherwise.
    */
-  protected function isPhpunitTest(): bool {
+  protected function stubIsPhpunitTest(): bool {
     return defined('PHPUNIT_COMPOSER_INSTALL');
   }
 
@@ -574,7 +621,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string|null
    *   The URI regular expression.
    */
-  public function getUriRegexp(): ?string {
+  public function stubGetUriRegexp(): ?string {
     return $this->options[self::OPTION_URI_REGEXP];
   }
 
@@ -584,7 +631,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param string|null $regexp
    *   The URI regular expression.
    */
-  public function setUriRegexp(?string $regexp): void {
+  public function stubSetUriRegexp(?string $regexp): void {
     $this->options[self::OPTION_URI_REGEXP] = $regexp;
   }
 
@@ -597,7 +644,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return bool
    *   TRUE if the request matches the URI regular expression, FALSE otherwise.
    */
-  protected function matchRequest(Request $request): bool {
+  protected function stubMatchRequest(Request $request): bool {
     if ($this->options[self::OPTION_URI_REGEXP] ?? NULL) {
       return preg_match($this->options[self::OPTION_URI_REGEXP], $request->getUri()->__toString());
     }
@@ -607,7 +654,7 @@ class HttpClientFactoryStub extends ClientFactory {
   /**
    * Returns the current responses storage directory.
    */
-  public function getResponsesStorageDirectory(): string {
+  public function stubGetResponsesStorageDirectory(): string {
     if ($this->responsesStorageDirectory === NULL) {
       throw new \Exception('To use the `store` and `mock` modes, you need to set the `responsesStorageDirectory` property.');
     }
@@ -620,7 +667,7 @@ class HttpClientFactoryStub extends ClientFactory {
   /**
    * Sets the current responses storage directory.
    */
-  public function setResponsesStorageDirectory(string $directory): void {
+  public function stubSetResponsesStorageDirectory(string $directory): void {
     $this->responsesStorageDirectory = $directory;
   }
 
@@ -630,7 +677,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param string $hash
    *   A hash value.
    */
-  protected function storeRequestHash(string $hash): void {
+  protected function stubStoreRequestHash(string $hash): void {
     $this->mockedRequestsHashesContainer[] = $hash;
   }
 
@@ -640,7 +687,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return array
    *   A list of hashes of all mocked responses.
    */
-  public function getMockedRequestsHashesContainer(): array {
+  public function stubGetMockedRequestsHashesContainer(): array {
     return $this->mockedRequestsHashesContainer;
   }
 
@@ -650,9 +697,9 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string
    *   The last response body.
    */
-  public function getLastResponse(int $delta = 0): string {
-    $hashes = array_reverse($this->getMockedRequestsHashesContainer());
-    return $this->getStoredResponseByHash($hashes[$delta])->getBody()->getContents();
+  public function stubGetLastResponse(int $delta = 0): string {
+    $hashes = array_reverse($this->stubGetMockedRequestsHashesContainer());
+    return $this->stubGetStoredResponseByHash($hashes[$delta])->getBody()->getContents();
   }
 
   /**
@@ -663,7 +710,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param string $operation
    *   The operation type: 'read', 'create', 'update', 'check'.
    */
-  private function logResponseUsage(string $hash, string $operation): void {
+  private function stubLogResponseUsage(string $hash, string $operation): void {
     if (!$this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE]) {
       return;
     }
@@ -671,7 +718,7 @@ class HttpClientFactoryStub extends ClientFactory {
       "time" => microtime(TRUE),
       "hash" => $hash,
       "operation" => $operation,
-      "test" => $this->getTestName(),
+      "test" => $this->stubGetTestName(),
     ];
     file_put_contents($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE], json_encode($entry) . "\n", FILE_APPEND);
   }
@@ -682,7 +729,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return array
    *   The array of log entries.
    */
-  public function getResponseUsageLog(): array {
+  public function stubGetResponseUsageLog(): array {
     if (
       empty($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE])
       || !file_exists($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE])
@@ -703,8 +750,35 @@ class HttpClientFactoryStub extends ClientFactory {
   /**
    * Removes the response usage log file.
    */
-  public function removeResponseUsageLog(): void {
+  public function stubRemoveResponseUsageLog(): void {
     unlink($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE]);
+  }
+
+  /**
+   * Adds a custom response to the stack.
+   *
+   * @param \Psr\Http\Message\ResponseInterface $response
+   *   A response to add.
+   */
+  public function stubAddCustomResponseToStack(ResponseInterface $response) {
+    $this->stubCustomResponsesStack[] = $response;
+  }
+
+  /**
+   * Sets a custom handler for the HTTP client.
+   *
+   * @param callable|null $handler
+   *   A custom handler or null to unset the handler.
+   */
+  public function stubSetCustomHandler(?callable $handler) {
+    $this->stubHandlerCustom = $handler;
+    // Additionally reset the handler in the last handler stack, if set.
+    if ($this->stubHandlerStackLast) {
+      $this->stubHandlerStackLast->remove(self::HANDLER_NAME_CUSTOM);
+      if ($handler) {
+        $this->stubHandlerStackLast->unshift($this->stubHandlerCustom, self::HANDLER_NAME_CUSTOM);
+      }
+    }
   }
 
 }

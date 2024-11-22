@@ -34,17 +34,17 @@ class HttpClientFactoryMockTest extends KernelTestBase {
 
     $directory = __DIR__ . '/../../assets/testStoreHttpResponse';
     $service = \Drupal::service('http_client_factory');
-    $service->setResponsesStorageDirectory($directory);
-    $service->setRequestMockMode('store');
+    $service->stubSetResponsesStorageDirectory($directory);
+    $service->stubSetRequestMockMode('store');
     $options = [];
     $clientStore = $service->fromOptions($options);
-    $hash = $service::getRequestHash($request);
-    $resultsStoreFile = $service->getRequestFilename($hash);
+    $hash = $service::stubGetRequestHash($request);
+    $resultsStoreFile = $service->stubGetRequestFilename($hash);
 
     // Deleting the file if exists, to check if it will be recreated.
     if (file_exists($resultsStoreFile)) {
       unlink($resultsStoreFile);
-      unlink($service->getRequestFilename($hash, TRUE));
+      unlink($service->stubGetRequestFilename($hash, TRUE));
     }
     $responseStore = $clientStore->request('GET', $url);
     $resultStore = $responseStore->getBody()->getContents();
@@ -52,7 +52,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
     $this->assertEquals($resultStore, $resultStored);
 
     // Writing a modified response data to the file and checks if it is read.
-    $service->setRequestMockMode('mock');
+    $service->stubSetRequestMockMode('mock');
     $clientMock = $service->fromOptions($options);
     $resultStoredArray = json_decode($resultStored, TRUE);
     $resultStoredArray['userId'] = 7;
@@ -64,7 +64,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
     $this->assertEquals(7, $resultMockedArray['userId']);
 
     unlink($resultsStoreFile);
-    unlink($service->getRequestFilename($hash, TRUE));
+    unlink($service->stubGetRequestFilename($hash, TRUE));
     rmdir($directory);
     $server->stop();
   }

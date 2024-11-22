@@ -88,9 +88,9 @@ class HttpClientTestController extends ControllerBase {
           '#max-age' => 0,
         ],
       ];
-      $metadata = 'Test name: ' . $this->httpClientFactory->getConfig(HttpClientFactoryMock::SETTING_KEY_TEST_NAME)
-        . PHP_EOL . 'Mode: ' . $this->httpClientFactory->getConfig(HttpClientFactoryMock::SETTING_KEY_REQUEST_MOCK_MODE)
-        . PHP_EOL . 'Directory: ' . $this->httpClientFactory->getConfig(HttpClientFactoryMock::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY)
+      $metadata = 'Test name: ' . $this->httpClientFactory->stubGetConfig(HttpClientFactoryMock::SETTING_KEY_TEST_NAME)
+        . PHP_EOL . 'Mode: ' . $this->httpClientFactory->stubGetConfig(HttpClientFactoryMock::SETTING_KEY_REQUEST_MOCK_MODE)
+        . PHP_EOL . 'Directory: ' . $this->httpClientFactory->stubGetConfig(HttpClientFactoryMock::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY)
         . PHP_EOL . 'Request URI: ' . $url;
 
       $render['metadata'] = [
@@ -110,7 +110,7 @@ class HttpClientTestController extends ControllerBase {
         '#type' => 'html_tag',
         '#tag' => 'pre',
         '#prefix' => 'Request hashes list:',
-        '#value' => implode(', ', $this->httpClientFactory->getMockedRequestsHashesContainer()),
+        '#value' => implode(', ', $this->httpClientFactory->stubGetMockedRequestsHashesContainer()),
         '#attributes' => [
           'class' => ['http-call-render-request-hash'],
         ],

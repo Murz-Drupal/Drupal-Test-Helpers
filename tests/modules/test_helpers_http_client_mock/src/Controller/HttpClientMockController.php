@@ -51,8 +51,8 @@ class HttpClientMockController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function getSettings(): JsonResponse {
-    return new JsonResponse($this->httpClientFactory->getConfiguration()->getRawData());
+  public function stubGetSettings(): JsonResponse {
+    return new JsonResponse($this->httpClientFactory->stubGetConfiguration()->getRawData());
   }
 
   /**
@@ -68,13 +68,13 @@ class HttpClientMockController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function setSettings(): JsonResponse {
+  public function stubSetSettings(): JsonResponse {
     $request = $this->requestStack->getCurrentRequest();
     if ($mode = $request->query->get('mode')) {
-      $this->httpClientFactory->setConfig(HttpClientFactoryMock::SETTING_KEY_REQUEST_MOCK_MODE, $mode);
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_REQUEST_MOCK_MODE, $mode);
     }
     if ($name = $request->query->get('name')) {
-      $this->httpClientFactory->setConfig(HttpClientFactoryMock::SETTING_KEY_TEST_NAME, $name);
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_TEST_NAME, $name);
     }
     if ($directory = $request->query->get('directory')) {
       if (
@@ -84,14 +84,14 @@ class HttpClientMockController extends ControllerBase {
         $modulePath = $this->moduleHandler->getModule($module)->getPath();
         $directory = $modulePath . DIRECTORY_SEPARATOR . $directory;
       }
-      $this->httpClientFactory->setConfig(HttpClientFactoryMock::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY, $directory);
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY, $directory);
     }
     if ($uriRegexp = $request->query->get('uri_regexp')) {
-      $this->httpClientFactory->setConfig(HttpClientFactoryMock::SETTING_KEY_URI_REGEXP, $uriRegexp);
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_URI_REGEXP, $uriRegexp);
     }
     return new JsonResponse([
       'status' => 'success',
-      'settings' => $this->httpClientFactory->getConfiguration()->getRawData(),
+      'settings' => $this->httpClientFactory->stubGetConfiguration()->getRawData(),
     ]);
   }
 
@@ -104,14 +104,14 @@ class HttpClientMockController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\Response
    *   The response.
    */
-  public function getStoredResponse($hash): SymfonyResponse {
+  public function stubGetStoredResponse($hash): SymfonyResponse {
     if ($this->requestStack->getCurrentRequest()->query->get('metadata') == TRUE) {
-      $body = $this->httpClientFactory->getStoredResponseMetadataByHash($hash);
+      $body = $this->httpClientFactory->stubGetStoredResponseMetadataByHash($hash);
       $symfonyResponse = new SymfonyResponse(json_encode($body));
       $symfonyResponse->headers->set('Content-Type', 'application/json');
     }
     else {
-      $response = $this->httpClientFactory->getStoredResponseByHash($hash);
+      $response = $this->httpClientFactory->stubGetStoredResponseByHash($hash);
       $body = $response->getBody()->getContents();
       $symfonyResponse = new SymfonyResponse($body, $response->getStatusCode(), $response->getHeaders());
       $symfonyResponse->headers->set('Content-Type', 'text/plain');
@@ -137,8 +137,8 @@ class HttpClientMockController extends ControllerBase {
    * @return \GuzzleHttp\Psr7\Response
    *   The response.
    */
-  public function deleteStoredResponse($hash): JsonResponse {
-    $this->httpClientFactory->deleteStoredResponseByHash($hash);
+  public function stubDeleteStoredResponse($hash): JsonResponse {
+    $this->httpClientFactory->stubDeleteStoredResponseByHash($hash);
     return new JsonResponse(['status' => 'success']);
   }
 
@@ -151,7 +151,7 @@ class HttpClientMockController extends ControllerBase {
    * @return \GuzzleHttp\Psr7\Response
    *   The response.
    */
-  public function setStoredResponse($hash): JsonResponse {
+  public function stubSetStoredResponse($hash): JsonResponse {
     $request = $this->requestStack->getCurrentRequest();
     $data = $request->getContent();
     $status = $request->query->get('status', 200);
@@ -159,7 +159,7 @@ class HttpClientMockController extends ControllerBase {
       ? json_decode($request->query->get('headers'))
       : [];
     $response = new Response($status, $headers, $data);
-    $this->httpClientFactory->storeResponse($response, NULL, $hash);
+    $this->httpClientFactory->stubStoreResponse($response, NULL, $hash);
     return new JsonResponse(['status' => 'success']);
   }
 
@@ -169,7 +169,7 @@ class HttpClientMockController extends ControllerBase {
    * @return \GuzzleHttp\Psr7\Response
    *   The response.
    */
-  public function getLastRequestsHashes(): JsonResponse {
+  public function stubGetLastRequestsHashes(): JsonResponse {
     $data = $this->stateService->get(HttpClientFactoryMock::STATE_KEY_LAST_REQUESTS_HASHES, []);
     return new JsonResponse($data);
   }
@@ -180,10 +180,10 @@ class HttpClientMockController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\Response
    *   The response.
    */
-  public function getLastResponse($delta = 0): SymfonyResponse {
+  public function stubGetLastResponse($delta = 0): SymfonyResponse {
     $hashes = array_reverse($this->stateService->get(HttpClientFactoryMock::STATE_KEY_LAST_REQUESTS_HASHES, []));
     $hash = $hashes[$delta] ?? NULL;
-    return $this->getStoredResponse($hash);
+    return $this->stubGetStoredResponse($hash);
   }
 
 }
