@@ -8,3 +8,10 @@ services:
     class: Drupal\test_helpers_test\ServiceWithFactory
     arguments:
       - '@messenger'
+
+  # A helper service to test the services with factories.
+  test_helpers_test.service_with_factory.named:
+    class: Drupal\test_helpers_test\ServiceWithFactory
+    arguments:
+      $messenger: '@messenger'
+

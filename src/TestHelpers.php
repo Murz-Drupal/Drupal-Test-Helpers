@@ -569,6 +569,11 @@ class TestHelpers {
     }
     $classArguments = [];
     foreach ($arguments as $argumentKey => $argument) {
+      // If the name starts with `$`, it's a named argument for a function,
+      // that should come without the `$` prefix.
+      if (str_starts_with($argumentKey, '$')) {
+        $argumentKey = substr($argumentKey, 1);
+      }
       if (!is_string($argument)) {
         $classArguments[$argumentKey] = $argument;
         continue;
