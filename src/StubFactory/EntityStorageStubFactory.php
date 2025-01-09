@@ -38,8 +38,8 @@ class EntityStorageStubFactory {
    *   The annotation to use. If missing - tries ContentEntityType and
    *   ConfigEntityType.
    *   Examples:
-   *   - \Drupal\Core\Entity\Annotation\ContentEntityType
-   *   - \Drupal\Core\Entity\Annotation\ConfigEntityType
+   *   - ContentEntityType
+   *   - ConfigEntityType
    *   or other annotations.
    * @param array|null $storageOptions
    *   The array of options:
@@ -65,29 +65,26 @@ class EntityStorageStubFactory {
     }
     TestHelpers::requireCoreFeaturesMap();
     $entityClass = ltrim(TEST_HELPERS_DRUPAL_CORE_STORAGE_MAP[$entityClassOrName] ?? $entityClassOrName, '\\');
-    // $entityClass = $entityTypeNameOrClass;
-    switch ($annotation) {
-      case 'ContentEntityType':
-      case 'ConfigEntityType':
-        $annotation = '\Drupal\Core\Entity\Annotation\\' . $annotation;
-    }
 
     if ($annotation) {
       $entityTypeDefinition = TestHelpers::getPluginDefinition($entityClass, 'Entity', $annotation);
     }
     else {
       // Starting with the Content Entity type at first.
-      $annotation = '\Drupal\Core\Entity\Annotation\ContentEntityType';
+      $annotation = 'ContentEntityType';
       $entityTypeDefinition = TestHelpers::getPluginDefinition($entityClass, 'Entity', $annotation);
       if ($entityTypeDefinition == NULL) {
-        // If it fails - use Config Entity type.
-        $annotation = '\Drupal\Core\Entity\Annotation\ConfigEntityType';
+        // If it fails - try Config Entity type.
+        $annotation = 'ConfigEntityType';
         $entityTypeDefinition = TestHelpers::getPluginDefinition($entityClass, 'Entity', $annotation);
+      }
+      if ($entityTypeDefinition == NULL) {
+        throw new \Error("Can't detect the entity type definition for the class $entityClass");
       }
     }
 
     if ($entityTypeDefinition == NULL) {
-      throw new \Exception("Can't parse annotation for class $entityClass using annotation $annotation");
+      throw new \Exception("Can't parse annotation for class $entityClass using the annotation $annotation");
     }
 
     $entityTypeId = $entityTypeDefinition->id();
@@ -123,8 +120,13 @@ class EntityStorageStubFactory {
       $constructArguments = $storageOptions['constructorArguments'];
     }
     $overriddenMethods = [];
+
+    // We override the save function, but depends on the entity type and
+    // options, the function name can be different.
+    $saveFunctionName = 'save';
+
     switch ($annotation) {
-      case '\Drupal\Core\Entity\Annotation\ContentEntityType':
+      case 'ContentEntityType':
         $constructArguments ??= [
           $entityTypeDefinition,
           TestHelpers::service('database'),
@@ -136,13 +138,27 @@ class EntityStorageStubFactory {
           TestHelpers::service('entity_type.manager'),
         ];
         $overriddenMethods[] = 'loadMultiple';
-        $overriddenMethods[] = 'loadRevision';
+        // In some cases the method loadRevision() doesn't exist.
+        if (method_exists($entityTypeStorageClass, 'loadRevision')) {
+          $overriddenMethods[] = 'loadRevision';
+        }
         $overriddenMethods[] = 'delete';
-        $overriddenMethods[] = ($storageOptions['skipPrePostSave'] ?? NULL) ? 'save' : 'doSaveFieldItems';
 
+        if (!($storageOptions['skipPrePostSave'] ?? NULL)) {
+          // The ContentEntityStorageBase has a method doSaveFieldItems()
+          // but it can be absent in some entity types.
+          // If not, fall back to the function doSave().
+          if (method_exists($entityTypeStorageClass, 'doSaveFieldItems')) {
+            $saveFunctionName = 'doSaveFieldItems';
+          }
+          else {
+            $saveFunctionName = 'doSave';
+          }
+        }
+        $overriddenMethods[] = $saveFunctionName;
         break;
 
-      case '\Drupal\Core\Entity\Annotation\ConfigEntityType':
+      case 'ConfigEntityType':
         switch ($entityClass) {
           case "Drupal\Core\Field\Entity\BaseFieldOverride":
             break;
@@ -151,7 +167,7 @@ class EntityStorageStubFactory {
             if ($storageOptions['skipPrePostSave'] ?? NULL) {
               $overriddenMethods[] = 'loadMultiple';
               $overriddenMethods[] = 'delete';
-              $overriddenMethods[] = 'save';
+              $overriddenMethods[] = $saveFunctionName;
             }
             TestHelpers::service('module_handler');
 
@@ -174,6 +190,9 @@ class EntityStorageStubFactory {
             break;
         }
         break;
+
+      default:
+        throw new \Error('Unsupported entity type annotation: ' . $annotation);
     }
 
     $addMethods = array_unique(
@@ -249,114 +268,110 @@ class EntityStorageStubFactory {
 
         },
       );
-
       $entityStorage->stubInit();
     }
 
-    $saveFunction = function (EntityInterface $entity, array $names = []) use (&$entitiesStorage, &$entitiesMaxIdStorage, &$entitiesMaxRevisionIdStorage) {
-      /**
-       * @var \Drupal\test_helpers\Stub\EntityStubInterface $this
-       */
-      // @phpstan-ignore-next-line `$this` will be available in the runtime.
-      $idProperty = $this->entityType->getKey('id') ?? NULL;
-      if ($idProperty) {
-        // The `id` value for even integer autoincrement is stored as string in
-        // Drupal, so we should follow this behavior too.
-        // @todo Make detection of id field type, and calculate only for integers.
-        $id = (string) EntityStorageStubFactory::processAutoincrementId($entitiesMaxIdStorage, $entity->id());
-        if (isset($entity->$idProperty)) {
-          $entity->$idProperty = $id;
-        }
-        else {
-          // For ConfigEntityType the uuid is protected.
-          TestHelpers::setPrivateProperty($entity, $idProperty, $id);
-        }
-      }
-
-      // @phpstan-ignore-next-line `$this` will be available in the runtime.
-      $uuidProperty = $this->entityType->getKey('uuid') ?? NULL;
-      if ($uuidProperty && empty($entity->uuid())) {
-        $uuid = TestHelpers::service('uuid')->generate();
-        if (isset($entity->$uuidProperty)) {
-          $entity->$uuidProperty = $uuid;
-        }
-        else {
-          // For ConfigEntityType the uuid is protected.
-          TestHelpers::setPrivateProperty($entity, $uuidProperty, $uuid);
-        }
-      }
-
-      // @phpstan-ignore-next-line `$this` will be available in the runtime.
-      if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
-        $setRevisionId = function ($entity, $revisionId) {
-          // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $revisionProperty = $this->entityType->getKey('revision') ?? NULL;
-          $entityKeys = TestHelpers::getPrivateProperty($entity, 'entityKeys');
-          $entityKeys['revision'] = $revisionId;
-          TestHelpers::setPrivateProperty($entity, 'entityKeys', $entityKeys);
-          if (isset($entity->$revisionProperty)) {
-            $entity->$revisionProperty = $revisionId;
+    if (in_array($saveFunctionName, $overriddenMethods)) {
+      $saveFunction = function (EntityInterface $entity, array $names = []) use (&$entitiesStorage, &$entitiesMaxIdStorage, &$entitiesMaxRevisionIdStorage) {
+        /**
+         * @var \Drupal\test_helpers\Stub\EntityStubInterface $this
+         */
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
+        $idProperty = $this->entityType->getKey('id') ?? NULL;
+        if ($idProperty) {
+          // The `id` value for even integer autoincrement is stored as string
+          // in Drupal, so we should follow this behavior too.
+          // @todo Make detection of the id field type, and calculate only for
+          // integers.
+          $id = (string) EntityStorageStubFactory::processAutoincrementId($entitiesMaxIdStorage, $entity->id());
+          if (isset($entity->$idProperty)) {
+            $entity->$idProperty = $id;
           }
           else {
             // For ConfigEntityType the uuid is protected.
-            TestHelpers::setPrivateProperty($entity, $revisionProperty, $revisionId);
+            TestHelpers::setPrivateProperty($entity, $idProperty, $id);
           }
-        };
+        }
 
-        if ($entity->isNewRevision()) {
-          $revisionId = EntityStorageStubFactory::processAutoincrementId($entitiesMaxRevisionIdStorage);
-          $setRevisionId($entity, $revisionId);
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
+        $uuidProperty = $this->entityType->getKey('uuid') ?? NULL;
+        if ($uuidProperty && empty($entity->uuid())) {
+          $uuid = TestHelpers::service('uuid')->generate();
+          if (isset($entity->$uuidProperty)) {
+            $entity->$uuidProperty = $uuid;
+          }
+          else {
+            // For ConfigEntityType the uuid is protected.
+            TestHelpers::setPrivateProperty($entity, $uuidProperty, $uuid);
+          }
         }
-        else {
-          $revisionId = $entity->getRevisionId();
-        }
-        if ($entity instanceof TranslatableInterface) {
-          foreach ($entity->getTranslationLanguages() as $langcode => $language) {
-            if ($entityInLanguage = $entity->getTranslation($langcode)) {
-              $setRevisionId($entityInLanguage, $revisionId);
+
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
+        if (($this->entityType instanceof ContentEntityTypeInterface) && $this->entityType->isRevisionable()) {
+          $setRevisionId = function ($entity, $revisionId) {
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $revisionProperty = $this->entityType->getKey('revision') ?? NULL;
+            $entityKeys = TestHelpers::getPrivateProperty($entity, 'entityKeys');
+            $entityKeys['revision'] = $revisionId;
+            TestHelpers::setPrivateProperty($entity, 'entityKeys', $entityKeys);
+            if (isset($entity->$revisionProperty)) {
+              $entity->$revisionProperty = $revisionId;
+            }
+            else {
+              // For ConfigEntityType the uuid is protected.
+              TestHelpers::setPrivateProperty($entity, $revisionProperty, $revisionId);
+            }
+          };
+
+          if ($entity->isNewRevision()) {
+            $revisionId = EntityStorageStubFactory::processAutoincrementId($entitiesMaxRevisionIdStorage);
+            $setRevisionId($entity, $revisionId);
+          }
+          else {
+            $revisionId = $entity->getRevisionId();
+          }
+          if ($entity instanceof TranslatableInterface) {
+            foreach ($entity->getTranslationLanguages() as $langcode => $language) {
+              if ($entityInLanguage = $entity->getTranslation($langcode)) {
+                $setRevisionId($entityInLanguage, $revisionId);
+              }
             }
           }
         }
-      }
 
-      // For content entities we should look all translations.
-      if ($entity instanceof TranslatableInterface) {
-        $entityData = [];
-        foreach ($entity->getTranslationLanguages() as $langcode => $language) {
-          if (!$entityInLanguage = $entity->getTranslation($langcode)) {
-            break;
-          }
-          $entityData['#translations'][$langcode] = EntityStorageStubFactory::entityToValues($entityInLanguage);
-        }
-      }
-      else {
-        $entityData = EntityStorageStubFactory::entityToValues($entity);
-      }
-
-      // @phpstan-ignore-next-line `$this` will be available in the runtime.
-      if ($this->entityType instanceof ContentEntityTypeInterface) {
-        $entitiesStorage['byRevisionId'][$entity->getRevisionId()] = $entityData;
-        if ($entity->isLatestRevision()) {
-          $entitiesStorage['byIdLatestRevision'][$entity->id()] = $entityData;
-          if (
-            $entity->isNew()
-            || $entity->isDefaultRevision()
-            || !isset($entitiesStorage['byId'][$entity->id()])) {
-            $entitiesStorage['byId'][$entity->id()] = $entityData;
+        // For content entities we should look all translations.
+        if ($entity instanceof TranslatableInterface) {
+          $entityData = [];
+          foreach ($entity->getTranslationLanguages() as $langcode => $language) {
+            if (!$entityInLanguage = $entity->getTranslation($langcode)) {
+              break;
+            }
+            $entityData['#translations'][$langcode] = EntityStorageStubFactory::entityToValues($entityInLanguage);
           }
         }
-      }
-      else {
-        $entitiesStorage['byId'][$entity->id()] = $entityData;
+        else {
+          $entityData = EntityStorageStubFactory::entityToValues($entity);
+        }
 
-      }
-    };
+        // @phpstan-ignore-next-line `$this` will be available in the runtime.
+        if ($this->entityType instanceof ContentEntityTypeInterface) {
+          $entitiesStorage['byRevisionId'][$entity->getRevisionId()] = $entityData;
+          if ($entity->isLatestRevision()) {
+            $entitiesStorage['byIdLatestRevision'][$entity->id()] = $entityData;
+            if (
+              $entity->isNew()
+              || $entity->isDefaultRevision()
+              || !isset($entitiesStorage['byId'][$entity->id()])) {
+              $entitiesStorage['byId'][$entity->id()] = $entityData;
+            }
+          }
+        }
+        else {
+          $entitiesStorage['byId'][$entity->id()] = $entityData;
 
-    if (in_array('doSaveFieldItems', $overriddenMethods)) {
-      TestHelpers::setMockedClassMethod($entityStorage, 'doSaveFieldItems', $saveFunction);
-    }
-    elseif (in_array('save', $overriddenMethods)) {
-      TestHelpers::setMockedClassMethod($entityStorage, 'save', $saveFunction);
+        }
+      };
+      TestHelpers::setMockedClassMethod($entityStorage, $saveFunctionName, $saveFunction);
     }
 
     if (in_array('delete', $overriddenMethods)) {

@@ -89,7 +89,7 @@ foreach (new RecursiveIteratorIterator($it) as $file) {
 
 if ($files) {
   foreach ($files as $file) {
-    $data = Yaml::parseFile($file);
+    $data = Yaml::parseFile($file, Yaml::PARSE_CUSTOM_TAGS);
     $fileRelative = ltrim(str_replace($drupalRoot, '', $file), '/');
     foreach (array_keys($data['services'] ?? []) as $service) {
       if (
@@ -128,7 +128,7 @@ $contents .= <<<EOT
 EOT;
 
 // Generating default parameters.
-$data = Yaml::parseFile($drupalRoot . '/core/core.services.yml');
+$data = Yaml::parseFile($drupalRoot . '/core/core.services.yml', Yaml::PARSE_CUSTOM_TAGS);
 $parametersJson = json_encode($data['parameters']);
 $contents .= <<<EOT
 

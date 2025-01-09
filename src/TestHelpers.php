@@ -18,6 +18,7 @@ use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
 use Drupal\Core\Language\Language;
 use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
+use Drupal\Core\Plugin\Discovery\AttributeClassDiscovery;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\CacheFactoryStub;
@@ -422,12 +423,57 @@ class TestHelpers {
    * @param string $annotationName
    *   The name of an annotation to use.
    *
-   * @return mixed
-   *   The definition from the plugin.
+   * @return array|object|false
+   *   The definition from the plugin, or FALSE if no definition is found.
    */
   public static function getPluginDefinition(string $class, string $plugin = 'TypedData', ?string $annotationName = NULL) {
     $rc = new \ReflectionClass($class);
 
+    // The plugin definition can be in PHP attributes or in annotations.
+    // Try to read PHP attributes at first.
+    $attributes = $rc->getAttributes();
+    if ($attributes[0] ?? FALSE) {
+      $attribute = $attributes[0]->newInstance();
+      static $attributeClassDiscovery;
+      $attributeClassDiscovery ??= new AttributeClassDiscovery('', new \ArrayObject([]));
+      // Calling a private method to enhance the annotation definition by the
+      // class and the provider.
+      // A copy of the code from the
+      // \Drupal\Component\Plugin\Discovery\AttributeClassDiscovery::parseClass()
+      // @todo Rework without calling a private method.
+      TestHelpers::callPrivateMethod(
+        $attributeClassDiscovery,
+        'prepareAttributeDefinition',
+        [$attribute, $class]
+      );
+
+      $definition = $attribute->get();
+      if (is_array($definition)) {
+        $definitionClass = $definition['class'];
+      }
+      else {
+        $definitionClass = get_class($definition);
+      }
+
+      // The annotation name can be different from the class name.
+      // Also, we have different namespaces for definitions using
+      // annotations and attributes, example:
+      // \Drupal\Core\Entity\Annotation\ContentEntityType
+      // \Drupal\Core\Entity\Attribute\ContentEntityType
+      // So, checking the last part of the FQCN only.
+      if ($annotationName) {
+        $annotationNameParts = explode('\\', $annotationName);
+        $annotationNameShort = array_pop($annotationNameParts);
+        $definitionClassParts = explode('\\', $definitionClass);
+        $definitionClassShort = array_pop($definitionClassParts);
+        if ($definitionClassShort !== $annotationNameShort) {
+          return FALSE;
+        }
+      }
+      return $definition;
+    }
+
+    // Falling back to read annotations from comments.
     $reader = new SimpleAnnotationReader();
     $reader->addNamespace('Drupal\Core\Annotation');
     $reader->addNamespace('Drupal\Core\\' . $plugin . '\Annotation');
@@ -441,28 +487,18 @@ class TestHelpers {
     if ($annotation) {
       static $annotatedClassDiscovery;
       $annotatedClassDiscovery ??= new AnnotatedClassDiscovery('', new \ArrayObject([]));
+      // Calling a private method to enhance the annotation definition by the
+      // class and the provider.
       // @todo Rework without calling a private method.
       TestHelpers::callPrivateMethod(
         $annotatedClassDiscovery,
         'prepareAnnotationDefinition',
         [$annotation, $class]
       );
-
       $definition = $annotation->get();
-
       return $definition;
     }
-    // If no definition, try to read attributes.
-    elseif ($attributes = $rc->getAttributes()) {
-      $attribute = $attributes[0]->newInstance();
-      $attribute->setClass($class);
-      $definition = $attribute->get();
-      return $definition;
-    }
-    else {
-      // Throw new \Exception('Definition not found in annotation.');.
-      return FALSE;
-    }
+    return FALSE;
   }
 
   /**
@@ -553,19 +589,24 @@ class TestHelpers {
       }
     }
     // The `memory_cache_bins` is required to init some services, but missing
-    // in `core.services.yml`, so setting it manually.
+    // in the `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('memory_cache_bins')) {
       $container->setParameter('memory_cache_bins', []);
     }
     // The `cache_default_bin_backends` is required to init some services, but
-    // missing in `core.services.yml`, so setting it manually.
+    // missing in the `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('cache_default_bin_backends')) {
       $container->setParameter('cache_default_bin_backends', []);
     }
     // The `memory_cache_default_bin_backends` is required to init some
-    // services, but missing in `core.services.yml`, so setting it manually.
+    // services, but missing in the `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('memory_cache_default_bin_backends')) {
       $container->setParameter('memory_cache_default_bin_backends', []);
+    }
+    // The `hook_implementations_map` is required to init some
+    // services, but missing in the `core.services.yml`, so setting it manually.
+    if (!$container->hasParameter('hook_implementations_map')) {
+      $container->setParameter('hook_implementations_map', []);
     }
     $classArguments = [];
     foreach ($arguments as $argumentKey => $argument) {
@@ -603,7 +644,7 @@ class TestHelpers {
               break;
 
             default:
-              throw new \Error("Container parameter '$key' is missing.\nAdd it using TestHelpers::getContainer()->setParameter('$key', \$value');");
+              throw new \Error("Container parameter '$key' is missing.\nAdd it using TestHelpers::getContainer()->setParameter('$key', \$value);");
           }
         }
         $classArguments[$argumentKey] = $resolved;
