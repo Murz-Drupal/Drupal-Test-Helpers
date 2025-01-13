@@ -94,6 +94,53 @@ class TestHelpersFunctionalController extends ControllerBase {
   }
 
   /**
+   * Gets config values by the config name.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The operation status.
+   */
+  public function getConfig(string $name): JsonResponse {
+    $config = $this->config($name);
+    return new JsonResponse(
+      $config->getRawData()
+    );
+  }
+
+  /**
+   * Sets config values by the config name and GET parameters.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The operation status.
+   */
+  public function setConfig(string $name): JsonResponse {
+    $configFactory = $this->container->get('config.factory');
+    $config = $configFactory->getEditable($name);
+
+    $currentRequest = $this->requestStack->getCurrentRequest();
+    $values = $currentRequest->query->get('data');
+    if (empty($values)) {
+      return new JsonResponse(
+        [
+          'status' => 'error',
+          'message' => 'No data is provided. Provide a json value in the \"data\" GET parameter.',
+        ],
+      );
+
+    }
+    foreach (json_decode($values, TRUE) as $key => $value) {
+      $config->set($key, $value);
+    }
+    $config->save();
+
+    return new JsonResponse(
+      [
+        'status' => 'success',
+        'data' => $config->getRawData(),
+      ],
+    );
+  }
+
+  /**
    * Shows an env variable value.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse

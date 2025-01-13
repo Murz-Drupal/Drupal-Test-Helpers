@@ -20,6 +20,28 @@ test_helpers_functional.get_env:
     parameters:
       name: ''
 
+test_helpers_functional.set_config:
+  path: '/test-helpers-functional/set-config/{name}'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::setConfig'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+test_helpers_functional.get_config:
+  path: '/test-helpers-functional/get-config/{name}'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional\Controller\TestHelpersFunctionalController::getConfig'
+  requirements:
+    # Make the endpoint available for any request to simplify tests.
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+    parameters:
+      name: ''
+
 test_helpers_functional.module_installer:
   path: '/test-helpers-functional/module-installer'
   defaults:
