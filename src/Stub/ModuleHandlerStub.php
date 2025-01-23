@@ -20,7 +20,10 @@ class ModuleHandlerStub extends ModuleHandler {
   public function __construct() {
     $this->root = TestHelpers::getDrupalRoot();
     $this->moduleList = [];
-    $this->eventDispatcher = TestHelpers::createMock(EventDispatcherInterface::class);
+    // The cache backend is added only in Drupal 11.x+, check if it is present.
+    if (isset($this->eventDispatcher)) {
+      $this->eventDispatcher = TestHelpers::createMock(EventDispatcherInterface::class);
+    }
     // The cache backend is removed in Drupal 11.1.x+.
     // @todo Remove this when dropping support for Drupal 11.0.x.
     if (property_exists($this, 'cacheBackend')) {
