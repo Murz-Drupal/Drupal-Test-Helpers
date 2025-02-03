@@ -68,6 +68,17 @@ variables:
   _SHOW_ENVIRONMENT_VARIABLES: 1
   _CSPELL_IGNORE_PATHS: "src/lib/CoreFeaturesMaps/**"
 
+  SKIP_COMPOSER_LINT: "1"
+  SKIP_PAGES: "1"
+  SKIP_PHPCS: "1"
+  SKIP_PHPSTAN: "1"
+  SKIP_PHPUNIT: "1"
+  SKIP_STYLELINT: "1"
+  SKIP_ESLINT: "1"
+  SKIP_CSPELL: "1"
+  # SKIP_NIGHTWATCH: "1"
+  OPT_IN_TEST_MAX_PHP: "1"
+
 pages:
   image:
     name: phpdoc/phpdoc

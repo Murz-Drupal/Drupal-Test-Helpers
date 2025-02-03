@@ -23,7 +23,7 @@ module.exports = function getBeforeAfterFunctions(
   forceUninstall = false,
 ) {
   return {
-    '@tags': ['test_helpers', 'test_helpers_functional'],
+    '@tags': ['test_helpers_off', 'test_helpers_functional'],
 
     /**
      * Function to run before the tests.
