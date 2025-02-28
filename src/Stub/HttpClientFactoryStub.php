@@ -264,7 +264,7 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function stubGetStoredResponse(Request $request): Response {
     $hash = self::stubGetRequestHash($request);
-    $this->stubStoreRequestHash($hash);
+    $this->stubStoreRequestHashUsage($hash);
     try {
       $response = $this->stubGetStoredResponseByHash($hash);
     }
@@ -291,42 +291,49 @@ class HttpClientFactoryStub extends ClientFactory {
   public function stubGetStoredResponseByHash(string $hash): Response {
     $file = $this->stubGetRequestFilename($hash);
 
-    // The `file_get_contents` throws a warning if the file doesn't exist,
-    // so we have to do an additional check to get rid of this warning.
-    // @todo Remove this exception when dropping PHPUnit 9 support.
-    if (!file_exists($file)) {
-      throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
-    }
-
-    $body = file_get_contents($file);
-    if ($body === FALSE) {
-      throw new \Exception("Can't read the stored response file for the request with hash $hash - expected to find file $file.");
-    }
-
-    // The `file_get_contents` throws a warning if the file doesn't exist,
-    // so we have to do an additional check to get rid of this warning.
-    // @todo Remove this exception when dropping PHPUnit 9 support.
-    $fileMetadata = $this->stubGetRequestFilename($hash, metadata: TRUE);
-    if (!file_exists($fileMetadata)) {
-      throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
-    }
-    $metadata = json_decode(file_get_contents($fileMetadata), TRUE);
-    if ($metadata == FALSE) {
-      throw new \Exception("Can't read the stored response metadata file for the request with hash $hash - expected to find file $fileMetadata.");
-    }
-
-    $status = 200;
-    $headers = [];
-    if (isset($metadata['response'])) {
-      $status = $metadata['response']['status'];
-      if (
-        $this->options[self::OPTION_STORE_HEADERS]
-        && isset($metadata['response']['headers'])
-      ) {
-        $headers = $metadata['response']['headers'];
+    try {
+      // The `file_get_contents` throws a warning if the file doesn't exist,
+      // so we have to do an additional check to get rid of this warning.
+      // @todo Remove this exception when dropping PHPUnit 9 support.
+      if (!file_exists($file)) {
+        throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
       }
+
+      $body = file_get_contents($file);
+      if ($body === FALSE) {
+        throw new \Exception("Can't read the stored response file for the request with hash $hash - expected to find file $file.");
+      }
+
+      // The `file_get_contents` throws a warning if the file doesn't exist,
+      // so we have to do an additional check to get rid of this warning.
+      // @todo Remove this exception when dropping PHPUnit 9 support.
+      $fileMetadata = $this->stubGetRequestFilename($hash, metadata: TRUE);
+      if (!file_exists($fileMetadata)) {
+        throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
+      }
+      $metadata = json_decode(file_get_contents($fileMetadata), TRUE);
+      if ($metadata == FALSE) {
+        throw new \Exception("Can't read the stored response metadata file for the request with hash $hash - expected to find file $fileMetadata.");
+      }
+
+      $status = 200;
+      $headers = [];
+      if (isset($metadata['response'])) {
+        $status = $metadata['response']['status'];
+        if (
+          $this->options[self::OPTION_STORE_HEADERS]
+          && isset($metadata['response']['headers'])
+        ) {
+          $headers = $metadata['response']['headers'];
+        }
+      }
+
+      $this->stubLogResponseUsage($hash, 'read');
     }
-    $this->stubLogResponseUsage($hash, 'read');
+    catch (\Exception $e) {
+      $this->stubLogResponseUsage($hash, 'missing');
+      throw $e;
+    }
 
     $response = new Response(
       status: $status,
@@ -529,7 +536,7 @@ class HttpClientFactoryStub extends ClientFactory {
     if (isset($usageOperation)) {
       $this->stubLogResponseUsage($hash, $usageOperation);
     }
-    $this->stubStoreRequestHash($hash);
+    $this->stubStoreRequestHashUsage($hash);
   }
 
   /**
@@ -677,7 +684,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param string $hash
    *   A hash value.
    */
-  protected function stubStoreRequestHash(string $hash): void {
+  protected function stubStoreRequestHashUsage(string $hash): void {
     $this->mockedRequestsHashesContainer[] = $hash;
   }
 
@@ -708,7 +715,7 @@ class HttpClientFactoryStub extends ClientFactory {
    * @param string $hash
    *   A hash of the request.
    * @param string $operation
-   *   The operation type: 'read', 'create', 'update', 'check'.
+   *   The operation type: 'read', 'create', 'update', 'check', 'missing'.
    */
   private function stubLogResponseUsage(string $hash, string $operation): void {
     if (!$this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE]) {

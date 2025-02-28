@@ -7,6 +7,7 @@ namespace Drupal\test_helpers_http_client_mock\Controller;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\CacheableResponseInterface;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\test_helpers_http_client_mock\HttpClientFactoryMock;
 use GuzzleHttp\Psr7\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -34,6 +35,13 @@ class HttpClientMockController extends ControllerBase {
   protected HttpClientFactoryMock $httpClientFactory;
 
   /**
+   * The Lock service.
+   *
+   * @var \Drupal\Core\Lock\LockBackendInterface
+   */
+  protected LockBackendInterface $lock;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): self {
@@ -42,6 +50,7 @@ class HttpClientMockController extends ControllerBase {
     $instance->requestStack = $container->get('request_stack');
     $instance->httpClientFactory = $container->get('http_client_factory');
     $instance->moduleHandler = $container->get('module_handler');
+    $instance->lock = $container->get('lock');
     return $instance;
   }
 
@@ -170,6 +179,7 @@ class HttpClientMockController extends ControllerBase {
    *   The response.
    */
   public function stubGetLastRequestsHashes(): JsonResponse {
+    $this->lock->wait(HttpClientFactoryMock::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE);
     $data = $this->stateService->get(HttpClientFactoryMock::STATE_KEY_LAST_REQUESTS_HASHES, []);
     return new JsonResponse($data);
   }
@@ -181,8 +191,9 @@ class HttpClientMockController extends ControllerBase {
    *   The response.
    */
   public function stubGetLastResponse($delta = 0): SymfonyResponse {
-    $hashes = array_reverse($this->stateService->get(HttpClientFactoryMock::STATE_KEY_LAST_REQUESTS_HASHES, []));
-    $hash = $hashes[$delta] ?? NULL;
+    $this->lock->wait(HttpClientFactoryMock::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE);
+    $lastHashes = $this->stateService->get(HttpClientFactoryMock::STATE_KEY_LAST_REQUESTS_HASHES, []);
+    $hash = $lastHashes[$delta] ?? NULL;
     return $this->stubGetStoredResponse($hash);
   }
 

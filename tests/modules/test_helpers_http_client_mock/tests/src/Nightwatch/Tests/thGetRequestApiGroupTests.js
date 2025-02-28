@@ -187,9 +187,11 @@ module.exports = {
     browser.assert.equal(hashesLast2[1], hashesLast2[10]);
 
     const hashLast0 = await browser.thGetLastResponse();
-    browser.assert.equal(hashLast0.body, expectedResponse1);
+    browser.assert.equal(hashLast0.body, expectedResponse2);
     const hashLast1 = await browser.thGetLastResponse(1);
     browser.assert.equal(hashLast1.body, expectedResponse2);
+    const hashLast2 = await browser.thGetLastResponse(2);
+    browser.assert.equal(hashLast2.body, expectedResponse1);
 
     // Cleanup asset files.
     const hashesUnique = [...new Set(hashesLast2)];

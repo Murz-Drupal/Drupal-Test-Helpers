@@ -6,6 +6,7 @@ namespace Drupal\test_helpers_http_client_mock;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\test_helpers\Stub\HttpClientFactoryStub;
 use GuzzleHttp\HandlerStack;
@@ -93,14 +94,30 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
   const META_TAG_KEY = 'test_helpers_http_client_mock_requests_hashes';
 
   /**
+   * The limit of the last requests hashes to store.
+   *
+   * @var int
+   */
+  const LAST_REQUESTS_HASHES_STORE_LIMIT = 64;
+
+  /**
+   * The key to store the last requests hashes in the State.
+   *
+   * @var string
+   */
+  const LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE = 'test_helpers_http_client_mock.last_requests_hashes_update';
+
+  /**
    * HttpClientFactoryMock constructor.
    *
    * @param \GuzzleHttp\HandlerStack $stack
    *   The GuzzleHttp handler stack.
-   * @param \Drupal\Core\State\StateInterface $state
+   * @param \Drupal\Core\State\StateInterface $stateService
    *   The Drupal state service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The configuration factory.
+   * @param \Drupal\Core\Lock\LockBackendInterface $lock
+   *   The lock backend.
    * @param string|null $requestMockMode
    *   The requests mocking mode: NULL, 'store', 'mock'.
    * @param string|null $responsesStorageDirectory
@@ -112,8 +129,9 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    */
   public function __construct(
     HandlerStack $stack,
-    protected StateInterface $state,
+    protected StateInterface $stateService,
     protected ConfigFactoryInterface $configFactory,
+    protected LockBackendInterface $lock,
     protected ?string $requestMockMode = NULL,
     protected ?string $responsesStorageDirectory = NULL,
     protected ?string $testName = NULL,
@@ -166,12 +184,27 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    * @param string $hash
    *   A hash value.
    */
-  protected function stubStoreRequestHash(string $hash): void {
-    parent::stubStoreRequestHash($hash);
-    $lastHashes = $this->state->get(self::STATE_KEY_LAST_REQUESTS_HASHES, []);
+  protected function stubStoreRequestHashUsage(string $hash): void {
+    parent::stubStoreRequestHashUsage($hash);
+    if (!$this->lock->acquire(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE)) {
+      if (
+        // The wait returns false if the lock is still acquired by another
+        // process after timeout.
+        $this->lock->wait(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE)
+        // We have to lock again manually after waiting.
+        || !$this->lock->acquire(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE)
+      ) {
+        throw new \RuntimeException('Could not acquire the lock to store the last requests hashes.');
+      }
+    }
+    // The State service has a static cache, so we have to reset it to receive
+    // the fresh value if a parallel request has updated the State.
+    $this->stateService->resetCache();
+    $lastHashes = $this->stateService->get(self::STATE_KEY_LAST_REQUESTS_HASHES, []);
     array_unshift($lastHashes, $hash);
-    $lastHashes = array_slice($lastHashes, 0, 32);
-    $this->state->set(self::STATE_KEY_LAST_REQUESTS_HASHES, $lastHashes);
+    $lastHashes = array_slice($lastHashes, 0, self::LAST_REQUESTS_HASHES_STORE_LIMIT);
+    $this->stateService->set(self::STATE_KEY_LAST_REQUESTS_HASHES, $lastHashes);
+    $this->lock->release(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE);
   }
 
   /**
