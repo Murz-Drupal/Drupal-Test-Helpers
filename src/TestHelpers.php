@@ -620,6 +620,9 @@ class TestHelpers {
         continue;
       }
       $firstCharacter = substr($argument, 0, 1);
+      if (substr($argument, 1, 1) == '?') {
+        $argument = str_replace('?', '', $argument);
+      }
       if ($firstCharacter == '@') {
         $classArguments[$argumentKey] = self::service(substr($argument, 1));
       }
