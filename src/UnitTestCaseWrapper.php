@@ -4,6 +4,8 @@ namespace Drupal\test_helpers;
 
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\MockObject\Generator\CannotUseAddMethodsException;
+use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -84,13 +86,48 @@ class UnitTestCaseWrapper extends UnitTestCase {
       $mockBuilder->onlyMethods($methods);
     }
     if (!empty($addMethods)) {
-      // @todo Reimplement this function locally if the author removes it.
-      // @see https://github.com/sebastianbergmann/phpunit/issues/5320
-      // @phpstan-ignore-next-line We need this function.
-      $mockBuilder->addMethods($addMethods);
+      $this->mockBuilderAddMethods($mockBuilder, $addMethods);
     }
     // @todo Try to add enableProxyingToOriginalMethods() function.
     return $mockBuilder->getMock();
+  }
+
+  /**
+   * Adds new methods to the mock builder.
+   *
+   * A local re-implementation of the deprecated function
+   * MockBuilder::addMethods() from PHPUnit 10.x.
+   *
+   * @param \PHPUnit\Framework\MockObject\MockBuilder $mockBuilder
+   *   The mock builder.
+   * @param array $addMethods
+   *   An array with new methods to add into the mock.
+   *
+   * @throws \ReflectionException
+   * @throws \PHPUnit\Framework\MockObject\Generator\CannotUseAddMethodsException
+   */
+  private function mockBuilderAddMethods(MockBuilder $mockBuilder, array $addMethods): void {
+    $type = TestHelpers::getPrivateProperty($mockBuilder, 'type');
+    try {
+      $reflector = new \ReflectionClass($type);
+    }
+    catch (\ReflectionException $e) {
+      throw new \ReflectionException(
+        $e->getMessage(),
+        $e->getCode(),
+        $e,
+      );
+    }
+
+    foreach ($addMethods as $method) {
+      if ($reflector->hasMethod($method)) {
+        throw new CannotUseAddMethodsException($type, $method);
+      }
+    }
+
+    $methods = TestHelpers::getPrivateProperty($mockBuilder, 'methods');
+    $methods = array_merge($methods, $addMethods);
+    TestHelpers::setPrivateProperty($mockBuilder, 'methods', $methods);
   }
 
   /**
