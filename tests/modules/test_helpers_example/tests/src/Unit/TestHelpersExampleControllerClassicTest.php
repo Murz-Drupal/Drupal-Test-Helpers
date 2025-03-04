@@ -14,7 +14,7 @@ use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Link;
 use Drupal\Tests\UnitTestCase;
-use Drupal\node\NodeInterface;
+use Drupal\node\Entity\Node;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\user\UserInterface;
 
@@ -85,23 +85,41 @@ class TestHelpersExampleControllerClassicTest extends UnitTestCase {
     $user = $this->createMock(UserInterface::class);
     $user->method('label')->willReturn('Alice');
 
-    $node1 = $this->createMock(NodeInterface::class);
+    $node1 = $this->createMock(Node::class);
     $node1->method('id')->willReturn('1');
     $node1->method('label')->willReturn('A1');
-    $node1->created = $this->createPartialMock(FieldItemList::class, ['__get']);
-    $node1->created->method('__get')->with('value')->willReturn('1672574400');
     $node1->method('toLink')->willReturnCallback($toLinkMock);
-    $node1->uid = $this->createPartialMock(FieldItemList::class, ['__get']);
-    $node1->uid->method('__get')->with('entity')->willReturn($user);
+    $node1->method('__get')->willReturnCallback(function ($field) use ($user) {
+      switch ($field) {
+        case 'created':
+          $fieldCreated = $this->createPartialMock(FieldItemList::class, ['__get']);
+          $fieldCreated->method('__get')->with('value')->willReturn('1672574400');
+          return $fieldCreated;
 
-    $node2 = $this->createMock(NodeInterface::class);
+        case 'uid':
+          $uid = $this->createPartialMock(FieldItemList::class, ['__get']);
+          $uid->method('__get')->with('entity')->willReturn($user);
+          return $uid;
+      }
+    });
+
+    $node2 = $this->createMock(Node::class);
     $node2->method('id')->willReturn('2');
     $node2->method('label')->willReturn('A2');
-    $node2->created = $this->createPartialMock(FieldItemList::class, ['__get']);
-    $node2->created->method('__get')->with('value')->willReturn('1672660800');
     $node2->method('toLink')->willReturnCallback($toLinkMock);
-    $node2->uid = $this->createPartialMock(FieldItemList::class, ['__get']);
-    $node2->uid->method('__get')->with('entity')->willReturn($user);
+    $node2->method('__get')->willReturnCallback(function ($field) use ($user) {
+      switch ($field) {
+        case 'created':
+          $fieldCreated = $this->createPartialMock(FieldItemList::class, ['__get']);
+          $fieldCreated->method('__get')->with('value')->willReturn('1672660800');
+          return $fieldCreated;
+
+        case 'uid':
+          $uid = $this->createPartialMock(FieldItemList::class, ['__get']);
+          $uid->method('__get')->with('entity')->willReturn($user);
+          return $uid;
+      }
+    });
 
     $entityStorage = $this->createMock(EntityStorageInterface::class);
     $entityStorage->method('getQuery')->willReturn($entityQuery);

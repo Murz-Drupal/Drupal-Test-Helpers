@@ -19,9 +19,21 @@ use Drupal\test_helpers\TestHelpers;
 class QueryIsSubsetOfTest extends UnitTestCase {
 
   /**
+   * A custom error handler to catch trigger_error output.
+   */
+  public static function exceptionErrorHandler($errno, $errstr, $errfile, $errline) {
+    // Convert error to exception.
+    throw new \ErrorException($errstr, $errno, $errno, $errfile, $errline);
+  }
+
+  // Set the custom error handler.
+
+  /**
    * @covers ::queryIsSubsetOf
    */
   public function testFindQueryCondition() {
+    set_error_handler([$this, 'exceptionErrorHandler']);
+
     TestHelpers::saveEntity(Node::class);
     TestHelpers::saveEntity(Term::class);
     $query1 = $this->getQuery()
@@ -93,29 +105,26 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     }
     catch (\Exception $e) {
       $this->assertEquals(1024, $e->getCode());
-      $this->assertEquals("The expected condition group " or " is not matching, items: array (
-  0 =>
-  array (
+      $this->assertEquals("The expected condition group \"or\" is not matching, items: [
+  0 => [
     'field' => 'title',
     'value' => 'Foo',
     'operator' => NULL,
     'langcode' => NULL,
-  ),
-  1 =>
-  array (
+  ],
+  1 => [
     'field' => 'title',
     'value' => 'Bar',
     'operator' => NULL,
     'langcode' => NULL,
-  ),
-  2 =>
-  array (
+  ],
+  2 => [
     'field' => '[orConditionGroup with 2 items]',
     'value' => NULL,
     'operator' => NULL,
     'langcode' => NULL,
-  ),
-)", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
+  ],
+]", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
     }
 
     // The subquery.
@@ -366,7 +375,7 @@ actual: [
   'length' => NULL,
 ]", preg_replace('/=>\s\n/', "=>\n", $e->getMessage()));
     }
-
+    restore_error_handler();
   }
 
   /**

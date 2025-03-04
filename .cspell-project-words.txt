@@ -3,8 +3,9 @@ Alexey
 Korepov
 Murz
 
-# Project vocabulary
-Commercetools
+# PHP vocubulary.
+errfile
+errline
 
 # Tests specific vocabulary.
 autoincrement

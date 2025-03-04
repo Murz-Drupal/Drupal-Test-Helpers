@@ -188,7 +188,7 @@ class EntityStubFactory {
     TestHelpers::setMockedClassMethod(
       $entity,
       'stubInitValues',
-      function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition) {
+      function (array $values) use ($options, $entityTypeId, $bundle, $entityTypeDefinition, $storage) {
         if ($options['skipEntityConstructor'] ?? NULL) {
           // If we skipped the original constructor, we must define some
           // crucial things manually.
@@ -232,6 +232,15 @@ class EntityStubFactory {
           }
 
         }
+
+        // @todo Rework to call create() directly.
+        $storageUuidKey = TestHelpers::getPrivateProperty($storage, 'uuidKey');
+        $storageUuidService = TestHelpers::getPrivateProperty($storage, 'uuidService');
+        if ($storageUuidKey && $storageUuidService) {
+          // @phpstan-ignore-next-line `$this` will be available in the runtime.
+          $values[$storageUuidKey] = $storageUuidService->generate();
+        }
+
         // Filling values to the entity array.
         foreach ($values as $name => $value) {
           if (isset($options['definitions'][$name])) {
