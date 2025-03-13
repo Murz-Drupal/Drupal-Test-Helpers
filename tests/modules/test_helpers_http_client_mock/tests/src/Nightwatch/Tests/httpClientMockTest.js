@@ -55,10 +55,6 @@ const stubDeleteStoredResponse = (hash) => {
   }
 };
 
-let request1Hash;
-let request2Hash;
-let request1MockHash;
-
 module.exports = {
   '@tags': ['test_helpers', 'test_helpers_http_client_mock'],
   beforeEach() {
@@ -78,7 +74,11 @@ module.exports = {
   after(browser) {
     browser.drupalUninstall();
   },
-  'Test the store mode': (browser) => {
+  'Test the store and mock mode': (browser) => {
+    let request1Hash;
+    let request2Hash;
+    let request1MockHash;
+
     browser
       .testHelpersHttpMockSetSettings({
         mode: 'store',
@@ -106,9 +106,8 @@ module.exports = {
         stubDeleteStoredResponse(request1Hash);
         stubDeleteStoredResponse(request2Hash);
       });
-  },
 
-  'Test the mock mode': (browser) => {
+    // Test the mock mode.
     const mockedResponse = {
       title: 'Mocked title',
     };
@@ -125,6 +124,29 @@ module.exports = {
       .assert.textContains(responseContentTagSelector, mockedResponse.title)
       .perform(() => {
         stubDeleteStoredResponse(request1MockHash);
+      });
+  },
+
+  'Test the store and mock modes with context': (browser) => {
+    browser
+      .testHelpersHttpMockSetSettings({
+        mode: 'store',
+        directory: assetsDirectory,
+      })
+      .drupalRelativeURL(requestPath1)
+      .testHelpersHttpMockSetSettings({ context: 'c1' })
+      .drupalRelativeURL(requestPath1)
+      .testHelpersHttpMockSetSettings({ context: null })
+      .drupalRelativeURL(requestPath1)
+      .thGetLastRequestsHashes((result) => {
+        const hashes = result.value;
+        // The hash 1 should be different because of the configured context.
+        browser.assert.notEqual(hashes[1], hashes[0]);
+        // The hash 2 should be the same as hash 0 because of the NULL context.
+        browser.assert.equal(hashes[2], hashes[0]);
+        hashes.forEach((hash) => {
+          stubDeleteStoredResponse(hash);
+        });
       });
   },
 };

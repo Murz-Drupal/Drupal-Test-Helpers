@@ -73,30 +73,39 @@ class HttpClientMockController extends ControllerBase {
    * - module: The module name, used to get the module path for the directory/
    * - directory: The directory to store the responses. Absolute path, or
    *   relative to the module path, if the module parameter is set.
+   * - context: A context string to use for generating the hash of the stored
+   *   responses. Useful to mock different responses for the same URL and body.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
   public function stubSetSettings(): JsonResponse {
     $request = $this->requestStack->getCurrentRequest();
-    if ($mode = $request->query->get('mode')) {
-      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_REQUEST_MOCK_MODE, $mode);
+    $settings = json_decode($request->query->get('settings'), TRUE);
+    if (array_key_exists('mode', $settings)) {
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_REQUEST_MOCK_MODE, $settings['mode']);
     }
-    if ($name = $request->query->get('name')) {
-      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_TEST_NAME, $name);
+    if (array_key_exists('name', $settings)) {
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_TEST_NAME, $settings['name']);
     }
-    if ($directory = $request->query->get('directory')) {
+    if (array_key_exists('context', $settings)) {
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_CONTEXT, $settings['context']);
+    }
+    if (array_key_exists('directory', $settings)) {
       if (
-        !str_starts_with($directory, '/')
-        && $module = $request->query->get('module')
+        !str_starts_with($settings['directory'], '/')
+        && isset($settings['module'])
       ) {
-        $modulePath = $this->moduleHandler->getModule($module)->getPath();
-        $directory = $modulePath . DIRECTORY_SEPARATOR . $directory;
+        $modulePath = $this->moduleHandler->getModule($settings['module'])->getPath();
+        $directory = $modulePath . DIRECTORY_SEPARATOR . $settings['directory'];
+      }
+      else {
+        $directory = $settings['directory'];
       }
       $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_RESPONSES_STORAGE_DIRECTORY, $directory);
     }
-    if ($uriRegexp = $request->query->get('uri_regexp')) {
-      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_URI_REGEXP, $uriRegexp);
+    if (array_key_exists('uri_regexp', $settings)) {
+      $this->httpClientFactory->stubSetConfig(HttpClientFactoryMock::SETTING_KEY_URI_REGEXP, $settings['uri_regexp']);
     }
     return new JsonResponse([
       'status' => 'success',

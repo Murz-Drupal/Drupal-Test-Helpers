@@ -45,6 +45,13 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
   const SETTING_KEY_RESPONSES_STORAGE_DIRECTORY = 'responses_storage_directory';
 
   /**
+   * The key to store the responses context in the configuration.
+   *
+   * @var string
+   */
+  const SETTING_KEY_CONTEXT = 'context';
+
+  /**
    * The key to store the log stored responses file in the configuration.
    *
    * @var string
@@ -145,6 +152,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
     $options = [
       HttpClientFactoryStub::OPTION_URI_REGEXP => $this->uriRegexp,
       HttpClientFactoryStub::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => $this->stubGetConfig(self::SETTING_KEY_LOG_STORED_RESPONSES_USAGE_FILE),
+      HttpClientFactoryStub::OPTION_CONTEXT => $this->stubGetConfig(self::SETTING_KEY_CONTEXT),
     ];
 
     parent::__construct(
@@ -172,7 +180,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    *   A response event.
    */
   public function onRespond(ResponseEvent $event) {
-    if ($hashes = $this->stubGetMockedRequestsHashesContainer()) {
+    if ($hashes = $this->stubGetHandledRequests()) {
       $response = $event->getResponse();
       $response->headers->set(self::HTTP_HEADER_NAME, json_encode($hashes));
     }

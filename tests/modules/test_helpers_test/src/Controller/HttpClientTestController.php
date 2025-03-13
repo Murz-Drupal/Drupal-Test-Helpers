@@ -110,7 +110,7 @@ class HttpClientTestController extends ControllerBase {
         '#type' => 'html_tag',
         '#tag' => 'pre',
         '#prefix' => 'Request hashes list:',
-        '#value' => implode(', ', $this->httpClientFactory->stubGetMockedRequestsHashesContainer()),
+        '#value' => implode(', ', $this->httpClientFactory->stubGetHandledRequests()),
         '#attributes' => [
           'class' => ['http-call-render-request-hash'],
         ],

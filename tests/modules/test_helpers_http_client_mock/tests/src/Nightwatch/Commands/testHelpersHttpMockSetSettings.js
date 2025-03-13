@@ -7,12 +7,16 @@ exports.command = function testHelpersHttpMockSetSettings(
   callback = undefined,
 ) {
   const urlParams = new URLSearchParams();
-  Object.entries(settings).forEach(([key, value]) => {
-    urlParams.append(key, value);
-  });
+  urlParams.append('settings', JSON.stringify(settings));
   const requestPath = `${stubSetSettingsPath}?${urlParams.toString()}`;
   this.thDrupalFetchURL(requestPath, (result) => {
-    assert.equal(JSON.parse(result.value.body).status, 'success');
+    let response;
+    try {
+      response = JSON.parse(result.value.body);
+    } catch (e) {
+      assert.fail(`Failed to parse JSON response: ${result.value.body}`);
+    }
+    assert.equal(response.status, 'success');
   }).perform(() => {
     if (typeof callback === 'function') {
       const self = this;

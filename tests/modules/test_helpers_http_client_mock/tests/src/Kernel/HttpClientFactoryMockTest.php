@@ -24,7 +24,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
   ];
 
   /**
-   * Tests articlesList() function.
+   * Tests the Store HTTP response feature.
    */
   public function testStoreHttpResponse() {
     $server = new MockWebServer();
@@ -38,7 +38,7 @@ class HttpClientFactoryMockTest extends KernelTestBase {
     $service->stubSetRequestMockMode('store');
     $options = [];
     $clientStore = $service->fromOptions($options);
-    $hash = $service::stubGetRequestHash($request);
+    $hash = $service->stubGetRequestHash($request);
     $resultsStoreFile = $service->stubGetRequestFilename($hash);
 
     // Deleting the file if exists, to check if it will be recreated.

@@ -14,6 +14,7 @@ use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use donatj\MockWebServer\MockWebServer;
+use donatj\MockWebServer\Response as MockWebServerResponse;
 
 /**
  * Tests HttpClientFactoryStub class.
@@ -109,20 +110,14 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $clientFactoryAppend = TestHelpers::service('http_client_factory', $httpClientFactoryStubAppend, forceOverride: TRUE);
     $httpCallerAppend = new HttpCaller($clientFactoryAppend, $baseUri);
 
-    $getJsonResponse = function ($httpCaller, $requestPath) {
-      $response = $httpCaller->get($requestPath);
-      $result = json_decode($response->getBody()->getContents());
-      return $result;
-    };
-
     // Test a real response.
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerStore, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath)->_GET->get);
 
     // Test a stored response.
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerStore, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath)->_GET->get);
 
     // Store the modified stored response.
-    $storedResponseHash = $httpClientFactoryStubMock::stubGetRequestHash($request);
+    $storedResponseHash = $httpClientFactoryStubMock->stubGetRequestHash($request);
     $storedResponseFile = self::RESPONSES_STORAGE_DIRECTORY . '/' . $storedResponseHash . '.json';
     $storedResponseContents = file_get_contents($storedResponseFile);
     $modifiedResponse = json_decode($storedResponseContents);
@@ -130,15 +125,15 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     file_put_contents($storedResponseFile, json_encode($modifiedResponse));
 
     // Check that the stored response has the modified value.
-    $this->assertEquals('baz', $getJsonResponse($httpCallerMock, $requestPath)->_GET->get);
+    $this->assertEquals('baz', $this->makeRequestGetJsonResponse($httpCallerMock, $requestPath)->_GET->get);
     // Check that the none mode returns the original value.
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerNone, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerNone, $requestPath)->_GET->get);
     // Check that the append mode has the modified value.
-    $this->assertEquals('baz', $getJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
+    $this->assertEquals('baz', $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
     // Check that the store mode provides the original value and restores the
     // file for the append mode.
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerStore, $requestPath)->_GET->get);
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
 
     // Test the stubAddCustomResponseToStack().
     // And the stubSetCustomHandler().
@@ -151,15 +146,15 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $clientFactoryStore->stubAddCustomResponseToStack(
       new Response(404, [], '{"value":"StoreTest1"}'),
     );
-    $this->assertEquals('AppendTest1', $getJsonResponse($httpCallerAppend, $requestPath)->value);
-    $this->assertEquals('AppendTest2', $getJsonResponse($httpCallerAppend, $requestPath)->value);
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
-    $this->assertEquals('StoreTest1', $getJsonResponse($httpCallerStore, $requestPath)->value);
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerStore, $requestPath)->_GET->get);
+    $this->assertEquals('AppendTest1', $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath)->value);
+    $this->assertEquals('AppendTest2', $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath)->value);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
+    $this->assertEquals('StoreTest1', $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath)->value);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath)->_GET->get);
 
     // Check that the append mode started to return the modified value after
     // storing the actual request.
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
 
     // Check the exception with the mock mode if the stored response is missing.
     $httpClientFactoryStubMock->stubDeleteStoredResponseByHash($storedResponseHash);
@@ -173,12 +168,85 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     }
 
     // Check that the append more recreates the file if missing.
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
-    $this->assertEquals('foobar', $getJsonResponse($httpCallerMock, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath)->_GET->get);
+    $this->assertEquals('foobar', $this->makeRequestGetJsonResponse($httpCallerMock, $requestPath)->_GET->get);
 
     // Restore the stored file contents.
     \Drupal::service('http_client_factory')->stubDeleteStoredResponseByHash($storedResponseHash);
     $server->stop();
+  }
+
+  /**
+   * @covers ::__construct
+   * @covers ::fromOptions
+   * @covers ::stubGetStoredResponse
+   * @covers ::stubStoreResponse
+   */
+  public function testStoringSameRequestWithContext() {
+    $server = new MockWebServer();
+    $server->start();
+    $requestPath = '/testStoringSameRequestWithContext-endpoint';
+    $baseUri = $server->getServerRoot();
+    $url = $baseUri . $requestPath;
+
+    $httpClientFactoryStubStore = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_STORE,
+    );
+    $clientFactoryStore = TestHelpers::service('http_client_factory', $httpClientFactoryStubStore, forceOverride: TRUE);
+    $httpCallerStore = new HttpCaller($clientFactoryStore, $baseUri);
+
+    $httpClientFactoryStubMock = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_MOCK,
+    );
+    $clientFactoryMock = TestHelpers::service('http_client_factory', $httpClientFactoryStubMock, forceOverride: TRUE);
+    $httpCallerMock = new HttpCaller($clientFactoryMock, $baseUri);
+
+    $httpClientFactoryStubAppend = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_APPEND,
+    );
+    $clientFactoryAppend = TestHelpers::service('http_client_factory', $httpClientFactoryStubAppend, forceOverride: TRUE);
+    $httpCallerAppend = new HttpCaller($clientFactoryAppend, $baseUri);
+
+    $responseMocked1 = new MockWebServerResponse('{"value":"r1"}');
+    $responseMocked2 = new MockWebServerResponse('{"value":"r2"}');
+    $responseMocked3 = new MockWebServerResponse('{"value":"r3"}');
+
+    $server->setResponseOfPath($requestPath, $responseMocked1);
+    $response = $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath);
+    $this->assertEquals('r1', $response->value);
+
+    $server->setResponseOfPath($requestPath, $responseMocked2);
+    $response = $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath);
+    $this->assertEquals('r1', $response->value);
+    $response = $this->makeRequestGetJsonResponse($httpCallerMock, $requestPath);
+    $this->assertEquals('r1', $response->value);
+    $response = $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath);
+    $this->assertEquals('r2', $response->value);
+    $response = $this->makeRequestGetJsonResponse($httpCallerMock, $requestPath);
+    $this->assertEquals('r2', $response->value);
+
+    $server->setResponseOfPath($requestPath, $responseMocked3);
+    $clientFactoryAppend->stubSetContext('context1');
+    $response = $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath);
+    $this->assertEquals('r3', $response->value);
+    $clientFactoryAppend->stubSetContext();
+    $response = $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath);
+    $this->assertEquals('r2', $response->value);
+
+    $response = $this->makeRequestGetJsonResponse($httpCallerAppend, $requestPath);
+    $this->assertEquals('r2', $response->value);
+
+    $storedRequestHashes = array_unique([
+      ...$clientFactoryStore->stubGetHandledRequests(),
+      ...$clientFactoryAppend->stubGetHandledRequests(),
+    ]);
+    foreach ($storedRequestHashes as $hash) {
+      $clientFactoryStore->stubDeleteStoredResponseByHash($hash);
+    }
+
   }
 
   /**
@@ -276,7 +344,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $this->assertContains($testName, $storedResponseMetadata['tests']);
     $this->assertContains($testNameCustom, $storedResponseMetadata['tests']);
 
-    $httpClientFactoryStub->stubDeleteStoredResponseByHash($httpClientFactoryStub::stubGetRequestHash($request));
+    $httpClientFactoryStub->stubDeleteStoredResponseByHash($httpClientFactoryStub->stubGetRequestHash($request));
     $server->stop();
   }
 
@@ -309,7 +377,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $this->assertEquals($url, $storedResponseMetadata['request']['uri']);
     $this->assertEquals($body, $storedResponseMetadata['request']['body']);
     $this->assertTrue(file_exists($storedResponseFile));
-    $httpClientFactoryStub->stubDeleteStoredResponseByHash($httpClientFactoryStub::stubGetRequestHash($request));
+    $httpClientFactoryStub->stubDeleteStoredResponseByHash($httpClientFactoryStub->stubGetRequestHash($request));
     $this->assertFalse(file_exists($storedResponseFile));
     $this->assertFalse(file_exists($storedResponseMetadataFile));
     $server->stop();
@@ -319,7 +387,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
    * @covers ::stubLogResponseUsage
    * @covers ::stubRemoveResponseUsageLog
    * @covers ::stubGetResponseUsageLog
-   * @covers ::stubGetMockedRequestsHashesContainer
+   * @covers ::stubGetHandledRequests
    * @covers ::stubGetLastResponse
    */
   public function testResponsesUsageLog() {
@@ -373,7 +441,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $this->assertEmpty($httpClientFactoryNoLog->stubGetResponseUsageLog());
 
     // Tests the responses container.
-    $responsesContainer = $httpClientFactoryLog->stubGetMockedRequestsHashesContainer();
+    $responsesContainer = $httpClientFactoryLog->stubGetHandledRequests();
     $this->assertEquals([
       $hash1,
       $hash2,
@@ -435,11 +503,12 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $baseUri = $server->getServerRoot();
     $url = $baseUri . $path;
     $request = new Request($type, $url, body: $body);
-    $client = \Drupal::service('http_client_factory')->fromOptions([
+    $service = \Drupal::service('http_client_factory');
+    $client = $service->fromOptions([
       'base_uri' => $baseUri,
     ]);
     $client->send($request);
-    $hash = HttpClientFactoryStub::stubGetRequestHash($request);
+    $hash = $service->stubGetRequestHash($request);
     return $hash;
   }
 
@@ -459,6 +528,23 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   private function testResponsesUsageLogSubFunction($httpClientFactory, $server, $path) {
     $httpClientFactory->stubSetTestName();
     return $this->makeRequestGetHash($server, $path);
+  }
+
+  /**
+   * Makes a request and returns the JSON response.
+   *
+   * @param \Drupal\Tests\test_helpers\Unit\Stub\HttpCaller $httpCaller
+   *   An HTTP caller.
+   * @param string $requestPath
+   *   A request path.
+   *
+   * @return mixed
+   *   A JSON response.
+   */
+  private function makeRequestGetJsonResponse($httpCaller, $requestPath) {
+    $response = $httpCaller->get($requestPath);
+    $result = json_decode($response->getBody()->getContents());
+    return $result;
   }
 
 }

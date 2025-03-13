@@ -66,14 +66,15 @@ class HttpClientFactoryStub extends ClientFactory {
   const OPTION_STORE_HEADERS = 'store_headers';
   const OPTION_STORE_HEADERS_SKIP_KEYS = 'store_headers_skip';
   const OPTION_LOG_STORED_RESPONSES_USAGE_FILE = 'log_stored_responses_usage_file';
+  const OPTION_CONTEXT = 'context';
   const OPTION_URI_REGEXP = 'uri_regexp';
 
   /**
-   * Hash storage for the stored and mocked requests.
+   * A storage for used (stored and mocked) responses by the usage order.
    *
    * @var array
    */
-  protected array $mockedRequestsHashesContainer = [];
+  protected array $handledRequests = [];
 
   /**
    * A stack with custom responses.
@@ -96,6 +97,13 @@ class HttpClientFactoryStub extends ClientFactory {
    * @var callable|null
    */
   protected $stubHandlerCustom = NULL;
+
+  /**
+   * The context for the stub that is used to generate the stored assets hash.
+   *
+   * @var string|null
+   */
+  protected ?string $stubContext = NULL;
 
   /**
    * HttpClientFactoryStub constructor.
@@ -131,6 +139,9 @@ class HttpClientFactoryStub extends ClientFactory {
       self::OPTION_STORE_HEADERS_SKIP_KEYS => [],
       self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE => NULL,
     ];
+    if (array_key_exists(self::OPTION_CONTEXT, $this->options)) {
+      $this->stubContext = $this->options[self::OPTION_CONTEXT];
+    }
     $this->stubSetTestName($testName);
     parent::__construct($stack);
   }
@@ -245,7 +256,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   TRUE if a stored response exists, FALSE otherwise.
    */
   public function stubHasStoredResponse(Request $request): bool {
-    $hash = self::stubGetRequestHash($request);
+    $hash = $this->stubGetRequestHash($request);
     $file = $this->stubGetRequestFilename($hash);
     return file_exists($file);
   }
@@ -263,7 +274,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The stored response.
    */
   public function stubGetStoredResponse(Request $request): Response {
-    $hash = self::stubGetRequestHash($request);
+    $hash = $this->stubGetRequestHash($request);
     $this->stubStoreRequestHashUsage($hash);
     try {
       $response = $this->stubGetStoredResponseByHash($hash);
@@ -413,6 +424,26 @@ class HttpClientFactoryStub extends ClientFactory {
   }
 
   /**
+   * Sets the context value to use for generating the stored responses hash.
+   *
+   * @param string|null $context
+   *   The context value. Use NULL to reset the context.
+   */
+  public function stubSetContext(?string $context = NULL): void {
+    $this->stubContext = $context;
+  }
+
+  /**
+   * Gets the current context value used in generating responses hash.
+   *
+   * @return string|null
+   *   The context value.
+   */
+  public function stubGetContext(): ?string {
+    return $this->stubContext;
+  }
+
+  /**
    * Returns the current HTTP Requests mocking mode: none, store, mock.
    *
    * If the mode is not set explicitly, it is controllable by the
@@ -466,7 +497,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   Useful when you need to store a modified response.
    */
   public function stubStoreResponse(Response $response, ?Request $request = NULL, ?string $hash = NULL) {
-    $hash ??= self::stubGetRequestHash($request);
+    $hash ??= $this->stubGetRequestHash($request);
     $filename = $this->stubGetRequestFilename($hash);
     $body = $response->getBody();
     $body->rewind();
@@ -551,7 +582,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   A full path to the stored response file.
    */
   public function stubGetRequestFilenameFromRequest(Request $request, bool $metadata = FALSE): string {
-    return $this->stubGetRequestFilename(self::stubGetRequestHash($request), $metadata);
+    return $this->stubGetRequestFilename($this->stubGetRequestHash($request), $metadata);
   }
 
   /**
@@ -586,11 +617,14 @@ class HttpClientFactoryStub extends ClientFactory {
    *   - uri: The request URI.
    *   - body: The request body, if not empty.
    */
-  protected static function stubGetRequestMetadata($request): array {
+  protected function stubGetRequestMetadata($request): array {
     $metadata = [
       'method' => $request->getMethod(),
       'uri' => $request->getUri()->__toString(),
     ];
+    if ($this->stubContext) {
+      $metadata['context'] = $this->stubContext;
+    }
     $body = $request->getBody();
     if ($body->getSize() > 0) {
       $body->rewind();
@@ -608,8 +642,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return string
    *   The generated hash.
    */
-  public static function stubGetRequestHash($request): string {
-    return md5(json_encode(self::stubGetRequestMetadata($request)));
+  public function stubGetRequestHash($request): string {
+    return md5(json_encode($this->stubGetRequestMetadata($request)));
   }
 
   /**
@@ -685,7 +719,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   A hash value.
    */
   protected function stubStoreRequestHashUsage(string $hash): void {
-    $this->mockedRequestsHashesContainer[] = $hash;
+    $this->handledRequests[] = $hash;
   }
 
   /**
@@ -694,8 +728,8 @@ class HttpClientFactoryStub extends ClientFactory {
    * @return array
    *   A list of hashes of all mocked responses.
    */
-  public function stubGetMockedRequestsHashesContainer(): array {
-    return $this->mockedRequestsHashesContainer;
+  public function stubGetHandledRequests(): array {
+    return $this->handledRequests;
   }
 
   /**
@@ -705,7 +739,7 @@ class HttpClientFactoryStub extends ClientFactory {
    *   The last response body.
    */
   public function stubGetLastResponse(int $delta = 0): string {
-    $hashes = array_reverse($this->stubGetMockedRequestsHashesContainer());
+    $hashes = array_reverse($this->stubGetHandledRequests());
     return $this->stubGetStoredResponseByHash($hashes[$delta])->getBody()->getContents();
   }
 

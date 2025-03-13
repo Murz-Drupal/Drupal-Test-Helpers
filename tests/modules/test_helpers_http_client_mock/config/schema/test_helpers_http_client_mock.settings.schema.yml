@@ -8,6 +8,9 @@ test_helpers_http_client_mock.settings:
     responses_storage_directory:
       type: string
       label: The directory where the responses are stored
+    context:
+      type: string
+      label: The context string to store different responses
     test_name:
       type: string
       label: The current test name
