@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use donatj\MockWebServer\MockWebServer;
+use donatj\MockWebServer\Response as MockWebServerResponse;
 use Drupal\Core\Http\ClientFactory;
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\HttpClientFactoryStub;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use donatj\MockWebServer\MockWebServer;
-use donatj\MockWebServer\Response as MockWebServerResponse;
 
 /**
  * Tests HttpClientFactoryStub class.

@@ -5,8 +5,8 @@ namespace Drupal\test_helpers\Stub;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Config\TypedConfigManagerInterface;
-use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers\lib\ConfigFactoryStubCacheInvalidator;
+use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Yaml\Yaml;
 

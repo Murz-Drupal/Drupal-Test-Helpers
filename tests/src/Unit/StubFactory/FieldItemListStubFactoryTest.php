@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
+use Drupal\comment\Plugin\Field\FieldType\CommentItem;
 use Drupal\Core\Entity\Plugin\DataType\EntityAdapter;
 use Drupal\Core\Field\Plugin\Field\FieldType\BooleanItem;
 use Drupal\Core\Field\Plugin\Field\FieldType\MapItem;
-use Drupal\Tests\UnitTestCase;
-use Drupal\comment\Plugin\Field\FieldType\CommentItem;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests FieldItemListStubFactory class.

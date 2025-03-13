@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers_test\Unit;
 
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 use Symfony\Component\Yaml\Parser;
 
 /**

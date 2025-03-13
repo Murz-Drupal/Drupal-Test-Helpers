@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Utils;
 
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers\utils\AssertSequence;
+use Drupal\Tests\UnitTestCase;
 
 /**
  * @coversDefaultClass \Drupal\test_helpers\utils\AssertSequence

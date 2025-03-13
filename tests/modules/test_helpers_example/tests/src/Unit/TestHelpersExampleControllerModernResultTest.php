@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers_example\Unit;
 
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
+use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests TestHelpersExampleController with Test Helpers API to check the result.

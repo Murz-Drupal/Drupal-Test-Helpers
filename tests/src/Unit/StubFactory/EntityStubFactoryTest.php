@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
 use Drupal\Core\Entity\Query\ConditionInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\FieldStorageConfigStorage;
 use Drupal\media\Entity\Media;
@@ -16,6 +15,7 @@ use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 use Drupal\user\Entity\User;
 
 /**

@@ -6,9 +6,9 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Language\Language;
 use Drupal\Core\Language\LanguageManager;
-use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests LanguageDefaultStub class.
