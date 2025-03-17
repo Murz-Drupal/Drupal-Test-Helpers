@@ -2,6 +2,7 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Http\ClientFactory;
 use Drupal\test_helpers\TestHelpers;
 use GuzzleHttp\HandlerStack;
@@ -322,7 +323,7 @@ class HttpClientFactoryStub extends ClientFactory {
       if (!file_exists($fileMetadata)) {
         throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
       }
-      $metadata = json_decode(file_get_contents($fileMetadata), TRUE);
+      $metadata = Yaml::decode(file_get_contents($fileMetadata));
       if ($metadata == FALSE) {
         throw new \Exception("Can't read the stored response metadata file for the request with hash $hash - expected to find file $fileMetadata.");
       }
@@ -365,7 +366,7 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function stubGetStoredResponseMetadataByHash(string $hash): array {
     $fileMetadata = $this->stubGetRequestFilename($hash, metadata: TRUE);
-    if (!$metadata = json_decode(@file_get_contents($fileMetadata), TRUE)) {
+    if (!$metadata = Yaml::decode(file_get_contents($fileMetadata))) {
       throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata);
     }
     return $metadata;
@@ -525,26 +526,10 @@ class HttpClientFactoryStub extends ClientFactory {
     $testName = $this->stubGetTestName();
 
     $metadataFilename = $this->stubGetRequestFilename($hash, metadata: TRUE);
-    $metadata = [
-      'tests' => [],
-      'response' => [
-        'status' => $response->getStatusCode(),
-      ],
-    ];
-    if ($this->options[self::OPTION_STORE_HEADERS]) {
-      $metadata['response']['headers'] = $response->getHeaders();
-      if ($this->options[self::OPTION_STORE_HEADERS_SKIP_KEYS]) {
-        foreach ($this->options[self::OPTION_STORE_HEADERS_SKIP_KEYS] as $header) {
-          unset($metadata['response']['headers'][$header]);
-        }
-      }
-    }
-    if ($request) {
-      $metadata['request'] = $this->stubGetRequestMetadata($request);
-    }
+    $metadata = $this->prepareMetadata($request, $response);
     if (file_exists($metadataFilename)) {
       $metadataStoredContent = file_get_contents($metadataFilename);
-      $metadataStored = json_decode($metadataStoredContent, TRUE) ?? [];
+      $metadataStored = Yaml::decode($metadataStoredContent);
       $metadata['tests'] = $metadataStored['tests'];
       // On the stubSetStoredResponse we have no request data, so copying it
       // from the stored response metadata.
@@ -560,7 +545,7 @@ class HttpClientFactoryStub extends ClientFactory {
     ksort($metadata['tests']);
     $metadata['tests'] = array_unique($metadata['tests']);
 
-    $metadataContent = json_encode($metadata, JSON_PRETTY_PRINT);
+    $metadataContent = Yaml::encode($metadata);
     if ($metadataStoredContent ?? '' !== $metadataContent) {
       file_put_contents($metadataFilename, $metadataContent);
     }
@@ -568,6 +553,35 @@ class HttpClientFactoryStub extends ClientFactory {
       $this->stubLogResponseUsage($hash, $usageOperation);
     }
     $this->stubStoreRequestHashUsage($hash);
+  }
+
+  /**
+   * Prepares the metadata array.
+   *
+   * @param \GuzzleHttp\Psr7\Request|null $request
+   *   The request.
+   * @param \GuzzleHttp\Psr7\Response $response
+   *   The response.
+   */
+  protected function prepareMetadata(?Request $request, Response $response): array {
+    $metadata = [
+      'tests' => [],
+      'response' => [
+        'status' => $response->getStatusCode(),
+      ],
+    ];
+    if ($this->options[self::OPTION_STORE_HEADERS]) {
+      $metadata['response']['headers'] = $response->getHeaders();
+      if ($this->options[self::OPTION_STORE_HEADERS_SKIP_KEYS]) {
+        foreach ($this->options[self::OPTION_STORE_HEADERS_SKIP_KEYS] ?? [] as $header) {
+          unset($metadata['response']['headers'][$header]);
+        }
+      }
+    }
+    if ($request) {
+      $metadata['request'] = $this->stubGetRequestMetadata($request);
+    }
+    return $metadata;
   }
 
   /**
@@ -598,10 +612,9 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function stubGetRequestFilename(string $hash, bool $metadata = FALSE): string {
     $directory = $this->stubGetResponsesStorageDirectory();
-    if ($metadata) {
-      $hash = $hash . '_metadata';
-    }
-    $filename = "$directory/$hash.json";
+    $filename = $metadata ?
+      "$directory/$hash.metadata.yml" :
+      "$directory/$hash.txt";
     return $filename;
   }
 

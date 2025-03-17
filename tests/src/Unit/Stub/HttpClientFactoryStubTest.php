@@ -6,6 +6,7 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
+use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Http\ClientFactory;
 use Drupal\test_helpers\Stub\HttpClientFactoryStub;
 use Drupal\test_helpers\TestHelpers;
@@ -118,7 +119,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
 
     // Store the modified stored response.
     $storedResponseHash = $httpClientFactoryStubMock->stubGetRequestHash($request);
-    $storedResponseFile = self::RESPONSES_STORAGE_DIRECTORY . '/' . $storedResponseHash . '.json';
+    $storedResponseFile = self::RESPONSES_STORAGE_DIRECTORY . '/' . $storedResponseHash . '.txt';
     $storedResponseContents = file_get_contents($storedResponseFile);
     $modifiedResponse = json_decode($storedResponseContents);
     $modifiedResponse->_GET->get = 'baz';
@@ -340,7 +341,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $httpCaller2->get($requestPath);
 
     $storedResponseMetadataFile = $httpClientFactoryStub->stubGetRequestFilenameFromRequest($request, TRUE);
-    $storedResponseMetadata = json_decode(file_get_contents($storedResponseMetadataFile), TRUE);
+    $storedResponseMetadata = Yaml::decode(file_get_contents($storedResponseMetadataFile));
     $this->assertContains($testName, $storedResponseMetadata['tests']);
     $this->assertContains($testNameCustom, $storedResponseMetadata['tests']);
 
@@ -372,7 +373,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
 
     $storedResponseFile = $httpClientFactoryStub->stubGetRequestFilenameFromRequest($request);
     $storedResponseMetadataFile = $httpClientFactoryStub->stubGetRequestFilenameFromRequest($request, TRUE);
-    $storedResponseMetadata = json_decode(file_get_contents($storedResponseMetadataFile), TRUE);
+    $storedResponseMetadata = Yaml::decode(file_get_contents($storedResponseMetadataFile));
     $this->assertEquals('POST', $storedResponseMetadata['request']['method']);
     $this->assertEquals($url, $storedResponseMetadata['request']['uri']);
     $this->assertEquals($body, $storedResponseMetadata['request']['body']);

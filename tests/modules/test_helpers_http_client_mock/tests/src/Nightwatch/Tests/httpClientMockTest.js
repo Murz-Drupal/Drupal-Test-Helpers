@@ -18,14 +18,14 @@ const responseContentTagSelector = '.http-call-render-response';
 const assetsDirectory = `${__dirname}${path.sep}assets`;
 
 const readStoredResponse = (hash) => {
-  const mockedResponseFile = `${assetsDirectory}${path.sep}${hash}.json`;
+  const mockedResponseFile = `${assetsDirectory}${path.sep}${hash}.txt`;
   const content = fs.readFileSync(mockedResponseFile).toString();
   return content;
 };
 
 const writeStoredResponse = (hash, content, metadata = null) => {
-  const mockedResponseFile = `${assetsDirectory}${path.sep}${hash}.json`;
-  const mockedResponseMetadataFile = `${assetsDirectory}${path.sep}${hash}_metadata.json`;
+  const mockedResponseFile = `${assetsDirectory}${path.sep}${hash}.txt`;
+  const mockedResponseMetadataFile = `${assetsDirectory}${path.sep}${hash}.metadata.yml`;
   if (!metadata) {
     metadata = {
       tests: [],
@@ -45,11 +45,11 @@ const writeStoredResponse = (hash, content, metadata = null) => {
 };
 
 const stubDeleteStoredResponse = (hash) => {
-  const mockedResponseFile = `${assetsDirectory}${path.sep}${hash}.json`;
+  const mockedResponseFile = `${assetsDirectory}${path.sep}${hash}.txt`;
   if (fs.existsSync(mockedResponseFile)) {
     fs.unlinkSync(mockedResponseFile);
   }
-  const mockedResponseMetadataFile = `${assetsDirectory}${path.sep}${hash}_metadata.json`;
+  const mockedResponseMetadataFile = `${assetsDirectory}${path.sep}${hash}.metadata.yml`;
   if (fs.existsSync(mockedResponseMetadataFile)) {
     fs.unlinkSync(mockedResponseMetadataFile);
   }
