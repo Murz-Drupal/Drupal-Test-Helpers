@@ -204,7 +204,7 @@ class HttpClientFactoryStub extends ClientFactory {
         ) {
           if ($this->stubMatchRequest($request)) {
             // Execute the real request to get the response.
-            $handler($request, $options)->then(
+            return $handler($request, $options)->then(
               function ($response) use ($request) {
                 $this->stubStoreResponse($response, $request);
                 return $response;
