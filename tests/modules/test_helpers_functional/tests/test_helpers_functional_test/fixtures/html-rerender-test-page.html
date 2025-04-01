@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+  <div id="content-wrapper">
+    <div class="test-content">Foo</div>
+  </div>
+  <div class="test-content2">Baz</div>
+  <button id="refresh-button">Refresh</button>
+
+  <script>
+    document.getElementById('refresh-button').addEventListener('click', function() {
+      const wrapper = document.getElementById('content-wrapper');
+      if (wrapper) {
+        wrapper.innerHTML = ''; // Clear the wrapper's content
+      }
+
+      const newDiv = document.createElement('div');
+      newDiv.className = 'test-content';
+      newDiv.textContent = 'Bar';
+      wrapper.appendChild(newDiv);
+    });
+  </script>
+</body>
+</html>

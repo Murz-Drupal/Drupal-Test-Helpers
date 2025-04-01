@@ -1,0 +1,7 @@
+test_helpers_functional_test.rerender-test-page:
+  path: '/test-helpers-functional-test/rerender-test-page'
+  defaults:
+    _controller: 'Drupal\test_helpers_functional_test\Controller\TestHelpersFunctionalTestController::rerenderTestPage'
+  requirements:
+    # We need to make this endpoint available for all to simplify tests.
+    _access: 'TRUE'

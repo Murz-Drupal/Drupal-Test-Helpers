@@ -257,7 +257,8 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
       if ($this->lock->acquire($key)) {
         return;
       }
-      usleep(100000); // 0.1 second
+      // Sleep for 0.1 second.
+      usleep(100000);
     }
     throw new \RuntimeException('Could not acquire the lock.');
   }
