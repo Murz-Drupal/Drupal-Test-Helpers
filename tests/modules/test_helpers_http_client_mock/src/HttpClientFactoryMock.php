@@ -194,17 +194,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
    */
   protected function stubStoreRequestHashUsage(string $hash): void {
     parent::stubStoreRequestHashUsage($hash);
-    if (!$this->lock->acquire(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE)) {
-      if (
-        // The wait returns false if the lock is still acquired by another
-        // process after timeout.
-        $this->lock->wait(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE)
-        // We have to lock again manually after waiting.
-        || !$this->lock->acquire(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE)
-      ) {
-        throw new \RuntimeException('Could not acquire the lock to store the last requests hashes.');
-      }
-    }
+    $this->acquireLockWithWait(self::LOCK_KEY_LAST_REQUESTS_HASHES_UPDATE);
     // The State service has a static cache, so we have to reset it to receive
     // the fresh value if a parallel request has updated the State.
     $this->stateService->resetCache();
@@ -250,6 +240,26 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
     $this->configFactory->getEditable(self::SETTINGS_CONFIG_KEY)
       ->set($key, $value)
       ->save();
+  }
+
+  /**
+   * Tries to acquire a lock for a given key with a wait time.
+   */
+  private function acquireLockWithWait(string $key): void {
+    // The Drupal API doesn't provide a reliable way to wait for a lock
+    // acquisition. See the comment on the $lock->wait():
+    // ```
+    // You still need to acquire the lock manually and it may fail again.
+    // ```
+    // So we have to implement our own waiting mechanism.
+    $tries = 100;
+    for ($i = 0; $i < $tries; $i++) {
+      if ($this->lock->acquire($key)) {
+        return;
+      }
+      usleep(100000); // 0.1 second
+    }
+    throw new \RuntimeException('Could not acquire the lock.');
   }
 
 }
