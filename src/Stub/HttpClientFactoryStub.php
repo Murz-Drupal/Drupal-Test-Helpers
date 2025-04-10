@@ -321,7 +321,7 @@ class HttpClientFactoryStub extends ClientFactory {
       // @todo Remove this exception when dropping PHPUnit 9 support.
       $fileMetadata = $this->stubGetRequestFilename($hash, metadata: TRUE);
       if (!file_exists($fileMetadata)) {
-        throw new \Exception("Missing the stored response file for the request with hash $hash - expected to find file $file.");
+        throw new \Exception("Missing the stored response metadata file for the request with hash $hash - expected to find file $file.");
       }
       $metadata = Yaml::decode(file_get_contents($fileMetadata));
       if ($metadata == FALSE) {
@@ -339,7 +339,9 @@ class HttpClientFactoryStub extends ClientFactory {
           $headers = $metadata['response']['headers'];
         }
       }
-
+      if (!$this->ensureTestNameInMetadata($metadata)) {
+        $this->stubSetStoredResponseMetadataByHash($metadata, $hash);
+      }
       $this->stubLogResponseUsage($hash, 'read');
     }
     catch (\Exception $e) {
@@ -370,6 +372,25 @@ class HttpClientFactoryStub extends ClientFactory {
       throw new \Exception("No stored metadata found for the hash \"$hash\" in the file " . $fileMetadata);
     }
     return $metadata;
+  }
+
+  /**
+   * Stores the stored response metadata by the request hash.
+   *
+   * @param array $metadata
+   *   The metadata to set.
+   * @param string $hash
+   *   A request hash.
+   */
+  public function stubSetStoredResponseMetadataByHash(array $metadata, string $hash): void {
+    $fileMetadata = $this->stubGetRequestFilename($hash, metadata: TRUE);
+    if (file_exists($fileMetadata)) {
+      $storedContent = file_get_contents($fileMetadata);
+      if ($storedContent == Yaml::encode($metadata)) {
+        return;
+      }
+    }
+    file_put_contents($fileMetadata, Yaml::encode($metadata));
   }
 
   /**
@@ -523,7 +544,6 @@ class HttpClientFactoryStub extends ClientFactory {
     }
 
     file_put_contents($filename, $content);
-    $testName = $this->stubGetTestName();
 
     $metadataFilename = $this->stubGetRequestFilename($hash, metadata: TRUE);
     $metadata = $this->prepareMetadata($request, $response);
@@ -541,14 +561,8 @@ class HttpClientFactoryStub extends ClientFactory {
       }
     }
 
-    $metadata['tests'][] = $testName;
-    ksort($metadata['tests']);
-    $metadata['tests'] = array_unique($metadata['tests']);
-
-    $metadataContent = Yaml::encode($metadata);
-    if ($metadataStoredContent ?? '' !== $metadataContent) {
-      file_put_contents($metadataFilename, $metadataContent);
-    }
+    $this->ensureTestNameInMetadata($metadata);
+    $this->stubSetStoredResponseMetadataByHash($metadata, $hash);
     if (isset($usageOperation)) {
       $this->stubLogResponseUsage($hash, $usageOperation);
     }
@@ -775,6 +789,26 @@ class HttpClientFactoryStub extends ClientFactory {
       "test" => $this->stubGetTestName(),
     ];
     file_put_contents($this->options[self::OPTION_LOG_STORED_RESPONSES_USAGE_FILE], json_encode($entry) . "\n", FILE_APPEND);
+  }
+
+  /**
+   * Ensures that the test name is present in the metadata.
+   *
+   * @param array $metadata
+   *   The metadata array to check.
+   *
+   * @return bool
+   *   TRUE if the test name is already present, FALSE otherwise.
+   */
+  protected function ensureTestNameInMetadata(array &$metadata) {
+    $testName = $this->stubGetTestName();
+    $metadata['tests'] ??= [];
+    if (in_array($testName, $metadata['tests'])) {
+      return TRUE;
+    }
+    $metadata['tests'][] = $testName;
+    ksort($metadata['tests']);
+    return FALSE;
   }
 
   /**
