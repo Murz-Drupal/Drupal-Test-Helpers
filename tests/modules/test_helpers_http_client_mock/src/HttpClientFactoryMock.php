@@ -245,7 +245,7 @@ class HttpClientFactoryMock extends HttpClientFactoryStub implements EventSubscr
   /**
    * Tries to acquire a lock for a given key with a wait time.
    */
-  private function acquireLockWithWait(string $key): void {
+  public function acquireLockWithWait(string $key): void {
     // The Drupal API doesn't provide a reliable way to wait for a lock
     // acquisition. See the comment on the $lock->wait():
     // ```
