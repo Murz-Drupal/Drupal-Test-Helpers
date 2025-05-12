@@ -321,7 +321,8 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $url = $baseUri . $requestPath;
 
     $testName = __CLASS__ . '::' . __FUNCTION__;
-    $testNameCustom = __CLASS__ . '::' . __FUNCTION__ . '_custom_name';
+    $testNameCustom2 = __CLASS__ . '::' . __FUNCTION__ . '_42';
+    $testNameCustom3 = __CLASS__ . '::' . __FUNCTION__ . '_32';
 
     $httpClientFactoryStub = new HttpClientFactoryStub(
       responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
@@ -329,21 +330,31 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     );
     $httpCaller1 = new HttpCaller($httpClientFactoryStub, $baseUri);
 
-    $httpClientFactoryStubCustomName = new HttpClientFactoryStub(
+    $httpClientFactoryStubCustomName2 = new HttpClientFactoryStub(
       responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
       requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_STORE,
-      testName: $testNameCustom,
+      testName: $testNameCustom2,
     );
-    $httpCaller2 = new HttpCaller($httpClientFactoryStubCustomName, $baseUri);
+    $httpCaller2 = new HttpCaller($httpClientFactoryStubCustomName2, $baseUri);
+
+    $httpClientFactoryStubCustomName3 = new HttpClientFactoryStub(
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_STORE,
+      testName: $testNameCustom3,
+    );
+    $httpCaller3 = new HttpCaller($httpClientFactoryStubCustomName3, $baseUri);
 
     $request = new Request('GET', $url);
     $httpCaller1->get($requestPath);
     $httpCaller2->get($requestPath);
+    $httpCaller3->get($requestPath);
 
     $storedResponseMetadataFile = $httpClientFactoryStub->stubGetRequestFilenameFromRequest($request, TRUE);
     $storedResponseMetadata = Yaml::decode(file_get_contents($storedResponseMetadataFile));
-    $this->assertContains($testName, $storedResponseMetadata['tests']);
-    $this->assertContains($testNameCustom, $storedResponseMetadata['tests']);
+    // Check the sorted order of tests.
+    $this->assertEquals($testName, $storedResponseMetadata['tests'][0]);
+    $this->assertEquals($testNameCustom2, $storedResponseMetadata['tests'][2]);
+    $this->assertEquals($testNameCustom3, $storedResponseMetadata['tests'][1]);
 
     $httpClientFactoryStub->stubDeleteStoredResponseByHash($httpClientFactoryStub->stubGetRequestHash($request));
     $server->stop();

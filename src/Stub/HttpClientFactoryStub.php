@@ -807,7 +807,7 @@ class HttpClientFactoryStub extends ClientFactory {
       return TRUE;
     }
     $metadata['tests'][] = $testName;
-    ksort($metadata['tests']);
+    sort($metadata['tests']);
     return FALSE;
   }
 
