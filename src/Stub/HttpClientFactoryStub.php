@@ -5,6 +5,7 @@ namespace Drupal\test_helpers\Stub;
 use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Http\ClientFactory;
 use Drupal\test_helpers\TestHelpers;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Request;
@@ -188,7 +189,26 @@ class HttpClientFactoryStub extends ClientFactory {
             return new FulfilledPromise($response);
           }
         }
-        return $handler($request, $options);
+        // If the response returns non-2xx result, the Guzzle will throw an
+        // exception, that stops processing next handlers.
+        // So we should catch it and store the response here.
+        try {
+          $handlerResult = $handler($request, $options);
+          return $handlerResult;
+        }
+        catch (BadResponseException $e) {
+          if (
+            in_array($this->stubGetRequestMockMode(), [
+              self::HTTP_CLIENT_MODE_STORE,
+              self::HTTP_CLIENT_MODE_APPEND,
+            ])
+            && $this->stubMatchRequest($request)
+          ) {
+            $failedResponse = $e->getResponse();
+            $this->stubStoreResponse($failedResponse, $request);
+          }
+          throw $e;
+        }
       };
     };
 
@@ -204,12 +224,21 @@ class HttpClientFactoryStub extends ClientFactory {
         ) {
           if ($this->stubMatchRequest($request)) {
             // Execute the real request to get the response.
-            return $handler($request, $options)->then(
-              function ($response) use ($request) {
-                $this->stubStoreResponse($response, $request);
-                return $response;
-              }
-            );
+            try {
+              $response = $handler($request, $options)->then(
+                function ($response) use ($request) {
+                  $this->stubStoreResponse($response, $request);
+                  return $response;
+                }
+              );
+              return $response;
+            }
+            catch (BadResponseException $e) {
+              // If retrieving the response failed, we should store the
+              // response from the exception.
+              $response = $e->getResponse();
+              $this->stubStoreResponse($response, $request);
+            }
           }
         }
         return $handler($request, $options);

@@ -12,6 +12,7 @@ use Drupal\test_helpers\Stub\HttpClientFactoryStub;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Request;
@@ -175,6 +176,65 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     // Restore the stored file contents.
     \Drupal::service('http_client_factory')->stubDeleteStoredResponseByHash($storedResponseHash);
     $server->stop();
+  }
+
+  /**
+   * @covers ::fromOptions
+   */
+  public function testStoringResponsesWithExceptions() {
+    $responses = [
+      '/error-401' => [
+        'body' => '{"value":"error 401"}',
+        'status' => 401,
+      ],
+      '/error-500' => [
+        'body' => '{"value":"error 500"}',
+        'status' => 500,
+      ],
+    ];
+
+    $server = new MockWebServer();
+    $server->start();
+    $baseUri = $server->getServerRoot();
+    $handlerResponse = NULL;
+    $throwExceptionHandler = function (callable $handler) use (&$handlerResponse) {
+      return function ($request, array $options) use ($handler, &$handlerResponse) {
+        /** @var \Psr\Http\Message\ResponseInterface $handlerResponse */
+        throw new BadResponseException('Test1', $request, $handlerResponse);
+      };
+    };
+
+    $handlerStack = HandlerStack::create();
+    $handlerStack->unshift($throwExceptionHandler, 'throwExceptionHandler');
+
+    $httpClientFactoryStubStore = new HttpClientFactoryStub(
+      stack: $handlerStack,
+      responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,
+      requestMockMode: HttpClientFactoryStub::HTTP_CLIENT_MODE_STORE,
+    );
+    $clientFactoryStore = TestHelpers::service('http_client_factory', $httpClientFactoryStubStore, forceOverride: TRUE);
+
+    foreach ($responses as $path => $data) {
+      $mockedResponse = new MockWebServerResponse($data['body'], [], $data['status']);
+      $handlerResponse = new Response($data['status'], [], $data['body']);
+      $server->setResponseOfPath($path, $mockedResponse);
+      $requestPath = $baseUri . $path;
+      $httpCallerStore = new HttpCaller($clientFactoryStore, $requestPath);
+      $request = new Request('GET', $requestPath);
+      $storedResponseHash = $httpClientFactoryStubStore->stubGetRequestHash($request);
+      // $httpClientFactoryStubStore->stubSetCustomHandler();
+      try {
+        // This call should throw a Guzzle exception because the response
+        // contains an error status code.
+        $this->makeRequestGetJsonResponse($httpCallerStore, $requestPath);
+      }
+      catch (\Exception $e) {
+        $asset = $httpClientFactoryStubStore->stubGetStoredResponseByHash($storedResponseHash);
+        $this->assertEquals($data['status'], $asset->getStatusCode());
+        $this->assertEquals($data['body'], $asset->getBody());
+        $httpClientFactoryStubStore->stubDeleteStoredResponseByHash($storedResponseHash);
+      }
+    }
   }
 
   /**
