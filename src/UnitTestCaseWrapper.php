@@ -48,7 +48,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
    */
   // To suppress "Possible useless method overriding detected" warning.
   // @codingStandardsIgnoreStart
-  public function createMock(string $originalClassName): MockObject {
+  public function createMockWrapped(string $originalClassName): MockObject {
     return parent::createMock($originalClassName);
   }
   // @codingStandardsIgnoreEnd
@@ -58,7 +58,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
    */
   // To suppress "Possible useless method overriding detected" warning.
   // @codingStandardsIgnoreStart
-  public function createPartialMock(string $originalClassName, array $methods): MockObject {
+  public function createPartialMockWrapped(string $originalClassName, array $methods): MockObject {
     return parent::createPartialMock($originalClassName, $methods);
   }
   // @codingStandardsIgnoreEnd
@@ -154,7 +154,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
       // @todo Reimplement this function locally if the author removes it.
       // @see https://github.com/sebastianbergmann/phpunit/issues/5320
       // @phpstan-ignore-next-line
-      $mockBuilder->addMethods($addMethods);
+      $this->mockBuilderAddMethods($mockBuilder, $addMethods);
     }
     // @todo Try to add enableProxyingToOriginalMethods() function.
     return $mockBuilder->getMock();

@@ -6,9 +6,9 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Plugin\Field\FieldType\ItemStubItem;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests ConfigFactoryStub class.

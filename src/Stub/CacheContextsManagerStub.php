@@ -47,6 +47,7 @@ class CacheContextsManagerStub extends CacheContextsManager {
       $contexts = [$contexts];
     }
     $this->contexts = array_merge($this->contexts, $contexts);
+    // @phpstan-ignore-next-line We should reset the value here.
     unset($this->validContextTokens);
   }
 
@@ -59,6 +60,7 @@ class CacheContextsManagerStub extends CacheContextsManager {
   public function stubSetContexts(array $contexts) {
     $this->stubAllowAnyContexts = FALSE;
     $this->contexts = $contexts;
+    // @phpstan-ignore-next-line We should reset the value here.
     unset($this->validContextTokens);
   }
 

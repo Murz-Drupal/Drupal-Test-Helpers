@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
-use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests the State service from core in the unit tests context.

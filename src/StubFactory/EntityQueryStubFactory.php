@@ -7,10 +7,10 @@ use Drupal\Core\Entity\Query\ConditionInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\Query\Sql\Query;
-use Drupal\test_helpers\Stub\EntityQueryServiceStub;
-use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\Core\Database\Stub\StubConnection;
 use Drupal\Tests\Core\Database\Stub\StubPDO;
+use Drupal\test_helpers\Stub\EntityQueryServiceStub;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * The EntityQueryStub factory.

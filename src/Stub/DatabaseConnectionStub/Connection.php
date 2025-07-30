@@ -7,9 +7,9 @@ use Drupal\Core\Database\Database;
 use Drupal\Core\Database\Query\Upsert;
 use Drupal\Core\Database\Schema;
 use Drupal\Core\Database\Transaction\TransactionManagerInterface;
+use Drupal\Tests\Core\Database\Stub\StubPDO;
 use Drupal\test_helpers\Stub\TransactionManagerStub;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\Core\Database\Stub\StubPDO;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**

@@ -294,63 +294,70 @@ class EntityStubFactory {
           }
 
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          if (!$newDefinition && !isset($this->fieldDefinitions[$name])) {
-            // If we have no exact field type and no defined one, creating
-            // a new definition.
-            $newDefinition = FieldItemListStubFactory::createFieldItemDefinitionStub();
-          }
-          if ($newDefinition) {
-            // We have no overrides, so checking the created definition or
-            // create an item stub.
-            $newDefinition->setName($name);
+          if ($this instanceof FieldableEntityInterface) {
             // @phpstan-ignore-next-line `$this` will be available in the runtime.
-            $this->fieldDefinitions[$name] = $newDefinition;
-            TestHelpers::service('entity_field.manager')->stubAddFieldDefinition($entityTypeId, $bundle, $name, $newDefinition);
-          }
-          /** @var \Drupal\Core\Field\BaseFieldDefinition $definition */
-          // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $definition = $this->fieldDefinitions[$name];
-          if (is_array($fieldTypeConfiguration)) {
-            // We should apply the 'settings' item in a special way.
-            if (isset($fieldTypeConfiguration['settings'])) {
-              $definition->setSettings($fieldTypeConfiguration['settings']);
-              unset($fieldTypeConfiguration['settings']);
+            if (!$newDefinition && !isset($this->fieldDefinitions[$name])) {
+              // If we have no exact field type and no defined one, creating
+              // a new definition.
+              $newDefinition = FieldItemListStubFactory::createFieldItemDefinitionStub();
             }
-            // Merging current configuration array with passed one.
-            if (!empty($fieldTypeConfiguration)) {
-              $definitionSettings = TestHelpers::getPrivateProperty($definition, 'definition');
-              $definitionSettings = $fieldTypeConfiguration + $definitionSettings;
-              TestHelpers::setPrivateProperty($definition, 'definition', $definitionSettings);
-            }
-          }
-
-          $definition->setTargetBundle($bundle);
-
-          if ($definition->getType() == 'entity_reference') {
-            // Initializing storages for known references.
-            switch ($definition->getSetting('target_type')) {
-              // @todo Move it to separate function that knows all core types.
-              case 'user':
-                TestHelpers::getEntityStorage(User::class);
-                break;
-            }
-          }
-          // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $field = TestHelpers::createFieldStub($value, $definition, $name, $this->typedData);
-          if ($entityTypeDefinition->getGroup() == 'configuration') {
-            // @phpstan-ignore-next-line `$this` will be available in the runtime.
-            $this->$name = $value;
-          }
-          else {
-            if (is_object($value)) {
+            if ($newDefinition) {
+              // We have no overrides, so checking the created definition or
+              // create an item stub.
+              $newDefinition->setName($name);
               // @phpstan-ignore-next-line `$this` will be available in the runtime.
-              $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $value;
+              $this->fieldDefinitions[$name] = $newDefinition;
+              TestHelpers::service('entity_field.manager')->stubAddFieldDefinition($entityTypeId, $bundle, $name, $newDefinition);
+            }
+            /** @var \Drupal\Core\Field\BaseFieldDefinition $definition */
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $definition = $this->fieldDefinitions[$name];
+            if (is_array($fieldTypeConfiguration)) {
+              // We should apply the 'settings' item in a special way.
+              if (isset($fieldTypeConfiguration['settings'])) {
+                $definition->setSettings($fieldTypeConfiguration['settings']);
+                unset($fieldTypeConfiguration['settings']);
+              }
+              // Merging current configuration array with passed one.
+              if (!empty($fieldTypeConfiguration)) {
+                $definitionSettings = TestHelpers::getPrivateProperty($definition, 'definition');
+                $definitionSettings = $fieldTypeConfiguration + $definitionSettings;
+                TestHelpers::setPrivateProperty($definition, 'definition', $definitionSettings);
+              }
+            }
+
+            $definition->setTargetBundle($bundle);
+
+            if ($definition->getType() == 'entity_reference') {
+              // Initializing storages for known references.
+              switch ($definition->getSetting('target_type')) {
+                // @todo Move it to separate function that knows all core types.
+                case 'user':
+                  TestHelpers::getEntityStorage(User::class);
+                  break;
+              }
+            }
+            // @phpstan-ignore-next-line `$this` will be available in the runtime.
+            $field = TestHelpers::createFieldStub($value, $definition, $name, $this->typedData);
+            if ($entityTypeDefinition->getGroup() == 'configuration') {
+              // @phpstan-ignore-next-line `$this` will be available in the runtime.
+              $this->$name = $value;
             }
             else {
-              // @phpstan-ignore-next-line `$this` will be available in the runtime.
-              $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
+              if (is_object($value)) {
+                // @phpstan-ignore-next-line `$this` will be available in the runtime.
+                $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $value;
+              }
+              else {
+                // @phpstan-ignore-next-line `$this` will be available in the runtime.
+                $this->fields[$name][LanguageInterface::LANGCODE_DEFAULT] = $field;
+              }
             }
           }
+          else {
+            $this->$name = $value;
+          }
+
         }
       }
     );

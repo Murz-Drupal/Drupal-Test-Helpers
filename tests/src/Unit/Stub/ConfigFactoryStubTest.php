@@ -6,8 +6,8 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Config\Config;
 use Drupal\Core\Config\ImmutableConfig;
-use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests ConfigFactoryStub class.

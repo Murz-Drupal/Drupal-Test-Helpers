@@ -20,8 +20,6 @@ use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\Plugin\Discovery\AttributeClassDiscovery;
 use Drupal\Core\TypedData\TypedDataInterface;
-use Drupal\test_helpers\lib\MockedFunctionCalls;
-use Drupal\test_helpers\lib\MockedFunctionStorage;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\Stub\CacheFactoryStub;
 use Drupal\test_helpers\Stub\ConfigFactoryStub;
@@ -50,6 +48,8 @@ use Drupal\test_helpers\Stub\TypedDataManagerStub;
 use Drupal\test_helpers\Stub\UrlGeneratorStub;
 use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
+use Drupal\test_helpers\lib\MockedFunctionCalls;
+use Drupal\test_helpers\lib\MockedFunctionStorage;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
@@ -99,6 +99,7 @@ class TestHelpers {
    */
   private const SERVICES_CUSTOM_STUBS = [
     'cache_contexts_manager' => CacheContextsManagerStub::class,
+    'cache.bootstrap' => MemoryBackendStub::class,
     'cache.config' => MemoryBackendStub::class,
     'cache_factory' => CacheFactoryStub::class,
     'class_resolver' => [self::class, 'getClassResolverStub'],
@@ -607,6 +608,11 @@ class TestHelpers {
     // services, but missing in the `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('hook_implementations_map')) {
       $container->setParameter('hook_implementations_map', []);
+    }
+    // The `entity.memory_cache.slots` is required to init some
+    // services, but missing in the `core.services.yml`, so setting it manually.
+    if (!$container->hasParameter('entity.memory_cache.slots')) {
+      $container->setParameter('entity.memory_cache.slots', 1000);
     }
     $classArguments = [];
     foreach ($arguments as $argumentKey => $argument) {
@@ -1635,7 +1641,7 @@ class TestHelpers {
    * @see \Drupal\Tests\UnitTestCase::createMock()
    */
   public static function createMock(string $originalClassName): MockObject {
-    return UnitTestCaseWrapper::getInstance()->createMock($originalClassName);
+    return UnitTestCaseWrapper::getInstance()->createMockWrapped($originalClassName);
   }
 
   /**
@@ -1644,7 +1650,7 @@ class TestHelpers {
    * @see \Drupal\Tests\UnitTestCase::createPartialMock()
    */
   public static function createPartialMock(string $originalClassName, array $methods): MockObject {
-    return UnitTestCaseWrapper::getInstance()->createPartialMock($originalClassName, $methods);
+    return UnitTestCaseWrapper::getInstance()->createPartialMockWrapped($originalClassName, $methods);
   }
 
   /* ************************************************************************ *

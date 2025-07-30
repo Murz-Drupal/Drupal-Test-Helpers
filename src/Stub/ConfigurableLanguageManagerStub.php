@@ -2,6 +2,7 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Language\Language;
@@ -38,14 +39,16 @@ class ConfigurableLanguageManagerStub extends ConfigurableLanguageManager {
     ?ModuleHandlerInterface $module_handler = NULL,
     ?LanguageConfigFactoryOverrideInterface $config_override = NULL,
     ?RequestStack $request_stack = NULL,
+    ?CacheBackendInterface $cacheBackend = NULL,
   ) {
     $default_language ??= TestHelpers::service('language.default');
     $config_factory ??= TestHelpers::service('config.factory');
     $module_handler ??= TestHelpers::service('module_handler');
     $config_override ??= TestHelpers::service('language.config_factory_override', LanguageConfigFactoryOverride::class);
     $request_stack ??= TestHelpers::service('request_stack');
-
-    parent::__construct($default_language, $config_factory, $module_handler, $config_override, $request_stack);
+    $request_stack ??= TestHelpers::service('request_stack');
+    $cacheBackend ??= TestHelpers::service('cache.bootstrap');
+    parent::__construct($default_language, $config_factory, $module_handler, $config_override, $request_stack, $cacheBackend);
 
   }
 

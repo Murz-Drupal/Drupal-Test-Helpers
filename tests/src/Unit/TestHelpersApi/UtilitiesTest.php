@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\test_helpers\TestHelpers;
 use Drupal\Tests\UnitTestCase;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests utility functions.

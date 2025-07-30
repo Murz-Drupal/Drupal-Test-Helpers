@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * @coversDefaultClass \Drupal\test_helpers\Stub\ModuleHandlerStub
@@ -28,14 +28,20 @@ class ModuleHandlerStubTest extends UnitTestCase {
       [],
       $stub->getModuleList()
     );
-    $stub->addModule('node', 'core/modules/node');
-    $stub->addModule('comment', 'core/modules/comment');
+    $stub->stubAddModule('node', 'core/modules/node');
+    $stub->stubAddModule('comment', 'core/modules/comment');
+    $stub->stubAddProfile('minimal', 'core/profiles/minimal');
     $modulesList = $stub->getModuleList();
-    $this->assertCount(2, $modulesList);
-    $moduleNode = $modulesList['node'];
+    $this->assertCount(3, $modulesList);
+    $moduleCheck = $modulesList['node'];
     $this->assertEquals(
       'core/modules/node',
-      $moduleNode->getPath()
+      $moduleCheck->getPath()
+    );
+    $moduleCheck = $modulesList['minimal'];
+    $this->assertEquals(
+      'core/profiles/minimal',
+      $moduleCheck->getPath()
     );
   }
 

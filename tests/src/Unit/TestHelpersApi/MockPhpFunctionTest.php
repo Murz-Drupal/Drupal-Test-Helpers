@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
-use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\test_helpers\Unit\TestHelpersApi\TestStubNamespace\TestStub;
 use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\test_helpers\Unit\TestHelpersApi\TestStubNamespace\TestStub;
+use Drupal\test_helpers\TestHelpers;
 
 /**
  * Tests utility functions.

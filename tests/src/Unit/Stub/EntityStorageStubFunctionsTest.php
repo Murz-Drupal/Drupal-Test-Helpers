@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit;
 
+use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\TestHelpers;
-use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests EntityStorageStub internal functionality.

@@ -4,8 +4,8 @@ namespace Drupal\test_helpers\Stub;
 
 use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\test_helpers\lib\StaticLogger;
 use Drupal\test_helpers\TestHelpers;
+use Drupal\test_helpers\lib\StaticLogger;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**

@@ -152,6 +152,20 @@ class HttpClientFactoryStub extends ClientFactory {
    * {@inheritdoc}
    */
   public function fromOptions(array $config = []) {
+    $config = $this->stubAlterConfigOptions($config);
+    return parent::fromOptions($config);
+  }
+
+  /**
+   * Allows altering config options before creating the client.
+   *
+   * @param array $config
+   *   The configuration options for the HTTP client.
+   *
+   * @return array
+   *   The altered configuration options.
+   */
+  protected function stubAlterConfigOptions(array $config = []): array {
     // Setting the default handler, if the custom one is not set.
     $config['handler'] ??= $this->stack;
 
@@ -273,7 +287,7 @@ class HttpClientFactoryStub extends ClientFactory {
     $config['handler']->remove(self::HANDLER_NAME_CUSTOM_RESPONSES_STACK);
     $config['handler']->unshift($handlerCustomResponsesStack, self::HANDLER_NAME_CUSTOM_RESPONSES_STACK);
 
-    return parent::fromOptions($config);
+    return $config;
   }
 
   /**

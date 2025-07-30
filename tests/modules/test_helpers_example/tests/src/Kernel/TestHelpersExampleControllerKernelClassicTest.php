@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers_example\Kernel;
 
 use Drupal\Core\Datetime\Entity\DateFormat;
+use Drupal\Tests\field\Kernel\FieldKernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
-use Drupal\Tests\field\Kernel\FieldKernelTestBase;
 use Drupal\user\Entity\User;
 
 /**
