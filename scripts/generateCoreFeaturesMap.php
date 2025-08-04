@@ -10,7 +10,6 @@
 
 use Drupal\Core\DrupalKernel;
 use Drupal\Core\Site\Settings;
-use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Yaml\Yaml;
 
@@ -18,24 +17,6 @@ use Symfony\Component\Yaml\Yaml;
 // For 8.0 - use drupal/drupal instead of drupal/recommended-project and
 // drush/drush:^8.
 // For versions less than 9.3 - use PHP < 8.1.
-// @codingStandardsIgnoreLine
-const ONE_LINER = '
-export DRUPAL_VERSION=9.4
-export ISSUE_ID=3388492
-export ISSUE_BRANCH=3388492-parent-services
-rm -rf ./drupal_$DRUPAL_VERSION && composer create-project drupal/recommended-project:~$DRUPAL_VERSION.0 drupal_$DRUPAL_VERSION && \
-cd drupal_$DRUPAL_VERSION && composer require drush/drush && composer require drupal/test_helpers --prefer-source && ./vendor/bin/drush si --db-url=sqlite://db.sqlite -y && \
-cd ./web/modules/contrib/test_helpers && \
-git remote add core-features git@git.drupal.org:issue/test_helpers-$ISSUE_ID.git && \
-git fetch core-features && \
-git checkout core-features/$ISSUE_BRANCH && \
-git checkout $ISSUE_BRANCH && \
-./scripts/generateCoreFeaturesMap.php && \
-git commit -a -m "Drupal $DRUPAL_VERSION services" && \
-git push && \
-cd ../../../../..
-';
-
 $contents = <<<EOT
 <?php
 
@@ -51,12 +32,25 @@ $contents = <<<EOT
 
 EOT;
 
-require_once __DIR__ . '/../src/TestHelpers.php';
-$drupalRoot = TestHelpers::getDrupalRoot();
-chdir($drupalRoot);
-$autoloader = include_once $drupalRoot . '/autoload.php';
+const CORE_DIRECTORY = 'core';
+const CORE_SERVICES_FILE = CORE_DIRECTORY . '/core.services.yml';
+const DRUPAL_BOOTSTRAP_FILE = CORE_DIRECTORY . '/includes/bootstrap.inc';
 
-require_once $drupalRoot . '/core/includes/bootstrap.inc';
+if (!file_exists(DRUPAL_BOOTSTRAP_FILE)) {
+  throw new \Exception("Run this script only from the Drupal Root directory. Drupal bootstrap file not found: " . DRUPAL_BOOTSTRAP_FILE);
+}
+
+// Disable PHPStan error:
+// Path in include_once() "autoload.php" is not a file or it does not exist.
+// because the file will be present in the runtime.
+// @phpstan-ignore-next-line
+$autoloader = include_once 'autoload.php';
+
+// Disable PHPStan error:
+// Path in require_once() "core/includes/bootstrap.inc" is not a file or it does
+// not exist because the file will be present in the runtime.
+// @phpstan-ignore-next-line
+require_once DRUPAL_BOOTSTRAP_FILE;
 
 $request = Request::createFromGlobals();
 Settings::initialize(dirname(__DIR__, 2), DrupalKernel::findSitePath($request), $autoloader);
@@ -77,7 +71,7 @@ const TEST_HELPERS_DRUPAL_CORE_SERVICE_MAP = [
 EOT;
 
 $files = [];
-$it = new RecursiveDirectoryIterator($drupalRoot . '/core');
+$it = new RecursiveDirectoryIterator(CORE_DIRECTORY);
 foreach (new RecursiveIteratorIterator($it) as $file) {
   if (strpos($file, '/tests/')) {
     continue;
@@ -87,22 +81,30 @@ foreach (new RecursiveIteratorIterator($it) as $file) {
   }
 }
 
-if ($files) {
-  foreach ($files as $file) {
-    $data = Yaml::parseFile($file, Yaml::PARSE_CUSTOM_TAGS);
-    $fileRelative = ltrim(str_replace($drupalRoot, '', $file), '/');
-    foreach (array_keys($data['services'] ?? []) as $service) {
-      if (
-        strpos($service, '\\') !== FALSE
-        || $service == '_defaults'
-      ) {
-        continue;
-      }
-      $contents .= <<<EOT
-  '$service' => '$fileRelative',
+$servicesAdded = [];
+foreach ($files as $file) {
+  $data = Yaml::parseFile($file, Yaml::PARSE_CUSTOM_TAGS);
+  foreach (array_keys($data['services'] ?? []) as $service) {
+    // Prevent adding duplicated services.
+    // This is a case for the 'pgsql.entity.query.sql' service at least,
+    // that is present in two files:
+    // - core/core.services.yml
+    // - core/modules/pgsql/pgsql.services.yml
+    // We need to add it only once.
+    if (in_array($service, $servicesAdded)) {
+      continue;
+    }
+    $servicesAdded[] = $service;
+    if (
+      strpos($service, '\\') !== FALSE
+      || $service == '_defaults'
+    ) {
+      continue;
+    }
+    $contents .= <<<EOT
+  '$service' => '$file',
 
 EOT;
-    }
   }
 }
 
@@ -128,8 +130,10 @@ $contents .= <<<EOT
 EOT;
 
 // Generating default parameters.
-$data = Yaml::parseFile($drupalRoot . '/core/core.services.yml', Yaml::PARSE_CUSTOM_TAGS);
+$data = Yaml::parseFile('core/core.services.yml', Yaml::PARSE_CUSTOM_TAGS);
 $parametersJson = json_encode($data['parameters']);
+// We should encode double backslashes twice to make JSON string valid.
+$parametersJson = str_replace('\\', '\\\\', $parametersJson);
 $contents .= <<<EOT
 
 const TEST_HELPERS_DRUPAL_CORE_PARAMETERS = '$parametersJson';

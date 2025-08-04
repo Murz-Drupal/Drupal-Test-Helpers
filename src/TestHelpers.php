@@ -589,28 +589,38 @@ class TestHelpers {
         self::loadParametersFromYamlFile(self::getDrupalRoot() . DIRECTORY_SEPARATOR . 'core/core.services.yml');
       }
     }
-    // The `memory_cache_bins` is required to init some services, but missing
-    // in the `core.services.yml`, so setting it manually.
-    if (!$container->hasParameter('memory_cache_bins')) {
-      $container->setParameter('memory_cache_bins', []);
+    if (
+      !$container->hasParameter('app.root')
+      || $container->getParameter('app.root') == ''
+    ) {
+      $container->setParameter('app.root', self::getDrupalRoot());
     }
-    // The `cache_default_bin_backends` is required to init some services, but
-    // missing in the `core.services.yml`, so setting it manually.
+
+    // These parameters are set on the runtime by the function
+    // ListCacheBinsPass::process().
+    if (!$container->hasParameter('cache_bins')) {
+      $container->setParameter('cache_bins', []);
+    }
     if (!$container->hasParameter('cache_default_bin_backends')) {
       $container->setParameter('cache_default_bin_backends', []);
+    }
+    if (!$container->hasParameter('memory_cache_bins')) {
+      $container->setParameter('memory_cache_bins', []);
     }
     // The `memory_cache_default_bin_backends` is required to init some
     // services, but missing in the `core.services.yml`, so setting it manually.
     if (!$container->hasParameter('memory_cache_default_bin_backends')) {
       $container->setParameter('memory_cache_default_bin_backends', []);
     }
-    // The `hook_implementations_map` is required to init some
-    // services, but missing in the `core.services.yml`, so setting it manually.
+
+    // The `hook_implementations_map` is set on the runtime by the
+    // function HookCollectorPass::writeImplementationsToContainer().
     if (!$container->hasParameter('hook_implementations_map')) {
       $container->setParameter('hook_implementations_map', []);
     }
-    // The `entity.memory_cache.slots` is required to init some
-    // services, but missing in the `core.services.yml`, so setting it manually.
+
+    // The `entity.memory_cache.slots` should be present from the core
+    // services map, but in some cases it is missing. Force it to be set.
     if (!$container->hasParameter('entity.memory_cache.slots')) {
       $container->setParameter('entity.memory_cache.slots', 1000);
     }
@@ -2068,6 +2078,9 @@ EOT;
   private static function loadParametersFromJson(string $json, bool $override = TRUE): void {
     $container = self::getContainer();
     $content = json_decode($json, JSON_OBJECT_AS_ARRAY);
+    if ($content === NULL) {
+      throw new \Exception("The parameters JSON data in the file CoreFeaturesMap.[CORE_VERSION].php is invalid: $json");
+    }
     foreach ($content ?? [] as $key => $value) {
       if ($override || !$container->hasParameter($key)) {
         $container->setParameter($key, $value);
