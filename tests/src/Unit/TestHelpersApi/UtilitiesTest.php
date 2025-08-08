@@ -7,17 +7,20 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests utility functions.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'addIteratorToMock')]
 class UtilitiesTest extends UnitTestCase {
 
   /**
-   * @covers ::addIteratorToMock
+   * Tests the addIteratorToMock function.
    */
   public function testAddIteratorToMock() {
     $itemValues = ['foo', 'bar'];

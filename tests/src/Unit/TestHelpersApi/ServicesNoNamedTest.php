@@ -7,15 +7,20 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\Yaml\Parser;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
+ * Tests for services without explicit names.
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'service')]
 class ServicesNoNamedTest extends UnitTestCase {
 
   /**
-   * @covers ::service
+   * Tests the service() method with a service from another namespace.
    */
   public function testInitServiceOtherNamespace() {
     if (version_compare(\Drupal::VERSION, '10.0', '<')) {

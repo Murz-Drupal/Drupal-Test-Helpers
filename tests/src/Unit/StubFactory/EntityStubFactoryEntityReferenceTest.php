@@ -9,18 +9,23 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
+use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\user\Entity\User;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests LanguageManagerStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\StubFactory\EntityStubFactory
- * @group test_helpers
+ * Tests EntityStubFactory class.
  */
+#[CoversClass(EntityStubFactory::class)]
+#[CoversClass(FieldItemListStubFactory::class)]
+#[Group('test_helpers')]
+#[CoversMethod(FieldItemListStubFactory::class, 'createFieldItemDefinitionStub')]
 class EntityStubFactoryEntityReferenceTest extends UnitTestCase {
 
   /**

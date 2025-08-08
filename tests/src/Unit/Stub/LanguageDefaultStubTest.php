@@ -6,24 +6,32 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Language\Language;
 use Drupal\Core\Language\LanguageManager;
+use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests LanguageDefaultStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub
- * @group test_helpers
  */
+#[CoversClass(ConfigurableLanguageManagerStub::class)]
+#[CoversClass(LanguageDefaultStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(ConfigurableLanguageManagerStub::class, '__construct')]
+#[CoversMethod(ConfigurableLanguageManagerStub::class, 'stubAddLanguage')]
+#[CoversMethod(ConfigurableLanguageManagerStub::class, 'getCurrentLanguage')]
+#[CoversMethod(LanguageDefaultStub::class, 'set')]
+#[CoversMethod(LanguageDefaultStub::class, 'stubSetByCode')]
 class LanguageDefaultStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::stubAddLanguage
+   * Tests the LanguageDefaultStub methods.
    */
   public function testStub() {
-    /** @var \Drupal\test_helpers\Stub\LanguageDefaultStub */
+    /** @var \Drupal\test_helpers\Stub\LanguageDefaultStub $stub */
     $stub = TestHelpers::service('language.default');
     $languageManager = TestHelpers::service('language_manager');
 

@@ -5,20 +5,24 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Component\Render\MarkupInterface;
+use Drupal\test_helpers\Stub\RendererStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests RendererStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\RendererStub
- * @group test_helpers
  */
+#[CoversClass(RendererStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(RendererStub::class, '__construct')]
+#[CoversMethod(RendererStub::class, 'doRender')]
 class RendererStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::doRender
+   * Tests the render method of RendererStub.
    */
   public function testStub() {
     $service = TestHelpers::service('renderer');

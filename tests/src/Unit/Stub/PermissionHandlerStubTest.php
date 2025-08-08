@@ -4,21 +4,25 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use Drupal\test_helpers\Stub\PermissionHandlerStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests PermissionHandlerStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\PermissionHandlerStub
- * @group test_helpers
  */
+#[CoversClass(PermissionHandlerStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(PermissionHandlerStub::class, 'stubSetPermissions')]
+#[CoversMethod(PermissionHandlerStub::class, 'stubAddPermissions')]
+#[CoversMethod(PermissionHandlerStub::class, 'stubDeletePermissions')]
 class PermissionHandlerStubTest extends UnitTestCase {
 
   /**
-   * @covers ::stubSetPermissions
-   * @covers ::stubAddPermissions
-   * @covers ::stubDeletePermissions
+   * Tests the PermissionHandlerStub API.
    */
   public function testStub() {
     $service = TestHelpers::service('user.permissions');

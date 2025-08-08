@@ -7,17 +7,20 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Query helper functions.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'findQueryCondition')]
 class QueryHelpersTest extends UnitTestCase {
 
   /**
-   * @covers ::findQueryCondition
+   * Tests the findQueryCondition function.
    */
   public function testFindQueryCondition() {
     TestHelpers::saveEntity(Node::class);

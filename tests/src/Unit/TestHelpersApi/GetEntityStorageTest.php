@@ -6,20 +6,27 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\taxonomy\Entity\Term;
+use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
+use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Query helper functions.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[CoversClass(EntityStorageStubFactory::class)]
+#[CoversClass(EntityTypeManagerStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'getEntityStorage')]
+#[CoversMethod(EntityStorageStubFactory::class, 'create')]
+#[CoversMethod(EntityTypeManagerStub::class, 'stubGetOrCreateStorage')]
 class GetEntityStorageTest extends UnitTestCase {
 
   /**
-   * @covers ::getEntityStorage
-   * @covers \Drupal\test_helpers\StubFactory\EntityStorageStubFactory::create
-   * @covers \Drupal\test_helpers\Stub\EntityTypeManagerStub::stubGetOrCreateStorage
+   * Tests the getEntityStorage() function.
    */
   public function testGetEntityStorage() {
     $storage1 = TestHelpers::getEntityStorage(Term::class, NULL, FALSE);

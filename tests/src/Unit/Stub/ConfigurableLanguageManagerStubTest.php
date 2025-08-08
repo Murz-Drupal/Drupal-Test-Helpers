@@ -9,18 +9,21 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests ConfigurableLanguageManagerStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub
- * @group test_helpers
  */
+#[CoversClass(ConfigurableLanguageManagerStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(ConfigurableLanguageManagerStub::class, '__construct')]
+#[CoversMethod(ConfigurableLanguageManagerStub::class, 'stubAddLanguage')]
 class ConfigurableLanguageManagerStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::stubAddLanguage
+   * Tests the ConfigurableLanguageManagerStub methods.
    */
   public function testStub() {
     /** @var \Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub */
@@ -42,10 +45,11 @@ class ConfigurableLanguageManagerStubTest extends UnitTestCase {
     $languages = $configurableLanguageManagerStub->getLanguages();
     $this->assertCount(3, $languages);
     $this->assertEquals('DE custom language', $languages['de-xx']->getName());
+
   }
 
   /**
-   * @covers ::stubAddLanguage
+   * Tests the ConfigurableLanguageManagerStub methods.
    */
   public function testStubWithSwitchingDefaultLanguage() {
     /** @var \Drupal\test_helpers\Stub\ConfigurableLanguageManagerStub */
@@ -53,17 +57,17 @@ class ConfigurableLanguageManagerStubTest extends UnitTestCase {
     $stub->stubAddLanguage('fr');
 
     $node = TestHelpers::createEntity(
-      Node::class,
-      [
-        'title' => 'default',
-        'status' => 1,
+    Node::class,
+    [
+      'title' => 'default',
+      'status' => 1,
+    ],
+    [
+      'fr' => [
+        'title' => 'fr',
+        'status' => 0,
       ],
-      [
-        'fr' => [
-          'title' => 'fr',
-          'status' => 0,
-        ],
-      ]
+    ]
     );
     $node->save();
 

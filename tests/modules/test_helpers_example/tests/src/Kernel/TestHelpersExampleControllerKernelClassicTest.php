@@ -10,11 +10,14 @@ use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\user\Entity\User;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers_example\Controller\TestHelpersExampleController
- * @group test_helpers_example
+ * Tests the TestHelpersExampleController.
  */
+#[CoversClass(TestHelpersExampleController::class)]
+#[Group('test_helpers_example')]
 class TestHelpersExampleControllerKernelClassicTest extends FieldKernelTestBase {
 
   /**

@@ -7,11 +7,16 @@ namespace Drupal\Tests\test_helpers\Unit\Utils;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers\utils\AssertSequence;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers\utils\AssertSequence
- * @group test_helpers
+ * Tests AssertSequence utility class.
  */
+#[CoversClass(AssertSequence::class)]
+#[Group('test_helpers')]
+#[CoversMethod(AssertSequence::class, '__construct')]
 class AssertSequenceTest extends UnitTestCase {
 
   /**
@@ -22,7 +27,7 @@ class AssertSequenceTest extends UnitTestCase {
   protected static $assertSequence;
 
   /**
-   * @covers ::__construct
+   * Tests the callEventSubscriber method.
    */
   public function testCallEventSubscriber() {
     // A positive scenario with correct sequence.

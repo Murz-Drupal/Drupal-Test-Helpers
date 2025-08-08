@@ -8,17 +8,20 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers\lib\ConfigFactoryStubCacheInvalidator;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests ConfigFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\lib\ConfigFactoryStubCacheInvalidator
- * @group test_helpers
+ * Tests ConfigFactoryStubCacheInvalidator class.
  */
+#[CoversClass(ConfigFactoryStubCacheInvalidator::class)]
+#[Group('test_helpers')]
+#[CoversMethod(ConfigFactoryStubCacheInvalidator::class, 'invalidateTags')]
 class ConfigFactoryStubCacheInvalidatorTest extends UnitTestCase {
 
   /**
-   * @covers ::invalidateTags
+   * Tests the invalidateTags() method.
    */
   public function testInvalidateTags() {
     $configFactory = TestHelpers::service('config.factory', $this->createMock(ConfigFactoryInterface::class));

@@ -7,18 +7,21 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests ConfigFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\CacheContextsManagerStub
- * @group test_helpers
+ * Tests CacheContextsManagerStub class.
  */
+#[CoversClass(CacheContextsManagerStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(CacheContextsManagerStub::class, '__construct')]
+#[CoversMethod(CacheContextsManagerStub::class, 'stubAddContexts')]
 class CacheContextsManagerStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::stubAddContexts
+   * Tests the CacheContextsManagerStub methods.
    */
   public function testStub() {
     $cacheContextsManagerStub = TestHelpers::service('cache_contexts_manager');

@@ -7,38 +7,47 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Component\Utility\Random;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\TypedData\TypedData;
+use Drupal\test_helpers\UnitTestCaseWrapper;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Construct function.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[CoversClass(UnitTestCaseWrapper::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'getRandomGenerator')]
+#[CoversMethod(UnitTestCaseWrapper::class, 'getRandomGenerator')]
+#[CoversMethod(TestHelpers::class, 'getContainerWithCacheTagsInvalidator')]
+#[CoversMethod(UnitTestCaseWrapper::class, 'getContainerWithCacheTagsInvalidator')]
+#[CoversMethod(TestHelpers::class, 'createPartialMockWithCustomMethods')]
+#[CoversMethod(UnitTestCaseWrapper::class, 'createPartialMockWithCustomMethods')]
 class ProxyFunctionsTest extends UnitTestCase {
 
   /**
-   * @covers ::getRandomGenerator
-   * @covers Drupal\test_helpers\UnitTestCaseWrapper::getRandomGenerator
+   * Tests the getRandomGenerator function.
    */
   public function testGetRandomGenerator() {
     $this->assertInstanceOf(Random::class, TestHelpers::getRandomGenerator());
+
   }
 
   /**
-   * @covers ::getContainerWithCacheTagsInvalidator
-   * @covers \Drupal\test_helpers\UnitTestCaseWrapper::getContainerWithCacheTagsInvalidator
+   * Tests the getContainerWithCacheTagsInvalidator function.
    */
   public function testGetContainerWithCacheTagsInvalidator() {
     $cacheTagsValidator = $this->createMock(CacheTagsInvalidatorInterface::class);
     $this->assertInstanceOf(ContainerInterface::class, TestHelpers::getContainerWithCacheTagsInvalidator($cacheTagsValidator));
+
   }
 
   /**
-   * @covers ::createPartialMockWithCustomMethods
-   * @covers Drupal\test_helpers\UnitTestCaseWrapper::createPartialMockWithCustomMethods
+   * Tests the createPartialMockWithCustomMethods function.
    */
   public function testCreatePartialMockWithCustomMethods() {
     $instance = TestHelpers::createPartialMockWithCustomMethods(TypedData::class, ['getValue'], ['addCacheTags']);

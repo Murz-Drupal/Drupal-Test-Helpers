@@ -7,19 +7,22 @@ namespace Drupal\Tests\test_helpers_example\Unit;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests TestHelpersExampleController with Test Helpers API to check the result.
- *
- * @coversDefaultClass \Drupal\test_helpers_example\Controller\TestHelpersExampleController
- * @group test_helpers_example
  */
+#[CoversClass(TestHelpersExampleController::class)]
+#[Group('test_helpers_example')]
+#[CoversMethod(TestHelpersExampleController::class, '__construct')]
+#[CoversMethod(TestHelpersExampleController::class, 'create')]
+#[CoversMethod(TestHelpersExampleController::class, 'articlesList')]
 class TestHelpersExampleControllerModernResultTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::create
-   * @covers ::articlesList
+   * Tests the articlesList() method using Test Helpers API.
    */
   public function testArticlesList() {
     TestHelpers::service('config.factory')->stubSetConfig('test_helpers_example.settings', ['articles_to_display' => 1]);

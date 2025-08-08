@@ -10,13 +10,24 @@ use Drupal\Core\Database\Query\ConditionInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\DatabaseConnectionStub\Connection;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests ConnectionStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\DatabaseConnectionStub\Connection
- * @group test_helpers
+ * Tests DatabaseConnectionStub class.
  */
+#[CoversClass(Connection::class)]
+#[Group('test_helpers')]
+#[CoversMethod(Connection::class, '__construct')]
+#[CoversMethod(Connection::class, 'stubSetExecuteHandler')]
+#[CoversMethod(Connection::class, 'select')]
+#[CoversMethod(Connection::class, 'delete')]
+#[CoversMethod(Connection::class, 'insert')]
+#[CoversMethod(Connection::class, 'startTransaction')]
+#[CoversMethod(Connection::class, 'popTransaction')]
+#[CoversMethod(Connection::class, 'mockExecuteForMethod')]
+#[CoversMethod(Connection::class, 'stubGetConnection')]
 class DatabaseConnectionStubTest extends UnitTestCase {
 
   /**
@@ -27,14 +38,7 @@ class DatabaseConnectionStubTest extends UnitTestCase {
   protected ConditionInterface $condition;
 
   /**
-   * @covers ::__construct
-   * @covers ::stubSetExecuteHandler
-   * @covers ::select
-   * @covers ::delete
-   * @covers ::insert
-   * @covers ::startTransaction
-   * @covers ::popTransaction
-   * @covers ::mockExecuteForMethod
+   * Tests the stubSetFormat method.
    */
   public function testStubSetFormat() {
     $database = TestHelpers::service('database');
@@ -88,9 +92,6 @@ class DatabaseConnectionStubTest extends UnitTestCase {
 
   /**
    * Tests Select function.
-   *
-   * @covers ::__construct
-   * @covers ::select
    */
   public function testSelect() {
     TestHelpers::service('database');
@@ -114,8 +115,6 @@ class DatabaseConnectionStubTest extends UnitTestCase {
 
   /**
    * Tests the static wrapper for Database::getConnection().
-   *
-   * @covers ::stubGetConnection
    */
   public function testStubGetConnection() {
     $connectionClassName = Connection::class;

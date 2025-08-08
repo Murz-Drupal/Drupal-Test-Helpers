@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stubs;
 
 use Drupal\Core\Entity\Query\ConditionInterface;
+use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use Drupal\Tests\UnitTestCase;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\FieldStorageConfigStorage;
@@ -17,13 +18,18 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\user\Entity\User;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests LanguageManagerStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\StubFactory\EntityStubFactory
- * @group test_helpers
+ * Tests EntityStubFactory class.
  */
+#[CoversClass(EntityStubFactory::class)]
+#[CoversClass(EntityStorageStubFactory::class)]
+#[Group('test_helpers')]
+#[CoversMethod(EntityStubFactory::class, 'create')]
+#[CoversMethod(EntityStorageStubFactory::class, 'create')]
 class EntityStubFactoryTest extends UnitTestCase {
 
   /**
@@ -34,7 +40,7 @@ class EntityStubFactoryTest extends UnitTestCase {
   protected ConditionInterface $condition;
 
   /**
-   * @covers ::create
+   * Tests the user and node types.
    */
   public function testUserAndNodeTypes() {
     TestHelpers::saveEntity(NodeType::class, [
@@ -84,7 +90,7 @@ class EntityStubFactoryTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::create
+   * Test Term type.
    */
   public function testTermType() {
     $entity1 = TestHelpers::createEntity(Term::class, [

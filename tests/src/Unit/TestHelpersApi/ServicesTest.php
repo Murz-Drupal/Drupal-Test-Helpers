@@ -15,21 +15,27 @@ use Drupal\language\LanguageNegotiationMethodManager;
 use Drupal\media\Plugin\Derivative\DynamicLocalTasks;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Query helper functions.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'service')]
+#[CoversMethod(TestHelpers::class, 'setServices')]
+#[CoversMethod(TestHelpers::class, 'createClass')]
+#[CoversMethod(TestHelpers::class, 'initServiceFromYaml')]
+#[CoversMethod(TestHelpers::class, 'initService')]
+#[CoversMethod(TestHelpers::class, 'initEntityTypeManagerStubs')]
 class ServicesTest extends UnitTestCase {
 
   use StringTranslationTrait;
 
   /**
-   * @covers ::service
-   * @covers ::setServices
-   * @covers ::createClass
+   * Tests the service() and setServices() methods.
    */
   public function testServices() {
     /** @var \Drupal\Core\Entity\EntityTypeInterface|\PHPUnit\Framework\MockObject\MockObject $entityType */
@@ -78,7 +84,6 @@ class ServicesTest extends UnitTestCase {
     }
 
     /* Testing services initialization. */
-
     // Resetting the container to have a clear environment.
     TestHelpers::getContainer(TRUE);
 
@@ -98,7 +103,7 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::service
+   * Tests the service() and setServices() methods.
    */
   public function testServiceMocked() {
     $testClass = $this;
@@ -150,7 +155,7 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::initServiceFromYaml
+   * Tests the service() and setServices() methods.
    */
   public function testInitServiceFromYaml() {
     TestHelpers::service('plugin.manager.language_negotiation_method', $this->createMock(LanguageNegotiationMethodManager::class));
@@ -176,7 +181,7 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::initService
+   * Tests the service() and setServices() methods.
    */
   public function testInitService() {
     $service = TestHelpers::initService(LanguageNegotiationMethodManager::class);
@@ -200,7 +205,7 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::createClass
+   * Creates a class instance with the given parameters.
    */
   public function testCreateClass() {
     TestHelpers::setServices([
@@ -217,7 +222,7 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::initEntityTypeManagerStubs
+   * Tests the initEntityTypeManagerInterface.
    */
   public function testInitEntityTypeManagerStubs() {
     TestHelpers::initEntityTypeManagerStubs();
@@ -226,7 +231,7 @@ class ServicesTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::initService
+   * Tests the initService() method with a service that has a parent.
    */
   public function testInitServiceWithParent() {
     $logger = TestHelpers::service('logger.channel.default');

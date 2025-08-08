@@ -7,15 +7,20 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers\Stub\ModuleHandlerStub
- * @group test_helpers
+ * Tests ModuleHandlerStub class.
  */
+#[CoversClass(ModuleHandlerStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(ModuleHandlerStub::class, '__construct')]
 class ModuleHandlerStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
+   * Tests the ModuleHandlerStub API.
    */
   public function testStub() {
     $stub = TestHelpers::service('module_handler');

@@ -4,21 +4,25 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use Drupal\test_helpers\Stub\RequestStackStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests UrlGeneratorStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\RequestStackStub
- * @group test_helpers
+ * Tests RequestStackStub class.
  */
+#[CoversClass(RequestStackStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(RequestStackStub::class, '__construct')]
+#[CoversMethod(RequestStackStub::class, 'push')]
 class RequestStackStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::push
+   * Tests the RequestStackStub toString method.
    */
   public function testToString() {
     $service = TestHelpers::service('request_stack');

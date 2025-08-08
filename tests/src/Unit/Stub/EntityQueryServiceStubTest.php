@@ -4,21 +4,25 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit;
 
+use Drupal\test_helpers\Stub\EntityQueryServiceStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests EntityQueryServiceStubTest class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\EntityQueryServiceStub
- * @group test_helpers
  */
+#[CoversClass(EntityQueryServiceStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(EntityQueryServiceStub::class, '__construct')]
+#[CoversMethod(EntityQueryServiceStub::class, 'get')]
 class EntityQueryServiceStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::get
+   * Tests the stubSetExecuteHandler method and checks if the conditions match.
    */
   public function testMatchingConditions() {
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager */
@@ -33,7 +37,7 @@ class EntityQueryServiceStubTest extends UnitTestCase {
     /** @var \Drupal\test_helpers\Stub\EntityQueryServiceStub $entityQuerySql */
     $entityQuerySql = \Drupal::service('entity.query.sql');
     $entityQuerySql->stubSetExecuteHandler(function () use ($entityQueryTestResult, $titleValues, $testClass) {
-      /** @var \Drupal\Core\Database\Query\SelectInterface|\Drupal\test_helpers\Stub\EntityQueryServiceStub $this */
+      /** @var \Drupal\Core\Database\Query\SelectInterface|EntityQueryServiceStub $this */
       // Checking that mandatory conditions are present in the query.
       $conditionsMandatory = $this->andConditionGroup();
       $conditionsMandatory->condition('title', $titleValues, 'IN');

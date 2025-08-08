@@ -17,19 +17,22 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\user\UserInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests TestHelpersExampleController using a classic approach.
- *
- * @coversDefaultClass \Drupal\test_helpers_example\Controller\TestHelpersExampleController
- * @group test_helpers_example
  */
+#[CoversClass(TestHelpersExampleController::class)]
+#[Group('test_helpers_example')]
+#[CoversMethod(TestHelpersExampleController::class, '__construct')]
+#[CoversMethod(TestHelpersExampleController::class, 'create')]
+#[CoversMethod(TestHelpersExampleController::class, 'articlesList')]
 class TestHelpersExampleControllerClassicTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::create
-   * @covers ::articlesList
+   * Tests the articlesList() method.
    */
   public function testArticlesList() {
     $entityQuery = $this->createMock(QueryInterface::class);

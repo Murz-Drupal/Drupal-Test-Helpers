@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use Drupal\test_helpers\Stub\RouteProviderStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCompiler;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests UrlGeneratorStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\RouteProviderStub
- * @group test_helpers
  */
+#[CoversClass(RouteProviderStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(RouteProviderStub::class, 'stubAddRoute')]
+#[CoversMethod(RouteProviderStub::class, 'stubAddRouteByPath')]
 class RouteProviderStubTest extends UnitTestCase {
 
   /**
-   * @covers ::stubAddRoute
-   * @covers ::stubAddRouteByPath
+   * Tests the RouteProviderStub methods.
    */
   public function testGeneral() {
     $service = TestHelpers::service('router.route_provider');

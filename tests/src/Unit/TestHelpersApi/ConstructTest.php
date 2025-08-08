@@ -6,17 +6,20 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Construct function.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, '__construct')]
 class ConstructTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
+   * Tests the __construct() method.
    */
   public function testConstruct() {
     try {

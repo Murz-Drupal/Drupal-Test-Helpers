@@ -7,17 +7,24 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Component\Transliteration\PhpTransliteration;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CreateEntityStub API function.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'getModuleRoot')]
+#[CoversMethod(TestHelpers::class, 'getModuleName')]
+#[CoversMethod(TestHelpers::class, 'getCallerInfo')]
+#[CoversMethod(TestHelpers::class, 'getDrupalRoot')]
+#[CoversMethod(TestHelpers::class, 'getModuleFilePath')]
 class GetModulePathsApiGroupTest extends UnitTestCase {
 
   /**
-   * @covers ::getModuleRoot
+   * Tests the getModuleRoot() function.
    */
   public function testGetModuleRoot() {
     $filePath = TestHelpers::getClassFile(TestHelpers::class);
@@ -55,46 +62,48 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
     foreach ($testSets as $set) {
       $this->assertEquals($set[0], TestHelpers::getModuleRoot($set[1], $set[2]));
     }
+
   }
 
   /**
-   * @covers ::getModuleName
+   * Tests the getModuleName() function.
    */
   public function testGetModuleName() {
     $testSets = [
-      [
-        'my_module',
-        'Drupal\my_module\Controller',
-      ],
-      [
-        'test_helpers',
-        'Drupal\Tests\test_helpers\Unit',
-      ],
-      [
-        'test_helpers',
-        'Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi',
-      ],
-      [
-        'core',
-        PhpTransliteration::class,
-      ],
-      [
-        'test_helpers',
-        NULL,
-      ],
-      [
-        'test_helpers',
-        0,
-      ],
+    [
+      'my_module',
+      'Drupal\my_module\Controller',
+    ],
+    [
+      'test_helpers',
+      'Drupal\Tests\test_helpers\Unit',
+    ],
+    [
+      'test_helpers',
+      'Drupal\Tests\test_helpers\Unit\UnitTestHelpersApi',
+    ],
+    [
+      'core',
+      PhpTransliteration::class,
+    ],
+    [
+      'test_helpers',
+      NULL,
+    ],
+    [
+      'test_helpers',
+      0,
+    ],
     ];
 
     foreach ($testSets as $set) {
       $this->assertEquals($set[0], TestHelpers::getModuleName($set[1]));
     }
+
   }
 
   /**
-   * @covers ::getCallerInfo
+   * Tests the getCallerFile() function.
    */
   public function testGetCallerFile() {
     $this->assertEquals([
@@ -127,18 +136,20 @@ class GetModulePathsApiGroupTest extends UnitTestCase {
       'function' => __FUNCTION__,
       'class' => 'Drupal\Tests\test_helpers\Unit\TestHelpersApi\GetModulePathsApiGroupTest',
     ], $this->testCallerHelper2(3));
+
   }
 
   /**
-   * @covers ::getDrupalRoot
+   * Tests the getDrupalRoot() function.
    */
   public function testGetDrupalRoot() {
     $path = TestHelpers::getDrupalRoot();
     $this->assertTrue(file_exists($path . '/core/lib/Drupal.php'));
+
   }
 
   /**
-   * @covers ::getModuleFilePath
+   * Tests the getModuleFilePath() function.
    */
   public function testGetModuleFilePath() {
     $path = TestHelpers::getModuleFilePath('test_helpers.info.yml');

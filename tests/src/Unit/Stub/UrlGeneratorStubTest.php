@@ -5,20 +5,24 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Url;
+use Drupal\test_helpers\Stub\UrlGeneratorStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests UrlGeneratorStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\UrlGeneratorStub
- * @group test_helpers
  */
+#[CoversClass(UrlGeneratorStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(UrlGeneratorStub::class, '__construct')]
 class UrlGeneratorStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
+   * Tests the toString method of UrlGeneratorStub.
    */
   public function testToString() {
     TestHelpers::service('url_generator');

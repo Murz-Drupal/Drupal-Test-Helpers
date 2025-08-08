@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit;
 
+use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests EntityStorageStub internal functionality.
- *
- * @coversDefaultClass \Drupal\test_helpers\StubFactory\EntityStorageStubFactory
- * @group test_helpers
  */
+#[CoversClass(EntityStorageStubFactory::class)]
+#[Group('test_helpers')]
+#[CoversMethod(EntityStorageStubFactory::class, '__construct')]
 class EntityStorageStubFunctionsTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
+   * Tests the generateNewEntityId method of EntityStorageStubFactory.
    */
   public function testGenerateNewEntityId() {
     TestHelpers::saveEntity(Node::class, ['nid' => 42]);

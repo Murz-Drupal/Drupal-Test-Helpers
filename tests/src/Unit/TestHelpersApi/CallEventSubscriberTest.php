@@ -8,17 +8,20 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CreateEntityStub API function.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'callEventSubscriber')]
 class CallEventSubscriberTest extends UnitTestCase {
 
   /**
-   * @covers ::callEventSubscriber
+   * Tests the callEventSubscriber function.
    */
   public function testCallEventSubscriber() {
     $event = new EventStub();
@@ -66,7 +69,7 @@ class CallEventSubscriberTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::callEventSubscriber
+   * Tests the callEventSubscriber function with no tag.
    */
   public function testCallEventSubscriberWithNoTag() {
     $event = new EventStub();
@@ -76,9 +79,9 @@ class CallEventSubscriberTest extends UnitTestCase {
     ];
     try {
       TestHelpers::callEventSubscriber(
-        $serviceInfo,
-        'event3',
-        $event,
+      $serviceInfo,
+      'event3',
+      $event,
       );
       $this->fail('An exception should be thrown.');
     }
@@ -88,9 +91,12 @@ class CallEventSubscriberTest extends UnitTestCase {
   }
 
 }
+
 /**
  * A helper class for testing.
  */
+#[CoversClass(\Drupal\test_helpers\TestHelpers::class)]
+#[Group('test_helpers')]
 class EventStub {
 
   /**
@@ -101,9 +107,12 @@ class EventStub {
   public $value;
 
 }
+
 /**
  * A helper class with interface for testing.
  */
+#[CoversClass(\Drupal\test_helpers\TestHelpers::class)]
+#[Group('test_helpers')]
 class EventSubscriberStub implements EventSubscriberInterface {
 
   use StringTranslationTrait;

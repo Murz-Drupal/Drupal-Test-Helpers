@@ -11,20 +11,24 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\comment\Plugin\Field\FieldType\CommentItem;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests FieldItemListStubFactory class.
- *
- * @coversDefaultClass \Drupal\test_helpers\StubFactory\FieldItemListStubFactory
- * @group test_helpers
  */
+#[CoversClass(FieldItemListStubFactory::class)]
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(FieldItemListStubFactory::class, 'create')]
+#[CoversMethod(FieldItemListStubFactory::class, 'createFieldItemDefinitionStub')]
+#[CoversMethod(TestHelpers::class, 'addFieldPlugin')]
+#[CoversMethod(TestHelpers::class, 'createFieldStub')]
 class FieldItemListStubFactoryTest extends UnitTestCase {
 
   /**
-   * @covers ::create
-   * @covers ::createFieldItemDefinitionStub
-   * @covers \Drupal\test_helpers\TestHelpers::addFieldPlugin
-   * @covers \Drupal\test_helpers\TestHelpers::createFieldStub
+   * Tests the general API of FieldItemListStubFactory.
    */
   public function testGeneralApi() {
     $field = TestHelpers::createFieldStub();

@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests DateFormatterStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\DateFormatterStub
- * @group test_helpers
  */
+#[CoversClass(DateFormatterStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(DateFormatterStub::class, '__construct')]
+#[CoversMethod(DateFormatterStub::class, 'stubSetFormat')]
 class DateFormatterStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::stubSetFormat
+   * Tests the stubSetFormat method of DateFormatterStub.
    */
   public function testStubSetFormat() {
     $dateFormatterStub = TestHelpers::service('date.formatter');

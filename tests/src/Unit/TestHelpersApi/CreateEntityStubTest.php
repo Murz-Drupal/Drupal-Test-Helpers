@@ -7,24 +7,27 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\test_helpers\StubFactory\EntityStubFactory;
 use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CreateEntityStub API function.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[CoversClass(EntityStubFactory::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'createEntity')]
+#[CoversMethod(EntityStubFactory::class, 'create')]
 class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating Entity Stubs.
-   *
-   * @covers ::createEntity
-   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testCreateEntityStub() {
     // Creating mocked entities to test the results.
@@ -121,14 +124,10 @@ class CreateEntityStubTest extends UnitTestCase {
     $node2Entity->delete();
     $nodeLoadedMultiple = \Drupal::service('entity_type.manager')->getStorage('node')->loadMultiple();
     $this->assertCount(2, $nodeLoadedMultiple);
-
   }
 
   /**
    * Tests creating and saving entities.
-   *
-   * @covers ::createEntity
-   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testSaveEntityStub() {
     $node = TestHelpers::saveEntity('node');
@@ -139,9 +138,6 @@ class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating configuration Entities.
-   *
-   * @covers ::createEntity
-   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testEntityStorageStubWithConfigurationEntities() {
     $values = [
@@ -160,9 +156,6 @@ class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating entities with mocked methods.
-   *
-   * @covers ::createEntity
-   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testEntityWithMockedMethods() {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
@@ -191,9 +184,6 @@ class CreateEntityStubTest extends UnitTestCase {
 
   /**
    * Tests creating entities with mocked methods.
-   *
-   * @covers ::createEntity
-   * @covers \Drupal\test_helpers\StubFactory\EntityStubFactory::create
    */
   public function testEntityWithMockedFields() {
     $customField = $this->createMock(FieldItemListInterface::class);

@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\CoreService;
 
+use Drupal\Core\Pager\PagerManager;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests 'pager.manager' core service.
- *
- * @coversDefaultClass \Drupal\Core\Pager\PagerManager
- * @group test_helpers
  */
+#[CoversClass(PagerManager::class)]
+#[Group('test_helpers')]
+#[CoversMethod(PagerManager::class, 'findPage')]
 class PagerManagerTest extends UnitTestCase {
 
   /**
-   * @covers ::findPage
+   * Tests the findPage() method.
    */
   public function testInvalidateTags() {
     $page = 42;

@@ -6,13 +6,17 @@ namespace Drupal\Tests\test_helpers_example\Unit;
 
 use Drupal\Core\Config\ConfigCrudEvent;
 use Drupal\Core\Config\ConfigEvents;
+use Drupal\test_helpers_example\EventSubscriber\ConfigEventsSubscriber;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers_example\EventSubscriber\ConfigEventsSubscriber
- * @group test_helpers_example
+ * Tests the ConfigEventsSubscriber.
  */
+#[CoversClass(ConfigEventsSubscriber::class)]
+#[Group('test_helpers_example')]
 class ConfigEventsSubscriberTest extends UnitTestCase {
 
   /**

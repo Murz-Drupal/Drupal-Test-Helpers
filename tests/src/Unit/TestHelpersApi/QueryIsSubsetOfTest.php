@@ -9,13 +9,16 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Query helper functions.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'queryIsSubsetOf')]
 class QueryIsSubsetOfTest extends UnitTestCase {
 
   /**
@@ -26,10 +29,8 @@ class QueryIsSubsetOfTest extends UnitTestCase {
     throw new \ErrorException($errstr, $errno, $errno, $errfile, $errline);
   }
 
-  // Set the custom error handler.
-
   /**
-   * @covers ::queryIsSubsetOf
+   * Set the custom error handler.
    */
   public function testFindQueryCondition() {
     set_error_handler([$this, 'exceptionErrorHandler']);

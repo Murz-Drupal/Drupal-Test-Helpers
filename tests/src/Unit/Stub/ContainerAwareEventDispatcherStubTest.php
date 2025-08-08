@@ -5,21 +5,25 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Component\EventDispatcher\Event;
+use Drupal\test_helpers\Stub\ContainerAwareEventDispatcherStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests ConfigFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\ContainerAwareEventDispatcherStub
- * @group test_helpers
+ * Tests ContainerAwareEventDispatcherStub class.
  */
+#[CoversClass(ContainerAwareEventDispatcherStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(ContainerAwareEventDispatcherStub::class, '__construct')]
+#[CoversMethod(ContainerAwareEventDispatcherStub::class, 'dispatch')]
+#[CoversMethod(ContainerAwareEventDispatcherStub::class, 'stubGetDispatchedEvents')]
 class ContainerAwareEventDispatcherStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::dispatch
-   * @covers ::stubGetDispatchedEvents
+   * Tests the stubGetDispatchedEvents method of ContainerAwareEventDispatcher.
    */
   public function testStubGetDispatchedEvents() {
     if (version_compare(\Drupal::VERSION, '10.0', '<')) {
@@ -52,6 +56,8 @@ class ContainerAwareEventDispatcherStubTest extends UnitTestCase {
 /**
  * A helper class to test the event dispatcher stub.
  */
+#[CoversClass(ContainerAwareEventDispatcherStub::class)]
+#[Group('test_helpers')]
 class MyCustomEvent extends Event {
 
   /**

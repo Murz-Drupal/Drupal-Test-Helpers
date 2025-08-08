@@ -10,11 +10,14 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers_example\Plugin\Field\NodeAgeComputedFieldItemList;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers_example\ArticlesManagerService
- * @group test_helpers_example
+ * Tests Test Helpers API, related to entities.
  */
+#[CoversClass(NodeAgeComputedFieldItemList::class)]
+#[Group('test_helpers_example')]
 class NodeAgeComputedFieldItemListTest extends UnitTestCase {
 
   /**

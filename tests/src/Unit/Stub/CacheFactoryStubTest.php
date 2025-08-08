@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
+use Drupal\test_helpers\Stub\CacheFactoryStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CacheFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\CacheFactoryStub
- * @group test_helpers
  */
+#[CoversClass(CacheFactoryStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(CacheFactoryStub::class, '__construct')]
 class CacheFactoryStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
+   * Tests the CacheFactoryStub service.
    */
   public function testService() {
     $cacheStatic = TestHelpers::service('cache.static', NULL, NULL, NULL, NULL, TRUE);

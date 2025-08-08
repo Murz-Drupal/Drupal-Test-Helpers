@@ -6,20 +6,24 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Config\Config;
 use Drupal\Core\Config\ImmutableConfig;
+use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests ConfigFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\ConfigFactoryStub
- * @group test_helpers
  */
+#[CoversClass(ConfigFactoryStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(ConfigFactoryStub::class, '__construct')]
+#[CoversMethod(ConfigFactoryStub::class, 'stubSetConfig')]
 class ConfigFactoryStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::stubSetConfig
+   * Tests the stubSetConfig and get methods of ConfigFactoryStub.
    */
   public function testSelect() {
     TestHelpers::getContainer();

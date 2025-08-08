@@ -8,17 +8,20 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests UnitTestHelpers functions.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'getMockedMethod')]
 class GetMockedMethodTest extends UnitTestCase {
 
   /**
-   * @covers ::getMockedMethod
+   * Tests the getMockedMethod() function.
    */
   public function testGetMockedMethod() {
     /** @var \Drupal\Core\Entity\EntityInterface|\PHPUnit\Framework\MockObject\MockObject $mock */

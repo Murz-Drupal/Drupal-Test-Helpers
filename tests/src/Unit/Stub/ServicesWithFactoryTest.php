@@ -7,17 +7,20 @@ namespace Drupal\Tests\test_helpers\Unit\Stub;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests TestHelpers::initServiceFromYaml() function with factory.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'initServiceFromYaml')]
 class ServicesWithFactoryTest extends UnitTestCase {
 
   /**
-   * @covers ::initServiceFromYaml
+   * Tests the service initialization from YAML with a factory.
    */
   public function testService() {
     $yaml = __DIR__ . '/../../../../tests/modules/test_helpers_test/test_helpers_test.services.yml';

@@ -17,20 +17,38 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests HttpClientFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\HttpClientFactoryStub
- * @group test_helpers
- * @group test_helpers_http_client
  */
+#[CoversClass(HttpClientFactoryStub::class)]
+#[Group('test_helpers')]
+#[Group('test_helpers_http_client')]
+#[CoversMethod(HttpClientFactoryStub::class, '__construct')]
+#[CoversMethod(HttpClientFactoryStub::class, 'fromOptions')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubGetStoredResponse')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubStoreResponse')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubGetRequestHash')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubAddCustomResponseToStack')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubSetCustomHandler')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubGetTestName')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubSetTestName')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubGetRequestMetadata')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubDeleteStoredResponseByHash')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubLogResponseUsage')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubRemoveResponseUsageLog')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubGetResponseUsageLog')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubGetHandledRequests')]
+#[CoversMethod(HttpClientFactoryStub::class, 'stubGetLastResponse')]
 class HttpClientFactoryStubTest extends UnitTestCase {
 
   const RESPONSES_STORAGE_DIRECTORY = __DIR__ . '/../../../assets';
 
   /**
-   * @covers ::__construct
+   * Tests the constructor of HttpClientFactoryStub.
    */
   public function testConstructor() {
     $stack = HandlerStack::create();
@@ -68,12 +86,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::__construct
-   * @covers ::fromOptions
-   * @covers ::stubGetStoredResponse
-   * @covers ::stubStoreResponse
-   * @covers ::stubGetRequestHash
-   * @covers ::stubAddCustomResponseToStack
+   * Tests storing and mocking requests with different modes.
    */
   public function testStoringAndMockingRequests() {
     $server = new MockWebServer();
@@ -179,7 +192,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::fromOptions
+   * Tests storing responses with exceptions.
    */
   public function testStoringResponsesWithExceptions() {
     $responses = [
@@ -238,10 +251,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::__construct
-   * @covers ::fromOptions
-   * @covers ::stubGetStoredResponse
-   * @covers ::stubStoreResponse
+   * Tests storing the same request with context.
    */
   public function testStoringSameRequestWithContext() {
     $server = new MockWebServer();
@@ -311,7 +321,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::stubSetCustomHandler
+   * Tests the stubSetCustomHandler method.
    */
   public function testStubSetCustomHandler() {
     $server = new MockWebServer();
@@ -369,9 +379,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::stubGetTestName
-   * @covers ::stubSetTestName
-   * @covers ::stubStoreResponse
+   * Tests the test name sorting in the stored responses.
    */
   public function testTestName() {
     $server = new MockWebServer();
@@ -421,8 +429,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::stubGetRequestMetadata
-   * @covers ::stubDeleteStoredResponseByHash
+   * Tests the stubGetRequestMetadata method.
    */
   public function testGetRequestMetadata() {
     $server = new MockWebServer();
@@ -456,11 +463,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::stubLogResponseUsage
-   * @covers ::stubRemoveResponseUsageLog
-   * @covers ::stubGetResponseUsageLog
-   * @covers ::stubGetHandledRequests
-   * @covers ::stubGetLastResponse
+   * Tests the stubGetResponseUsageLog method.
    */
   public function testResponsesUsageLog() {
     $server = new MockWebServer();

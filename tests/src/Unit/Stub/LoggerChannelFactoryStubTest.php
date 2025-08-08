@@ -5,20 +5,24 @@ declare(strict_types=1);
 namespace Drupal\Tests\test_helpers\Unit\Stub;
 
 use Drupal\Core\Session\UserSession;
+use Drupal\test_helpers\Stub\LoggerChannelFactoryStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests LoggerChannelFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Stub\LoggerChannelFactoryStub
- * @group test_helpers
  */
+#[CoversClass(LoggerChannelFactoryStub::class)]
+#[Group('test_helpers')]
+#[CoversMethod(LoggerChannelFactoryStub::class, '__construct')]
+#[CoversMethod(LoggerChannelFactoryStub::class, 'stubGetLogs')]
 class LoggerChannelFactoryStubTest extends UnitTestCase {
 
   /**
-   * @covers ::__construct
-   * @covers ::stubGetLogs
+   * Tests the API of LoggerChannelFactoryStub.
    */
   public function testApi() {
     $factory = TestHelpers::service('logger.factory');

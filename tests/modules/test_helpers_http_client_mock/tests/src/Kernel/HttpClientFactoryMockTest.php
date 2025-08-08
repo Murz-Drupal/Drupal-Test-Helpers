@@ -7,12 +7,15 @@ namespace Drupal\Tests\test_helpers_http_client_mock\Kernel;
 use Drupal\KernelTests\KernelTestBase;
 use GuzzleHttp\Psr7\Request;
 use donatj\MockWebServer\MockWebServer;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers_http_client_mock\HttpClientFactoryMock
- * @group test_helpers
- * @group test_helpers_http_client_mock
+ * Tests the HttpClientFactoryMock class.
  */
+#[CoversClass(\Drupal\test_helpers_http_client_mock\HttpClientFactoryMock::class)]
+#[Group('test_helpers')]
+#[Group('test_helpers_http_client_mock')]
 class HttpClientFactoryMockTest extends KernelTestBase {
 
   /**

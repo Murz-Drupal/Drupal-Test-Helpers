@@ -7,18 +7,23 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Tests\UnitTestCase;
 use Drupal\Tests\test_helpers\Unit\TestHelpersApi\TestStubNamespace\TestStub;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests utility functions.
- *
- * @coversDefaultClass \Drupal\test_helpers\TestHelpers
- * @group test_helpers
  */
+#[CoversClass(TestHelpers::class)]
+#[Group('test_helpers')]
+#[CoversMethod(TestHelpers::class, 'mockPhpFunction')]
+#[CoversMethod(TestHelpers::class, 'mockPhpFunctionStorage')]
+#[CoversMethod(TestHelpers::class, 'unmockPhpFunction')]
+#[CoversMethod(TestHelpers::class, 'unmockAllPhpFunctions')]
 class MockPhpFunctionTest extends UnitTestCase {
 
   /**
-   * @covers ::mockPhpFunction
-   * @covers ::mockPhpFunctionStorage
+   * Tests the mockPhpFunction function.
    */
   public function testMockPhpFunction() {
     $calls = TestHelpers::mockPhpFunction(
@@ -56,15 +61,14 @@ class MockPhpFunctionTest extends UnitTestCase {
     $this->assertEquals($params1, $calls[0]);
     $this->assertEquals($params2, $calls[1]);
     $this->assertEquals($params3, $calls[2]);
+
   }
 
   /**
-   * @covers ::mockPhpFunction
-   * @covers ::unmockPhpFunction
-   * @covers ::unmockAllPhpFunctions
-   * @covers ::mockPhpFunctionStorage
+   * Tests the mockPhpFunction function.
    */
   public function testMockPhpFunctionRemocking() {
+
     $testStub = new TestStub();
     $implodeParams = [',', ['foo', 'bar']];
     $explodeParams = [',', 'foo,bar'];
@@ -107,7 +111,6 @@ class MockPhpFunctionTest extends UnitTestCase {
   }
 
 }
-
 
 namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi\TestStubNamespace;
 

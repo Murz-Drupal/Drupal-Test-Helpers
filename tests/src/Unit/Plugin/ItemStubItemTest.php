@@ -9,17 +9,21 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Plugin\Field\FieldType\ItemStubItem;
 use Drupal\test_helpers\TestHelpers;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests ConfigFactoryStub class.
- *
- * @coversDefaultClass \Drupal\test_helpers\Plugin\Field\FieldType\ItemStubItem
- * @group test_helpers
+ * Tests ItemStubItem class.
  */
+#[CoversClass(ItemStubItem::class)]
+#[Group('test_helpers')]
+#[CoversMethod(ItemStubItem::class, 'schema')]
+#[CoversMethod(ItemStubItem::class, 'generateSampleValue')]
 class ItemStubItemTest extends UnitTestCase {
 
   /**
-   * @covers ::schema
+   * Tests the schema method of ItemStubItem.
    */
   public function testSchema() {
     $fieldDefinition = $this->createMock(FieldStorageDefinitionInterface::class);
@@ -53,15 +57,16 @@ class ItemStubItemTest extends UnitTestCase {
         ],
       ],
     ], ItemStubItem::schema($fieldDefinition));
+
   }
 
   /**
-   * @covers ::generateSampleValue
+   * Tests generateSampleValue() function.
    */
   public function testGenerateSampleValue() {
     $fieldDefinition = $this->createMock(FieldDefinitionInterface::class);
     $fieldDefinition->method('getSetting')->willReturnMap([
-      ['max_length', 32],
+    ['max_length', 32],
     ]);
     $value = ItemStubItem::generateSampleValue($fieldDefinition);
     $this->assertIsString($value['value']);

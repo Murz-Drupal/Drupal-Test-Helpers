@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\test_helpers_example\Unit;
 
+use Drupal\test_helpers_example\ArticlesManagerService;
 use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\user\Entity\User;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
- * @coversDefaultClass \Drupal\test_helpers_example\ArticlesManagerService
- * @group test_helpers_example
+ * Tests Test Helpers API, related to entities.
  */
+#[CoversClass(ArticlesManagerService::class)]
+#[Group('test_helpers_example')]
 class ArticlesServiceTest extends UnitTestCase {
 
   /**
