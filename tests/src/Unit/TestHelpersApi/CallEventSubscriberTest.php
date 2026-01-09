@@ -9,15 +9,15 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CreateEntityStub API function.
+ *
+ * @covers TestHelpers::callEventSubscriber
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'callEventSubscriber')]
 class CallEventSubscriberTest extends UnitTestCase {
 
   /**

@@ -8,15 +8,15 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\Yaml\Parser;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Test Helpers API, related to services in other namespaces.
+ *
+ * @covers TestHelpers::service
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers_example')]
-#[CoversMethod(TestHelpers::class, 'service')]
 class InitServiceTest extends UnitTestCase {
 
   /**

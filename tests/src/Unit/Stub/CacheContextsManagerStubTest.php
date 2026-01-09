@@ -8,16 +8,16 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\CacheContextsManagerStub;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CacheContextsManagerStub class.
+ *
+ * @covers CacheContextsManagerStub::__construct
+ * @covers CacheContextsManagerStub::stubAddContexts
  */
 #[CoversClass(CacheContextsManagerStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(CacheContextsManagerStub::class, '__construct')]
-#[CoversMethod(CacheContextsManagerStub::class, 'stubAddContexts')]
 class CacheContextsManagerStubTest extends UnitTestCase {
 
   /**

@@ -9,16 +9,16 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests RequestStackStub class.
+ *
+ * @covers RequestStackStub::__construct
+ * @covers RequestStackStub::push
  */
 #[CoversClass(RequestStackStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(RequestStackStub::class, '__construct')]
-#[CoversMethod(RequestStackStub::class, 'push')]
 class RequestStackStubTest extends UnitTestCase {
 
   /**

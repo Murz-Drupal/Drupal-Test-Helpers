@@ -8,16 +8,16 @@ use Drupal\test_helpers\Stub\DateFormatterStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests DateFormatterStub class.
+ *
+ * @covers DateFormatterStub::__construct
+ * @covers DateFormatterStub::stubSetFormat
  */
 #[CoversClass(DateFormatterStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(DateFormatterStub::class, '__construct')]
-#[CoversMethod(DateFormatterStub::class, 'stubSetFormat')]
 class DateFormatterStubTest extends UnitTestCase {
 
   /**

@@ -14,6 +14,9 @@
             "email": "MurzNN@gmail.com"
         }
     ],
+    "require": {
+        "drupal/core": "^11.0 <11.2.0"
+    },
     "require-dev": {
         "donatj/mock-webserver": "^2.7"
     }

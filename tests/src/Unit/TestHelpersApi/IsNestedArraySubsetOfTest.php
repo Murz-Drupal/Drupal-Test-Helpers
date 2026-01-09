@@ -7,15 +7,15 @@ namespace Drupal\Tests\test_helpers\Unit\TestHelpersApi;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests IsNestedArraySubsetOfTest API function.
+ *
+ * @covers TestHelpers::isNestedArraySubsetOf
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'isNestedArraySubsetOf')]
 class IsNestedArraySubsetOfTest extends UnitTestCase {
 
   /**

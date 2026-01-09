@@ -8,18 +8,18 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\Tests\test_helpers\Unit\TestHelpersApi\TestStubNamespace\TestStub;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests utility functions.
+ *
+ * @covers TestHelpers::mockPhpFunction
+ * @covers TestHelpers::mockPhpFunctionStorage
+ * @covers TestHelpers::unmockPhpFunction
+ * @covers TestHelpers::unmockAllPhpFunctions
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'mockPhpFunction')]
-#[CoversMethod(TestHelpers::class, 'mockPhpFunctionStorage')]
-#[CoversMethod(TestHelpers::class, 'unmockPhpFunction')]
-#[CoversMethod(TestHelpers::class, 'unmockAllPhpFunctions')]
 class MockPhpFunctionTest extends UnitTestCase {
 
   /**

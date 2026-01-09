@@ -8,19 +8,19 @@ use Drupal\Core\State\State;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests the State service from core in the unit tests context.
+ *
+ * @covers State::__construct
+ * @covers State::set
+ * @covers State::get
+ * @covers State::getMultiple
+ * @covers State::delete
  */
 #[CoversClass(State::class)]
 #[Group('test_helpers')]
-#[CoversMethod(State::class, '__construct')]
-#[CoversMethod(State::class, 'set')]
-#[CoversMethod(State::class, 'get')]
-#[CoversMethod(State::class, 'getMultiple')]
-#[CoversMethod(State::class, 'delete')]
 class StateServiceTest extends UnitTestCase {
 
   /**

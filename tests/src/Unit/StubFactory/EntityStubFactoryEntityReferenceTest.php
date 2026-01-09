@@ -16,16 +16,16 @@ use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\user\Entity\User;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests EntityStubFactory class.
+ *
+ * @covers FieldItemListStubFactory::createFieldItemDefinitionStub
  */
 #[CoversClass(EntityStubFactory::class)]
 #[CoversClass(FieldItemListStubFactory::class)]
 #[Group('test_helpers')]
-#[CoversMethod(FieldItemListStubFactory::class, 'createFieldItemDefinitionStub')]
 class EntityStubFactoryEntityReferenceTest extends UnitTestCase {
 
   /**

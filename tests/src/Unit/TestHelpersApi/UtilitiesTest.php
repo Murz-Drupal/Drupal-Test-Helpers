@@ -8,15 +8,15 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests utility functions.
+ *
+ * @covers TestHelpers::addIteratorToMock
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'addIteratorToMock')]
 class UtilitiesTest extends UnitTestCase {
 
   /**

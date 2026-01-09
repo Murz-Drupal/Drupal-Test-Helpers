@@ -10,16 +10,16 @@ use Drupal\test_helpers\Stub\ConfigFactoryStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests ConfigFactoryStub class.
+ *
+ * @covers ConfigFactoryStub::__construct
+ * @covers ConfigFactoryStub::stubSetConfig
  */
 #[CoversClass(ConfigFactoryStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(ConfigFactoryStub::class, '__construct')]
-#[CoversMethod(ConfigFactoryStub::class, 'stubSetConfig')]
 class ConfigFactoryStubTest extends UnitTestCase {
 
   /**

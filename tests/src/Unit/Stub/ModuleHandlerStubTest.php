@@ -8,15 +8,15 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\ModuleHandlerStub;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests ModuleHandlerStub class.
+ *
+ * @covers ModuleHandlerStub::__construct
  */
 #[CoversClass(ModuleHandlerStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(ModuleHandlerStub::class, '__construct')]
 class ModuleHandlerStubTest extends UnitTestCase {
 
   /**

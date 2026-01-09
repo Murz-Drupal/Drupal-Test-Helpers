@@ -12,21 +12,21 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Construct function.
+ *
+ * @covers TestHelpers::getRandomGenerator
+ * @covers UnitTestCaseWrapper::getRandomGenerator
+ * @covers TestHelpers::getContainerWithCacheTagsInvalidator
+ * @covers UnitTestCaseWrapper::getContainerWithCacheTagsInvalidator
+ * @covers TestHelpers::createPartialMockWithCustomMethods
+ * @covers UnitTestCaseWrapper::createPartialMockWithCustomMethods
  */
 #[CoversClass(TestHelpers::class)]
 #[CoversClass(UnitTestCaseWrapper::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'getRandomGenerator')]
-#[CoversMethod(UnitTestCaseWrapper::class, 'getRandomGenerator')]
-#[CoversMethod(TestHelpers::class, 'getContainerWithCacheTagsInvalidator')]
-#[CoversMethod(UnitTestCaseWrapper::class, 'getContainerWithCacheTagsInvalidator')]
-#[CoversMethod(TestHelpers::class, 'createPartialMockWithCustomMethods')]
-#[CoversMethod(UnitTestCaseWrapper::class, 'createPartialMockWithCustomMethods')]
 class ProxyFunctionsTest extends UnitTestCase {
 
   /**

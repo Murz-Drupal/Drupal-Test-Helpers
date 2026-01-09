@@ -10,15 +10,15 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\HttpFoundation\Request;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests UrlGeneratorStub class.
+ *
+ * @covers UrlGeneratorStub::__construct
  */
 #[CoversClass(UrlGeneratorStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(UrlGeneratorStub::class, '__construct')]
 class UrlGeneratorStubTest extends UnitTestCase {
 
   /**

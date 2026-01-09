@@ -12,19 +12,19 @@ use Drupal\comment\Plugin\Field\FieldType\CommentItem;
 use Drupal\test_helpers\StubFactory\FieldItemListStubFactory;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests FieldItemListStubFactory class.
+ *
+ * @covers FieldItemListStubFactory::create
+ * @covers FieldItemListStubFactory::createFieldItemDefinitionStub
+ * @covers TestHelpers::addFieldPlugin
+ * @covers TestHelpers::createFieldStub
  */
 #[CoversClass(FieldItemListStubFactory::class)]
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(FieldItemListStubFactory::class, 'create')]
-#[CoversMethod(FieldItemListStubFactory::class, 'createFieldItemDefinitionStub')]
-#[CoversMethod(TestHelpers::class, 'addFieldPlugin')]
-#[CoversMethod(TestHelpers::class, 'createFieldStub')]
 class FieldItemListStubFactoryTest extends UnitTestCase {
 
   /**

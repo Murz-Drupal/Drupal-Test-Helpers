@@ -19,17 +19,17 @@ use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\user\Entity\User;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests EntityStubFactory class.
+ *
+ * @covers EntityStubFactory::create
+ * @covers EntityStorageStubFactory::create
  */
 #[CoversClass(EntityStubFactory::class)]
 #[CoversClass(EntityStorageStubFactory::class)]
 #[Group('test_helpers')]
-#[CoversMethod(EntityStubFactory::class, 'create')]
-#[CoversMethod(EntityStorageStubFactory::class, 'create')]
 class EntityStubFactoryTest extends UnitTestCase {
 
   /**

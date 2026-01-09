@@ -10,15 +10,15 @@ use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Query helper functions.
+ *
+ * @covers TestHelpers::queryIsSubsetOf
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'queryIsSubsetOf')]
 class QueryIsSubsetOfTest extends UnitTestCase {
 
   /**

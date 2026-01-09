@@ -9,17 +9,17 @@ use Drupal\Tests\test_helpers\Unit\Assets\ClassWithProtectedItemsStub;
 use Drupal\Tests\test_helpers\Unit\Assets\StaticClassWithProtectedItemsStub;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CreateEntityStub API function.
+ *
+ * @covers TestHelpers::getPrivateProperty
+ * @covers TestHelpers::getPrivateMethod
+ * @covers TestHelpers::callPrivateMethod
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'getPrivateProperty')]
-#[CoversMethod(TestHelpers::class, 'getPrivateMethod')]
-#[CoversMethod(TestHelpers::class, 'callPrivateMethod')]
 class PrivateMethodsPropertiesTest extends UnitTestCase {
 
   /**

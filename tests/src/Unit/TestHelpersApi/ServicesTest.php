@@ -16,20 +16,20 @@ use Drupal\media\Plugin\Derivative\DynamicLocalTasks;
 use Drupal\test_helpers\TestHelpers;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Query helper functions.
+ *
+ * @covers TestHelpers::service
+ * @covers TestHelpers::setServices
+ * @covers TestHelpers::createClass
+ * @covers TestHelpers::initServiceFromYaml
+ * @covers TestHelpers::initService
+ * @covers TestHelpers::initEntityTypeManagerStubs
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'service')]
-#[CoversMethod(TestHelpers::class, 'setServices')]
-#[CoversMethod(TestHelpers::class, 'createClass')]
-#[CoversMethod(TestHelpers::class, 'initServiceFromYaml')]
-#[CoversMethod(TestHelpers::class, 'initService')]
-#[CoversMethod(TestHelpers::class, 'initEntityTypeManagerStubs')]
 class ServicesTest extends UnitTestCase {
 
   use StringTranslationTrait;

@@ -11,16 +11,16 @@ use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCompiler;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests UrlGeneratorStub class.
+ *
+ * @covers RouteProviderStub::stubAddRoute
+ * @covers RouteProviderStub::stubAddRouteByPath
  */
 #[CoversClass(RouteProviderStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(RouteProviderStub::class, 'stubAddRoute')]
-#[CoversMethod(RouteProviderStub::class, 'stubAddRouteByPath')]
 class RouteProviderStubTest extends UnitTestCase {
 
   /**

@@ -10,19 +10,19 @@ use Drupal\test_helpers\StubFactory\EntityStorageStubFactory;
 use Drupal\test_helpers\Stub\EntityTypeManagerStub;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests Query helper functions.
+ *
+ * @covers TestHelpers::getEntityStorage
+ * @covers EntityStorageStubFactory::create
+ * @covers EntityTypeManagerStub::stubGetOrCreateStorage
  */
 #[CoversClass(TestHelpers::class)]
 #[CoversClass(EntityStorageStubFactory::class)]
 #[CoversClass(EntityTypeManagerStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'getEntityStorage')]
-#[CoversMethod(EntityStorageStubFactory::class, 'create')]
-#[CoversMethod(EntityTypeManagerStub::class, 'stubGetOrCreateStorage')]
 class GetEntityStorageTest extends UnitTestCase {
 
   /**

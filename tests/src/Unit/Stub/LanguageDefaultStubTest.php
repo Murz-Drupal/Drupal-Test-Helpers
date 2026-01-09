@@ -11,20 +11,20 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\LanguageDefaultStub;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests LanguageDefaultStub class.
+ *
+ * @covers ConfigurableLanguageManagerStub::__construct
+ * @covers ConfigurableLanguageManagerStub::stubAddLanguage
+ * @covers ConfigurableLanguageManagerStub::getCurrentLanguage
+ * @covers LanguageDefaultStub::set
+ * @covers LanguageDefaultStub::stubSetByCode
  */
 #[CoversClass(ConfigurableLanguageManagerStub::class)]
 #[CoversClass(LanguageDefaultStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(ConfigurableLanguageManagerStub::class, '__construct')]
-#[CoversMethod(ConfigurableLanguageManagerStub::class, 'stubAddLanguage')]
-#[CoversMethod(ConfigurableLanguageManagerStub::class, 'getCurrentLanguage')]
-#[CoversMethod(LanguageDefaultStub::class, 'set')]
-#[CoversMethod(LanguageDefaultStub::class, 'stubSetByCode')]
 class LanguageDefaultStubTest extends UnitTestCase {
 
   /**

@@ -9,16 +9,16 @@ use Drupal\test_helpers\Stub\RendererStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests RendererStub class.
+ *
+ * @covers RendererStub::__construct
+ * @covers RendererStub::doRender
  */
 #[CoversClass(RendererStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(RendererStub::class, '__construct')]
-#[CoversMethod(RendererStub::class, 'doRender')]
 class RendererStubTest extends UnitTestCase {
 
   /**

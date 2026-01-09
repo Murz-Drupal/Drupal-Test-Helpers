@@ -11,23 +11,23 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Stub\DatabaseConnectionStub\Connection;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests DatabaseConnectionStub class.
+ *
+ * @covers Connection::__construct
+ * @covers Connection::stubSetExecuteHandler
+ * @covers Connection::select
+ * @covers Connection::delete
+ * @covers Connection::insert
+ * @covers Connection::startTransaction
+ * @covers Connection::popTransaction
+ * @covers Connection::mockExecuteForMethod
+ * @covers Connection::stubGetConnection
  */
 #[CoversClass(Connection::class)]
 #[Group('test_helpers')]
-#[CoversMethod(Connection::class, '__construct')]
-#[CoversMethod(Connection::class, 'stubSetExecuteHandler')]
-#[CoversMethod(Connection::class, 'select')]
-#[CoversMethod(Connection::class, 'delete')]
-#[CoversMethod(Connection::class, 'insert')]
-#[CoversMethod(Connection::class, 'startTransaction')]
-#[CoversMethod(Connection::class, 'popTransaction')]
-#[CoversMethod(Connection::class, 'mockExecuteForMethod')]
-#[CoversMethod(Connection::class, 'stubGetConnection')]
 class DatabaseConnectionStubTest extends UnitTestCase {
 
   /**

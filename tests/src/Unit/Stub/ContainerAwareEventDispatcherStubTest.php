@@ -9,17 +9,17 @@ use Drupal\test_helpers\Stub\ContainerAwareEventDispatcherStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests ContainerAwareEventDispatcherStub class.
+ *
+ * @covers ContainerAwareEventDispatcherStub::__construct
+ * @covers ContainerAwareEventDispatcherStub::dispatch
+ * @covers ContainerAwareEventDispatcherStub::stubGetDispatchedEvents
  */
 #[CoversClass(ContainerAwareEventDispatcherStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(ContainerAwareEventDispatcherStub::class, '__construct')]
-#[CoversMethod(ContainerAwareEventDispatcherStub::class, 'dispatch')]
-#[CoversMethod(ContainerAwareEventDispatcherStub::class, 'stubGetDispatchedEvents')]
 class ContainerAwareEventDispatcherStubTest extends UnitTestCase {
 
   /**

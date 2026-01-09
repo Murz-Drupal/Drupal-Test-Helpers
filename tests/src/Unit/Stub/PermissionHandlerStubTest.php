@@ -8,17 +8,17 @@ use Drupal\test_helpers\Stub\PermissionHandlerStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests PermissionHandlerStub class.
+ *
+ * @covers PermissionHandlerStub::stubSetPermissions
+ * @covers PermissionHandlerStub::stubAddPermissions
+ * @covers PermissionHandlerStub::stubDeletePermissions
  */
 #[CoversClass(PermissionHandlerStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(PermissionHandlerStub::class, 'stubSetPermissions')]
-#[CoversMethod(PermissionHandlerStub::class, 'stubAddPermissions')]
-#[CoversMethod(PermissionHandlerStub::class, 'stubDeletePermissions')]
 class PermissionHandlerStubTest extends UnitTestCase {
 
   /**

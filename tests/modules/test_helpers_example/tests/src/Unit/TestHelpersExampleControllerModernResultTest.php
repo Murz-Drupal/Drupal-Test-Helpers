@@ -8,17 +8,17 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests TestHelpersExampleController with Test Helpers API to check the result.
+ *
+ * @covers TestHelpersExampleController::__construct
+ * @covers TestHelpersExampleController::create
+ * @covers TestHelpersExampleController::articlesList
  */
 #[CoversClass(TestHelpersExampleController::class)]
 #[Group('test_helpers_example')]
-#[CoversMethod(TestHelpersExampleController::class, '__construct')]
-#[CoversMethod(TestHelpersExampleController::class, 'create')]
-#[CoversMethod(TestHelpersExampleController::class, 'articlesList')]
 class TestHelpersExampleControllerModernResultTest extends UnitTestCase {
 
   /**

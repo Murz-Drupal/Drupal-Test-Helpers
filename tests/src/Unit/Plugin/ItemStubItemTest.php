@@ -10,16 +10,16 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\Plugin\Field\FieldType\ItemStubItem;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests ItemStubItem class.
+ *
+ * @covers ItemStubItem::schema
+ * @covers ItemStubItem::generateSampleValue
  */
 #[CoversClass(ItemStubItem::class)]
 #[Group('test_helpers')]
-#[CoversMethod(ItemStubItem::class, 'schema')]
-#[CoversMethod(ItemStubItem::class, 'generateSampleValue')]
 class ItemStubItemTest extends UnitTestCase {
 
   /**

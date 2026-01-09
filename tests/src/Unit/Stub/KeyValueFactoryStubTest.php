@@ -8,16 +8,16 @@ use Drupal\test_helpers\Stub\KeyValueFactoryStub;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests the State service from core in the unit tests context.
+ *
+ * @covers KeyValueFactoryStub::__construct
+ * @covers KeyValueFactoryStub::get
  */
 #[CoversClass(KeyValueFactoryStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(KeyValueFactoryStub::class, '__construct')]
-#[CoversMethod(KeyValueFactoryStub::class, 'get')]
 class KeyValueFactoryStubTest extends UnitTestCase {
 
   /**

@@ -9,15 +9,15 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests UnitTestHelpers functions.
+ *
+ * @covers TestHelpers::getMockedMethod
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'getMockedMethod')]
 class GetMockedMethodTest extends UnitTestCase {
 
   /**

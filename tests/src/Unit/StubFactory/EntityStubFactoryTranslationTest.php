@@ -10,16 +10,16 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\node\Entity\Node;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests LanguageManagerStub class.
+ *
+ * @covers ConfigurableLanguageManagerStub::stubAddLanguage
  */
 #[CoversClass(EntityStubFactory::class)]
 #[CoversClass(ConfigurableLanguageManagerStub::class)]
 #[Group('test_helpers')]
-#[CoversMethod(ConfigurableLanguageManagerStub::class, 'stubAddLanguage')]
 class EntityStubFactoryTranslationTest extends UnitTestCase {
 
   /**

@@ -18,17 +18,17 @@ use Drupal\node\Entity\Node;
 use Drupal\test_helpers_example\Controller\TestHelpersExampleController;
 use Drupal\user\UserInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests TestHelpersExampleController using a classic approach.
+ *
+ * @covers TestHelpersExampleController::__construct
+ * @covers TestHelpersExampleController::create
+ * @covers TestHelpersExampleController::articlesList
  */
 #[CoversClass(TestHelpersExampleController::class)]
 #[Group('test_helpers_example')]
-#[CoversMethod(TestHelpersExampleController::class, '__construct')]
-#[CoversMethod(TestHelpersExampleController::class, 'create')]
-#[CoversMethod(TestHelpersExampleController::class, 'articlesList')]
 class TestHelpersExampleControllerClassicTest extends UnitTestCase {
 
   /**

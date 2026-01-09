@@ -2,7 +2,6 @@
 
 namespace Drupal\test_helpers\Stub;
 
-use Drupal\Component\Render\MarkupInterface;
 use Drupal\Core\Render\ElementInfoManagerInterface;
 use Drupal\Core\Render\PlaceholderGeneratorInterface;
 use Drupal\Core\Render\RenderCacheInterface;
@@ -40,8 +39,8 @@ class RendererStub extends Renderer {
   /**
    * {@inheritdoc}
    */
-  protected function doRender(array &$elements, RenderContext $context): string|MarkupInterface {
-    $result = parent::doRender($elements, $context);
+  protected function doRender(&$elements, $is_root_call = FALSE) {
+    $result = parent::doRender($elements, $is_root_call);
     // If we have empty result, providing a json value of the elements.
     if ($result === '') {
       $result = json_encode($elements);

@@ -8,19 +8,19 @@ use Drupal\Component\Transliteration\PhpTransliteration;
 use Drupal\Tests\UnitTestCase;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CreateEntityStub API function.
+ *
+ * @covers TestHelpers::getModuleRoot
+ * @covers TestHelpers::getModuleName
+ * @covers TestHelpers::getCallerInfo
+ * @covers TestHelpers::getDrupalRoot
+ * @covers TestHelpers::getModuleFilePath
  */
 #[CoversClass(TestHelpers::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'getModuleRoot')]
-#[CoversMethod(TestHelpers::class, 'getModuleName')]
-#[CoversMethod(TestHelpers::class, 'getCallerInfo')]
-#[CoversMethod(TestHelpers::class, 'getDrupalRoot')]
-#[CoversMethod(TestHelpers::class, 'getModuleFilePath')]
 class GetModulePathsApiGroupTest extends UnitTestCase {
 
   /**

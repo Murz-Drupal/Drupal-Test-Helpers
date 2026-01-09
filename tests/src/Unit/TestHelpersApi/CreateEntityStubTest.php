@@ -13,17 +13,17 @@ use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\test_helpers\TestHelpers;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests CreateEntityStub API function.
+ *
+ * @covers TestHelpers::createEntity
+ * @covers EntityStubFactory::create
  */
 #[CoversClass(TestHelpers::class)]
 #[CoversClass(EntityStubFactory::class)]
 #[Group('test_helpers')]
-#[CoversMethod(TestHelpers::class, 'createEntity')]
-#[CoversMethod(EntityStubFactory::class, 'create')]
 class CreateEntityStubTest extends UnitTestCase {
 
   /**
