@@ -319,9 +319,12 @@ class HttpClientFactoryStub extends ClientFactory {
    */
   public function stubGetStoredResponse(Request $request): Response {
     $hash = $this->stubGetRequestHash($request);
+    $bodyStream = $request->getBody();
+    $bodyStream->rewind();
+    $body = $bodyStream->getContents();
     $this->stubStoreRequestHashUsage($hash);
     try {
-      $response = $this->stubGetStoredResponseByHash($hash);
+      $response = $this->stubGetStoredResponseByHash($hash, $body);
     }
     catch (\Exception $e) {
       throw new \Exception(
@@ -331,6 +334,7 @@ class HttpClientFactoryStub extends ClientFactory {
         . " Use the '" . self::EMV_HTTP_CLIENT_MODE . "=store' environment variable to create files with stored responses."
       );
     }
+    $response->getBody()->rewind();
     return $response;
   }
 

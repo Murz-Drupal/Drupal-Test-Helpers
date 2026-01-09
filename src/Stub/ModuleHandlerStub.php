@@ -2,34 +2,44 @@
 
 namespace Drupal\test_helpers\Stub;
 
+use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\NullBackend;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ModuleHandler;
+use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
+use Drupal\Core\Utility\CallableResolver;
 use Drupal\test_helpers\TestHelpers;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * A stub of the Drupal's default ModuleHandler class.
+ * A stub of Drupal's default ModuleHandler class.
  *
- *  @package TestHelpers\DrupalServiceStubs
+ * @package TestHelpers\DrupalServiceStubs
  */
 class ModuleHandlerStub extends ModuleHandler {
 
   /**
    * Constructs a new TypedDataManagerStubFactory.
    */
-  public function __construct() {
-    $this->root = TestHelpers::getDrupalRoot();
-    $this->moduleList = [];
-    // The cache backend is added only in Drupal 11.x+, check if it is present.
-    if (property_exists($this, 'eventDispatcher')) {
-      $this->eventDispatcher = TestHelpers::createMock(EventDispatcherInterface::class);
-    }
-    // The cache backend is removed in Drupal 11.1.x+.
-    // @todo Remove this when dropping support for Drupal 11.0.x.
-    if (property_exists($this, 'cacheBackend')) {
-      $this->cacheBackend = new NullBackend('test_helpers');
-    }
+  public function __construct(
+    $root,
+    ?array $module_list,
+    ?KeyValueFactoryInterface $keyValueFactory,
+    ?CallableResolver $callableResolver,
+    ?CacheBackendInterface $cache,
+  ) {
+    $root ??= TestHelpers::getDrupalRoot();
+    $module_list ??= [];
+    $keyValueFactory ??= TestHelpers::createMock(KeyValueFactoryInterface::class);
+    $callableResolver ??= TestHelpers::createMock(CallableResolver::class);
+    $cache ??= new NullBackend(self::class);
+
+    parent::__construct(
+      $root,
+      $module_list,
+      $keyValueFactory,
+      $callableResolver,
+      $cache,
+    );
   }
 
   /**

@@ -198,7 +198,7 @@ class EntityStubFactory {
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
           $this->entityTypeId = $entityTypeId;
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
-          $this->entityKeys['bundle'] = $bundle ? $bundle : $this->entityTypeId;
+          $this->entityKeys['bundle'] = $bundle ?: $this->entityTypeId;
           // @phpstan-ignore-next-line `$this` will be available in the runtime.
           foreach ($this->getEntityType()->getKeys() as $key => $field) {
             if (isset($values[$field])) {

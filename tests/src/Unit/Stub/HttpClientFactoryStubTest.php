@@ -211,7 +211,7 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $baseUri = $server->getServerRoot();
     $handlerResponse = NULL;
     $throwExceptionHandler = function (callable $handler) use (&$handlerResponse) {
-      return function ($request, array $options) use ($handler, &$handlerResponse) {
+      return function ($request, array $options) use (&$handlerResponse) {
         /** @var \Psr\Http\Message\ResponseInterface $handlerResponse */
         throw new BadResponseException('Test1', $request, $handlerResponse);
       };
@@ -258,7 +258,6 @@ class HttpClientFactoryStubTest extends UnitTestCase {
     $server->start();
     $requestPath = '/testStoringSameRequestWithContext-endpoint';
     $baseUri = $server->getServerRoot();
-    $url = $baseUri . $requestPath;
 
     $httpClientFactoryStubStore = new HttpClientFactoryStub(
       responsesStorageDirectory: self::RESPONSES_STORAGE_DIRECTORY,

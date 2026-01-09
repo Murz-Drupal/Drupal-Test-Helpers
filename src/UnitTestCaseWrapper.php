@@ -2,6 +2,7 @@
 
 namespace Drupal\test_helpers;
 
+use Drupal\Component\Utility\Random;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\Generator\CannotUseAddMethodsException;
@@ -18,7 +19,7 @@ class UnitTestCaseWrapper extends UnitTestCase {
    */
   // To suppress "Possible useless method overriding detected" warning.
   // @codingStandardsIgnoreStart
-  public function getRandomGenerator() {
+  public function getRandomGenerator(): Random {
     return parent::getRandomGenerator();
   }
   // @codingStandardsIgnoreEnd

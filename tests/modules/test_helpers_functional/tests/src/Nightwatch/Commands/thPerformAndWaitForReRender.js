@@ -46,7 +46,6 @@ module.exports = class ThPerformAndWaitForReRender {
             isElReloaded = true;
             break;
           }
-          this.api.pause(pause);
         }
         if (!isElReloaded) {
           const error = `The element "${checkElementSelector}" was not rerendered.`;
